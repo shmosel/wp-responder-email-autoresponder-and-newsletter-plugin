@@ -10,14 +10,14 @@ With WP Responder you can create email newsletters, follow up autoresponders, pr
 == Description ==
 
 This is a email newsletter and autoresponder plugin. With this plugin you can create:
-1. Create unlimited number of newsletter lists
-2. Create followup email responses that can be schedueld to go out after a specific number of days since the subscriber subscribes.
-3. Provide email subscriptions to your blog without using third party services like Feedburner
-4. Generate subscription forms and then use them on your website anywhere. 
-5. Collect more information about your subscribers by generating custom fields for your subscription forms. 
-6. Schedule e-mail broadcasts to your email newsletters in text/html. You can even send the broadcast to specific sections of your newsletter by selecting them using the custom fields. 
-7. Provide email subscription to specific categories in your blog
-8. Import your subscribers from Feedburner. 
+* Create unlimited number of newsletter lists
+* Create followup email responses that can be schedueld to go out after a specific number of days since the subscriber subscribes.
+* Provide email subscriptions to your blog without using third party services like Feedburner
+* Generate subscription forms and then use them on your website anywhere. 
+* Collect more information about your subscribers by generating custom fields for your subscription forms. 
+* Schedule e-mail broadcasts to your email newsletters in text/html. You can even send the broadcast to specific sections of your newsletter by selecting them using the custom fields. 
+* Provide email subscription to specific categories in your blog
+* Import your subscribers from Feedburner. 
 
 The newsletters work indepedent of the working of the blog. 
 
