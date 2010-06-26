@@ -467,7 +467,7 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 
 	$p = base64_encode($theqstring);
 
-	$link = get_bloginfo("siteurl")."/".PLUGINDIR."/wpresponder/confirm.php?p=".$p;
+	$link = get_bloginfo("siteurl")."/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/confirm.php?p=".$p;
 
 	$confirm = file_get_contents("templates/confirm.txt");
 

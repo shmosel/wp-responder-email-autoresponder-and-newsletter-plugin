@@ -14,7 +14,7 @@ function showWindow()
 	var theSubscribers = recipients.value;
 	var vpos = (screen.availHeight/2)-300;
 	var hpos = (screen.availWidth/2)-300;
-	currentWindow = window.open('<?php bloginfo('siteurl'); ?>/<?php echo PLUGINDIR ?>/wpresponder/filter.php?nid='+getCurrentNewsletter(),'customizer','height=500,width=900,left='+hpos+',top='+vpos);
+	currentWindow = window.open('<?php bloginfo('siteurl'); ?>/<?php echo PLUGINDIR ?>/wp-responder-email-autoresponder-and-newsletter-plugin/filter.php?nid='+getCurrentNewsletter(),'customizer','height=500,width=900,left='+hpos+',top='+vpos);
 }
 
 function newsletterChanged(nid)

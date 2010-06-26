@@ -29,7 +29,7 @@ function _wpr_manage_responder_delete()
 		$query = "DELETE FROM ".$wpdb->prefix."wpr_autoresponder_messages where id=".$id;
 		$wpdb->query($query);
 		?>
-        <script>window.location='admin.php?page=wpresponder/autoresponder.php&action=manage&aid=<?php echo $_GET['aid'] ?>';</script>
+        <script>window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php&action=manage&aid=<?php echo $_GET['aid'] ?>';</script>
         <?php
 		
 	}
@@ -38,7 +38,7 @@ function _wpr_manage_responder_delete()
 		?>
         <div class="wrap"><h2>Confirm Deletion Of '<?php echo $message->subject ?>'</h2></div>
         <div class="updated fade">Are you sure you want to delete this message? </div>
-        <a href="<?php echo $_SERVER['REQUEST_URI'] ?>&confirm=true" class="button">Yes</a>&nbsp; <a href="admin.php?page=wpresponder/autoresponder.php&aid=<?php echo $_GET['aid']; ?>&action=manage" class="button">Cancel</a>
+        <a href="<?php echo $_SERVER['REQUEST_URI'] ?>&confirm=true" class="button">Yes</a>&nbsp; <a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php&aid=<?php echo $_GET['aid']; ?>&action=manage" class="button">Cancel</a>
         <?php
 	}
 }
@@ -72,7 +72,7 @@ function _wpr_manage_responder_create()
 				$wpdb->query($query);
 				?>
                 <div class="wrap"><h2>Message Added</h2></div>
-                <a href="admin.php?page=wpresponder/autoresponder.php&action=manage&aid=<?php echo $_GET['aid'] ?>" class="button">OK</a>
+                <a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php&action=manage&aid=<?php echo $_GET['aid'] ?>" class="button">OK</a>
                 </a>
                 <?php
 				return;
@@ -117,13 +117,13 @@ function _wpr_manage_responder_list()
     <tr>
        <td><?php echo htmlspecialchars($message->subject) ?></td>
        <td><?php echo htmlspecialchars($message->sequence) ?></td>
-       <td><a href="admin.php?page=wpresponder/autoresponder.php&action=manage&mact=edit&aid=<?php echo $_GET['aid'] ?>&id=<?php echo $message->id ?>" class="button">Edit</a>&nbsp;<a href="admin.php?page=wpresponder/autoresponder.php&action=manage&mact=delete&aid=<?php echo $_GET['aid'] ?>&id=<?php echo $message->id ?>" class="button">Delete</a></td>
+       <td><a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php&action=manage&mact=edit&aid=<?php echo $_GET['aid'] ?>&id=<?php echo $message->id ?>" class="button">Edit</a>&nbsp;<a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php&action=manage&mact=delete&aid=<?php echo $_GET['aid'] ?>&id=<?php echo $message->id ?>" class="button">Delete</a></td>
     </tr>
        <?php
 	}
 	?>
 </table>
-<a href="admin.php?page=wpresponder/autoresponder.php" class="button">&laquo; Back To Autoresponders</a>&nbsp;<input type="button" value="Add Message" onclick="window.location='admin.php?page=wpresponder/autoresponder.php&action=manage&mact=create&aid=<?php echo $_GET['aid'] ?>'" class="button" />
+<a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php" class="button">&laquo; Back To Autoresponders</a>&nbsp;<input type="button" value="Add Message" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php&action=manage&mact=create&aid=<?php echo $_GET['aid'] ?>'" class="button" />
 
 <?php
 }
@@ -158,7 +158,7 @@ function _wpr_manage_responder_edit()
 				$wpdb->query($query);
 				?>
 <script>
-window.location='admin.php?page=wpresponder/autoresponder.php&action=manage&aid=<?php echo $_GET['aid']; ?>';
+window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php&action=manage&aid=<?php echo $_GET['aid']; ?>';
 </script>
 <?php
 				return;

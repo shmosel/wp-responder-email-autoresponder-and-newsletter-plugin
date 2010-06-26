@@ -1,7 +1,7 @@
 <?php
 function path_to_this_page()
 {
-	return "admin.php?page=wpresponder/importexport.php";
+	return "admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/importexport.php";
 }
 function wpr_importexport()
 {
@@ -112,7 +112,7 @@ function step1()
 	global $wpdb;
         
 	
-	$output = '<form action="admin.php?page=wpresponder/importexport.php&action=wizard&step=1" method="post">';
+	$output = '<form action="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/importexport.php&action=wizard&step=1" method="post">';
 	$nonce = wp_create_nonce('firststep_wpnonce');
 	$output .= '<input type="hidden" name="firststep_wpnonce" value="'.$nonce.'"/>';
 	$output .= "<h2>Step 1: Select the newsletter</h2>Please select the newsletter to which you want to import the subscribers";
@@ -134,7 +134,7 @@ function step2()
 {
 	global $wpdb;
 	$rootpath = realpath("..");        
-	$output = include($rootpath."/".PLUGINDIR."/wpresponder/import.php");
+	$output = include($rootpath."/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/import.php");
 	echo $output;
 }
 
@@ -142,7 +142,7 @@ function step4()
 {
 	global $wpdb;
 	$rootpath = realpath("..");
-	$output = include($rootpath."/".PLUGINDIR."/wpresponder/import3.php");
+	$output = include($rootpath."/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/import3.php");
 	echo $output;
 }
 
@@ -203,7 +203,7 @@ function step3($error="")
 {
 	global $wpdb;
 	$rootpath = realpath("..");
-	$output = include($rootpath."/".PLUGINDIR."/wpresponder/import2.php");
+	$output = include($rootpath."/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/import2.php");
 	echo $output;
 }
 
@@ -613,7 +613,7 @@ function wizard()
 			handleStep1($moveToStep2);
 			if ($moveToStep2)
 			{
-				redirect("admin.php?page=wpresponder/importexport.php&action=wizard&step=2");	
+				redirect("admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/importexport.php&action=wizard&step=2");	
 			}
 		}
 		else
@@ -631,7 +631,7 @@ function wizard()
 			handleStep2($moveToStep3);
 			if ($moveToStep3)
 			{
-				redirect("admin.php?page=wpresponder/importexport.php&action=wizard&step=3");	
+				redirect("admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/importexport.php&action=wizard&step=3");	
 			}
 			else
 				step2();
@@ -651,7 +651,7 @@ function wizard()
 			handleStep3($moveToStep4,$error);
 			if ($moveToStep4)
 			{
-				redirect("admin.php?page=wpresponder/importexport.php&action=wizard&step=4");	
+				redirect("admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/importexport.php&action=wizard&step=4");	
 			}
 			else
 			{

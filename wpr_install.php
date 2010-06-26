@@ -170,10 +170,10 @@ function wpresponder_install()
 	add_option("wpr_last_post_date",$last_post_date);
 		
 		
-	$confirm_subject = file_get_contents(ABSPATH. PLUGINDIR. "/wpresponder/templates/confirm_subject.txt");
-	$confirm_body = file_get_contents(ABSPATH. PLUGINDIR. "/wpresponder/templates/confirm_body.txt");
-	$confirmed_subject = file_get_contents(ABSPATH. PLUGINDIR. "/wpresponder/templates/confirmed_subject.txt");
-	$confirmed_body = file_get_contents(ABSPATH. PLUGINDIR. "/wpresponder/templates/confirmed_body.txt");
+	$confirm_subject = file_get_contents(ABSPATH. PLUGINDIR. "/wp-responder-email-autoresponder-and-newsletter-plugin/templates/confirm_subject.txt");
+	$confirm_body = file_get_contents(ABSPATH. PLUGINDIR. "/wp-responder-email-autoresponder-and-newsletter-plugin/templates/confirm_body.txt");
+	$confirmed_subject = file_get_contents(ABSPATH. PLUGINDIR. "/wp-responder-email-autoresponder-and-newsletter-plugin/templates/confirmed_subject.txt");
+	$confirmed_body = file_get_contents(ABSPATH. PLUGINDIR. "/wp-responder-email-autoresponder-and-newsletter-plugin/templates/confirmed_body.txt");
 
 
         file_put_contents("./installog","These are the values from the files: '$confirm_body', '$confirm_subject'");

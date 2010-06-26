@@ -1,4 +1,4 @@
-=== Plugin Name ===
+=== WP Responder ===
 Contributors: Raj Sekharan
 Donate link: http://wpresponder.com/donate/
 Tags: email, newsletter, autoresponder, subscribers, mailing list, follow up email autoresponder

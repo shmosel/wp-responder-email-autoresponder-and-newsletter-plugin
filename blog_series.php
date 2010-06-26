@@ -33,7 +33,7 @@ function _wpr_blog_series_delete()
 		$query = "DELETE FROM ".$wpdb->prefix."wpr_followup_subscriptions where type='blogseries' and eid='$bid'";
 		$wpdb->query($query);
 		?>
-        <script>window.location='admin.php?page=wpresponder/blogseries.php';</script><?php
+        <script>window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/blogseries.php';</script><?php
 	}
 	else
 	{
@@ -43,7 +43,7 @@ function _wpr_blog_series_delete()
 <br />
         This will not delete any blog posts or categories. It will stop sending the blog posts to users who have opted-in to receive this post series by e-mail.<br/>
 <br />
-        <a href="<?php echo $_SERVER['REQUEST_URI'] ?>&confirm=true" class="button">Yes</a>  <a href="admin.php?page=wpresponder/blogseries.php" class="button">Cancel</a>
+        <a href="<?php echo $_SERVER['REQUEST_URI'] ?>&confirm=true" class="button">Yes</a>  <a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/blogseries.php" class="button">Cancel</a>
         <?php
 	}
 }
@@ -82,7 +82,7 @@ function _wpr_blog_series_list()
       <td><?php $taxonomy = get_category($series->catid);
 			 echo $taxonomy->name ;
 			 ?></td>
-      <td><input type="button" value="Delete" onclick="window.location='admin.php?page=wpresponder/blogseries.php&action=delete&bid=<?php echo $series->id ?>'" class="button" /></td>
+      <td><input type="button" value="Delete" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/blogseries.php&action=delete&bid=<?php echo $series->id ?>'" class="button" /></td>
     </tr>
     <?php
 	  }
@@ -92,7 +92,7 @@ function _wpr_blog_series_list()
   </table>
 </form>
       
-<input type="button" value="Create" onclick="window.location='admin.php?page=wpresponder/blogseries.php&action=create';" style="margin: 10px;clear:both;" class="button" />
+<input type="button" value="Create" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/blogseries.php&action=create';" style="margin: 10px;clear:both;" class="button" />
 
 
 
@@ -127,7 +127,7 @@ function _wpr_blog_series_create()
 			$query = "INSERT INTO ".$wpdb->prefix."wpr_blog_series (name, catid,frequency) VALUES ('$name','$cid','$freq');";
 			$wpdb->query($query);
 			?>
-<script>window.location='admin.php?page=wpresponder/blogseries.php'</script>
+<script>window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/blogseries.php'</script>
 <?php
 exit;
 		}

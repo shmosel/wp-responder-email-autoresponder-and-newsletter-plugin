@@ -153,7 +153,7 @@ function _wpr_mail_sending($nowOrLater="now")
 
 The mail broadcast has been scheduled and will be delivered at the specified time. 
 <p>
-<a href="admin.php?page=wpresponder/allmailouts.php" class="button-primary">View All Broadcasts</a> <a href="admin.php?page=wpresponder/wpresponder.php" class="button">Go to Dashboard</a>
+<a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/allmailouts.php" class="button-primary">View All Broadcasts</a> <a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/wpresponder.php" class="button">Go to Dashboard</a>
 </p>
     <?php
 

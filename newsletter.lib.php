@@ -5,9 +5,7 @@
 
 
 function _wpr_newsletter_get($id)
-
 {
-
 	global $wpdb;
 
 	$query = "SELECT * FROM ".$wpdb->prefix."wpr_newsletters where id=$id";
@@ -159,7 +157,7 @@ else
                   </tr>
                   <tr>
                     <td valign="top">[!address!]</td>
-                    <td>Your address as you configured it in the <a href="admin.php?page=wpresponder/settings.php">Newsletter > Settings</a> page. This is required to be in compliance with
+                    <td>Your address as you configured it in the <a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/settings.php">Newsletter > Settings</a> page. This is required to be in compliance with
                       
                       CANSPAM act.<br>
                       Currently your address is : <br>
@@ -210,7 +208,7 @@ else
       <td><label for="button"></label>
         <input type="hidden" name="id" value="<?php echo $parameters->id ?>"  />
         <input class="button" type="submit" name="button" id="button" value="<?php echo $button ?>" />
-        <input class="button" type="button" onclick="window.location='admin.php?page=wpresponder/newsletter.php'" name="button" id="button" value="Cancel" /></td>
+        <input class="button" type="button" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php'" name="button" id="button" value="Cancel" /></td>
       <td>&nbsp;</td>
     </tr>
   </table>

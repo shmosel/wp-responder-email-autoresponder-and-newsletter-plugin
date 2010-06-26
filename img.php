@@ -51,7 +51,7 @@ function  generate_chart($nid)
 	
 	}
 	get_option("upload_path");
-	$pluginBasePath = realpath(get_option("upload_path")."/../plugins/wpresponder");	
+	$pluginBasePath = realpath(get_option("upload_path")."/../plugins/wp-responder-email-autoresponder-and-newsletter-plugin");	
 	$max = ($max <10)?10:$max;
 	$subscriptionsList->AddAllSeries();
 	$subscriptionsList->SetAbsciseLabelSerie("Date");
@@ -69,7 +69,7 @@ function  generate_chart($nid)
 	$theChart->drawPlotGraph($subscriptionsList->GetData(),$subscriptionsList->GetDataDescription(),3,2,255,255,255);
 	$theChart->drawGrid(4,TRUE,230,230,230,50);
 	$uploadPath= get_option("upload_path");
-	$theFile = "$uploadPath/wpresponder/subscription_graph_".$nid.".png";
+	$theFile = "$uploadPath/wp-responder-email-autoresponder-and-newsletter-plugin/subscription_graph_".$nid.".png";
 	$theChart->Render($theFile);
 	
 }

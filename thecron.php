@@ -107,7 +107,7 @@ function sendmail($sid,$params,$footerMessage="")
 
 	$header = "$fromHeader $replytoHeader";	
 
-	$unsuburl = $url."/wp-content/plugins/wpresponder/manage.php?$codedString";	
+	$unsuburl = $url."/wp-content/plugins/wp-responder-email-autoresponder-and-newsletter-plugin/manage.php?$codedString";	
 
 	$subject = $params['subject'];
 

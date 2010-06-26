@@ -195,7 +195,7 @@ function showPreviewForm()
 
     var nid = wpr_GetNewsletter();
 
-    if (window.open('<?php echo bloginfo("home") ?>/<?php echo PLUGINDIR ?>/wpresponder/preview_email.php?nid='+nid,'previewWindow','width=500,height=500'))
+    if (window.open('<?php echo bloginfo("home") ?>/<?php echo PLUGINDIR ?>/wp-responder-email-autoresponder-and-newsletter-plugin/preview_email.php?nid='+nid,'previewWindow','width=500,height=500'))
 
     {
 
@@ -644,7 +644,7 @@ toggleHTML();
         <td colspan="3"><br />
           <input type="hidden" name="mid" value="<?php echo $parameters->id ?>"  />
           <input type="hidden" name="recipients" id="recipients" value="<?php echo $parameters->recipients ?>" />
-          <a href="javascript:showWindow();" class="button">Customize Recipients <img src="<?php bloginfo("siteurl") ?>/<?php echo PLUGINDIR ?>/wpresponder/newwindow.gif" /></a><br />
+          <a href="javascript:showWindow();" class="button">Customize Recipients <img src="<?php bloginfo("siteurl") ?>/<?php echo PLUGINDIR ?>/wp-responder-email-autoresponder-and-newsletter-plugin/newwindow.gif" /></a><br />
           <br /></td>
       </tr>
       <?php

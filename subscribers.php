@@ -139,7 +139,7 @@ function _wpr_subscriber_nmanage_home()
         <div class="wrap"><h2>Search for '<?php echo $_POST['keyword']; ?>'</h2></div>
         <?php
 		_wpr_subscriber_search_form();
-		$back = "page=wpresponder/subscribers.php&action=nmanage&nid=$id";
+		$back = "page=wp-responder-email-autoresponder-and-newsletter-plugin/subscribers.php&action=nmanage&nid=$id";
 		_wpr_subscriber_list($subscribers,true,$back);
 		return;
 	}
@@ -147,7 +147,7 @@ function _wpr_subscriber_nmanage_home()
 	?>
     <div class="wrap"><h2>Manage Subscribers of <?php echo $newsletter->name ?></h2></div>  
    <?php _wpr_subscriber_search_form(); 
-   $backUrl = "page=wpresponder/subscribers.php";
+   $backUrl = "page=wp-responder-email-autoresponder-and-newsletter-plugin/subscribers.php";
 	_wpr_subscriber_list($subscribers,true,$backUrl);
 }
 function _wpr_subscriber_search_form()
@@ -189,7 +189,7 @@ function _wpr_subscriber_home()
 		?>
 	 <tr> 
 		<td><?php echo $newsletter->name ?></td>
-		<td><a href="admin.php?page=wpresponder/subscribers.php&action=nmanage&nid=<?php echo $newsletter->id ?>" class="button">Manage Subscribers</a>&nbsp;</td>
+		<td><a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/subscribers.php&action=nmanage&nid=<?php echo $newsletter->id ?>" class="button">Manage Subscribers</a>&nbsp;</td>
 		</tr>
 		
 		<?php
@@ -287,7 +287,7 @@ function _wpr_subscriber_list($subscribers,$allNewslettersMode=true,$backUrl="")
 				   ?>
                    <td><?php if ($subscriber->active==1) { echo "Active"; } else { echo "Inactive"; } ?></td>
                    <td>
-				   <a href="admin.php?page=wpresponder/subscribers.php&action=profile&sid=<?php echo $subscriber->id ?>" class="button">Edit</a>&nbsp;
+				   <a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/subscribers.php&action=profile&sid=<?php echo $subscriber->id ?>" class="button">Edit</a>&nbsp;
 				   </td>
 				   </tr>
 				   <?php

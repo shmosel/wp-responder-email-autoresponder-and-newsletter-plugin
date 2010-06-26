@@ -416,7 +416,7 @@ include "../../../wp-config.php";
 	{
 		thequery = formQuery(setnum);
 		thestring = encodeBase64(thequery);
-		window.open('<?php bloginfo('siteurl')?>/<?php echo PLUGINDIR ?>/wpresponder/view_recipients.php?string='+thestring+'&nid='+nid,'recipients','width=600,height=600');
+		window.open('<?php bloginfo('siteurl')?>/<?php echo PLUGINDIR ?>/wp-responder-email-autoresponder-and-newsletter-plugin/view_recipients.php?string='+thestring+'&nid='+nid,'recipients','width=600,height=600');
 	}
 	
 	function formSetQueries()

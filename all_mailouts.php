@@ -13,7 +13,7 @@ function wpr_all_mailouts()
 		_wpr_pending_mailouts();	
 		?>
 	<br />
-		<input type="button" class="button" value="Create Broadcast" onclick="window.location='admin.php?page=wpresponder/newmail.php';"/>
+		<input type="button" class="button" value="Create Broadcast" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newmail.php';"/>
 		<br />
 <br />
 	
@@ -113,8 +113,8 @@ function _wpr_pending_mailouts()
 	$mailouts = $wpdb->get_results($query);
 	?>
     <script>
-	var delurl = '<?php bloginfo("siteurl") ?>/<?php echo PLUGINDIR ?>/wpresponder/delmailout.php';
-	var viewurl = '<?php bloginfo("siteurl") ?>/<?php echo PLUGINDIR ?>/wpresponder/viewbroadcast.php';
+	var delurl = '<?php bloginfo("siteurl") ?>/<?php echo PLUGINDIR ?>/wp-responder-email-autoresponder-and-newsletter-plugin/delmailout.php';
+	var viewurl = '<?php bloginfo("siteurl") ?>/<?php echo PLUGINDIR ?>/wp-responder-email-autoresponder-and-newsletter-plugin/viewbroadcast.php';
 	var currentDeletion;
 	function deleteMailout(id)
 	{
@@ -188,7 +188,7 @@ function _wpr_pending_mailouts()
            <td><?php echo date("g:ia d F Y",$mailout->time); ?></td>
            <td><?php $recipients = implode("<br>",explode("%set%",$mailout->recipients));
 		   echo ($recipients)?$recipients:"All Subscribers";?></td>
-           <td><input type="button" value="Edit" class="button" onclick="window.location='admin.php?page=wpresponder/allmailouts.php&action=edit&id=<?php echo $mailout->id ?>';" /><input type="button" value="Cancel" class="button" onclick="deleteMailout(<?php echo $mailout->id ?>)" /></td>
+           <td><input type="button" value="Edit" class="button" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/allmailouts.php&action=edit&id=<?php echo $mailout->id ?>';" /><input type="button" value="Cancel" class="button" onclick="deleteMailout(<?php echo $mailout->id ?>)" /></td>
         </tr>
         <?php
 	}
