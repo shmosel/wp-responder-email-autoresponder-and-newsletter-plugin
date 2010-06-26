@@ -8,7 +8,7 @@ Plugin URI: http://expeditionpost.com/wp-responder/
 
 Description: Add a autopresponder to your blog with features like Aweber.
 
-Version: 2.8.1
+Version: 4.7
 
 Author: Raj Sekharan
 
@@ -258,8 +258,6 @@ add_action('admin_menu', 'wpr_admin_menu');
 add_action('wpr_cronjob','wpr_processEmails');
 
 add_action('wpr_cronjob','wpr_processqueue');
-
-do_action("wpr_cronjob");
 
 register_activation_hook(__FILE__,"wpresponder_install");
 
