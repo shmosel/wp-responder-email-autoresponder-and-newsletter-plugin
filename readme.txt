@@ -34,17 +34,14 @@ To install WP Responder:
 
 == Frequently Asked Questions ==
 
-1.  I see a Fatal Error when running the installation.Why is this?
+*  I see a Fatal Error when running the installation.Why is this?
 
 This is because WP Responder is designed to work only with PHP5. You are most likely using PHP4. 
 
-1. My email broadcasts take forever to go out. Why does this happen?
+* My email broadcasts take forever to go out. Why does this happen?
 
 There may be two causes for this:
 
-* This happens because WP Responder relies on wordpress's cron system. Wordpress's cron system relies on your webstie traffic to trigger the various scheduled activities. If your website has low traffic this will not work. The solution is to **create a cron job on wp-cron.php found in the wordpress root to solve this probelm**.
+** This happens because WP Responder relies on wordpress's cron system. Wordpress's cron system relies on your webstie traffic to trigger the various scheduled activities. If your website has low traffic this will not work. The solution is to **create a cron job on wp-cron.php found in the wordpress root to solve this probelm**.
 
-* Further the hourly limit on the number of emails to go out in a single hour is set to 100 by default. Increase it or set it to 0 if you want to remove the limit on the number of emails that go out in an hour. The hourly limit can be set at Wordpress Dashboard > Newsletters > Settings
-
-1. 
-
+** Further the hourly limit on the number of emails to go out in a single hour is set to 100 by default. Increase it or set it to 0 if you want to remove the limit on the number of emails that go out in an hour. The hourly limit can be set at Wordpress Dashboard > Newsletters > Settings
