@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: WP Responder E-Mail Newsletter And Followup Autoresponder
-Plugin URI: http://expeditionpost.com/wp-responder/
-Description: Add newsletters, follow-up autoresponders and email subscription to your blog.
+Plugin Name: WP Responder
+Plugin URI: http://www.wpresponder.com
+Description: Add a autopresponder to your blog with features like Aweber.
 Version: 4.8
 Author: Raj Sekharan
 Author URI: http://www.expeditionpost.com/
