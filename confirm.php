@@ -8,8 +8,7 @@ $string = $_GET['p'];
 
 $args = base64_decode($string);
 
-$args = explode("%set%",$args);
-
+$args = explode("%%",$args);
 
 $id = trim(strip_tags($args[0]));
 

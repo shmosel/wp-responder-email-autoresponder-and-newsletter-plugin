@@ -225,19 +225,30 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 
 	//the hash...
 
-	$hash = microtime();
 
-	$hash .= rand(rand(10221,26432),rand(26432,54223)); //some really really random number..
-
-	$hash = md5($hash);
-
+    //gnerate a small string
+	/*
 	
-
+	between 48 and 57
+	between 97 and 123 
+	and between 65 and 90
+	*/
+	for ($i=0;$i<6;$i++)
+	{
+		$a[] = rand(65,90);
+		$a[] = rand(97,123);
+		$a[] = rand(48,57);
+		
+		$whichone = rand(0,2);
+		$currentCharacter = chr($a[$whichone]);
+		
+		$hash .= $currentCharacter;
+		unset($a);
+		
+	}
+     $hash .= time();
 	//insert into subscribers list
 
-	
-
-	
 
 	$query = "SELECT * FROM ".$wpdb->prefix."wpr_subscribers where email='$email' and nid='$nid';";
 
@@ -463,7 +474,7 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 
 	
 
-	$theqstring = $subscriber->id."%set%".$subscriber->hash."%set%".$fid;
+	$theqstring = $subscriber->id."%%".$subscriber->hash."%%".$fid;
 
 	$p = base64_encode($theqstring);
 
