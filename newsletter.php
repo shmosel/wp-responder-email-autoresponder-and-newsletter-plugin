@@ -52,7 +52,7 @@ function _wpr_newsletter_edit()
 
 			?>
 
-            <script>window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php'</script>
+            <script>window.location='admin.php?page=wpresponder/newsletter.php'</script>
 
 			<?php
 
@@ -122,7 +122,7 @@ function _wpr_newsletter_add()
 			
 			?>
 
-			<script>window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php'</script>
+			<script>window.location='admin.php?page=wpresponder/newsletter.php'</script>
 			<?php
 
             exit;
@@ -224,13 +224,13 @@ function _wpr_newsletter_list()
 
        <td>
 
-       <input type="button" name="Edit" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php&act=edit&nid=<?php echo $list->id ?>';" value="Edit" class="button" />
+       <input type="button" name="Edit" onclick="window.location='admin.php?page=wpresponder/newsletter.php&act=edit&nid=<?php echo $list->id ?>';" value="Edit" class="button" />
 
        <input type="button" name="Delete" value="Delete" class="button" />
 
-       <input type="button" name="Delete" value="Manage Leads" class="button" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/subscribers.php&action=nmanage&nid=<?php echo $list->id ?>';" />
+       <input type="button" name="Delete" value="Manage Leads" class="button" onclick="window.location='admin.php?page=wpresponder/subscribers.php&action=nmanage&nid=<?php echo $list->id ?>';" />
 
-       <input type="button" name="E-mails" value="Custom Fields" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php&act=custom_field&nid=<?php echo $list->id ?>';" class="button"/>
+       <input type="button" name="E-mails" value="Custom Fields" onclick="window.location='admin.php?page=wpresponder/newsletter.php&act=custom_field&nid=<?php echo $list->id ?>';" class="button"/>
 
        </td>
 

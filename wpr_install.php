@@ -4,7 +4,7 @@ function wpresponder_install()
 {
 	global $wpdb;
 
-
+	add_filter('cron_schedules','wpr_cronshedules');
 
 	$prefix = $wpdb->prefix;
 	$queries[] = "CREATE TABLE IF NOT EXISTS `".$prefix."wpr_autoresponders` (
@@ -170,10 +170,10 @@ function wpresponder_install()
 	add_option("wpr_last_post_date",$last_post_date);
 		
 		
-	$confirm_subject = file_get_contents(ABSPATH. PLUGINDIR. "/wp-responder-email-autoresponder-and-newsletter-plugin/templates/confirm_subject.txt");
-	$confirm_body = file_get_contents(ABSPATH. PLUGINDIR. "/wp-responder-email-autoresponder-and-newsletter-plugin/templates/confirm_body.txt");
-	$confirmed_subject = file_get_contents(ABSPATH. PLUGINDIR. "/wp-responder-email-autoresponder-and-newsletter-plugin/templates/confirmed_subject.txt");
-	$confirmed_body = file_get_contents(ABSPATH. PLUGINDIR. "/wp-responder-email-autoresponder-and-newsletter-plugin/templates/confirmed_body.txt");
+	$confirm_subject = file_get_contents(ABSPATH. PLUGINDIR. "/wpresponder/templates/confirm_subject.txt");
+	$confirm_body = file_get_contents(ABSPATH. PLUGINDIR. "/wpresponder/templates/confirm_body.txt");
+	$confirmed_subject = file_get_contents(ABSPATH. PLUGINDIR. "/wpresponder/templates/confirmed_subject.txt");
+	$confirmed_body = file_get_contents(ABSPATH. PLUGINDIR. "/wpresponder/templates/confirmed_body.txt");
 
 
         file_put_contents("./installog","These are the values from the files: '$confirm_body', '$confirm_subject'");
@@ -222,8 +222,8 @@ function wpresponder_install()
             update_option("wpr_sent_posts","off");
 
 //configure the cron to run hourly.
-	wp_schedule_event(time(), 'hourly', 'wpr_cronjob');
-	wp_schedule_event(time()+6040000,'weekly','wpr_send_errors'); //send weekly error reports.
+	wp_schedule_event(time(), 'every_five_minutes', 'wpr_cronjob');
+	wp_schedule_event(time()+6040000,'daily','wpr_send_errors'); //send weekly error reports.
      
 }
 

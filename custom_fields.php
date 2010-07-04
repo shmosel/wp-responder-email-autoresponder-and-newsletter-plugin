@@ -30,7 +30,7 @@ function _wpr_newsletter_custom_fields_edit()
 				$query = "UPDATE `".$wpdb->prefix."wpr_custom_fields` SET `type`='$type',`label`='$label',`enum`='$enum' where id='$cid';" ;
 				 $wpdb->query($query);
 				?>
-<script>window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php&act=custom_field&nid=<?php echo $nid ?>';</script>
+<script>window.location='admin.php?page=wpresponder/newsletter.php&act=custom_field&nid=<?php echo $nid ?>';</script>
 <?php  
 				exit;
 			}
@@ -105,7 +105,7 @@ function _wpr_newsletter_custom_fields_create()
 				}
 			
 ?>
-	<script>window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php&act=custom_field&nid=<?php echo $nid ?>';</script>
+	<script>window.location='admin.php?page=wpresponder/newsletter.php&act=custom_field&nid=<?php echo $nid ?>';</script>
 <?php  
 			exit;
 			}
@@ -138,7 +138,7 @@ function _wpr_newsletter_custom_fields_delete()
 		
 		
 		?>
-	<script>window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php&act=custom_field&nid=<?php echo $nid ?>';</script>
+	<script>window.location='admin.php?page=wpresponder/newsletter.php&act=custom_field&nid=<?php echo $nid ?>';</script>
 	<?php
 	exit;
 		
@@ -209,14 +209,14 @@ function _wpr_newsletter_custom_fields_list()
     <td><?php echo $field->name ?></td>
     <td><?php echo _wpr_custom_field_name($field->type,$field->enum); ?></td>
     <td><?php echo $field->label; ?></td>
-    <td><input type="button" value="Edit" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php&act=custom_field&nid=<?php echo $newsletter->id ?>&cfact=edit&cid=<?php echo $field->id ?>'" class="button-primary" />
-      <input type="button" value="Delete" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php&act=custom_field&nid=<?php echo $newsletter->id ?>&cfact=delete&cid=<?php echo $field->id ?>';" class="button-primary" /></td>
+    <td><input type="button" value="Edit" onclick="window.location='admin.php?page=wpresponder/newsletter.php&act=custom_field&nid=<?php echo $newsletter->id ?>&cfact=edit&cid=<?php echo $field->id ?>'" class="button-primary" />
+      <input type="button" value="Delete" onclick="window.location='admin.php?page=wpresponder/newsletter.php&act=custom_field&nid=<?php echo $newsletter->id ?>&cfact=delete&cid=<?php echo $field->id ?>';" class="button-primary" /></td>
   </tr>
   <?php
 		  }
 		  ?>
 </table>
-<input type="button" value="Add New Field" class="button" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php&act=custom_field&nid=<?php echo $newsletter->id ?>&cfact=create';" /> <input type="button" value="&laquo; Back To Newsletters" style="float:left" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php&act=list';" class="button" />
+<input type="button" value="Add New Field" class="button" onclick="window.location='admin.php?page=wpresponder/newsletter.php&act=custom_field&nid=<?php echo $newsletter->id ?>&cfact=create';" /> <input type="button" value="&laquo; Back To Newsletters" style="float:left" onclick="window.location='admin.php?page=wpresponder/newsletter.php&act=list';" class="button" />
 <?php
 }
 
@@ -310,7 +310,7 @@ function wpr_customfields()
  	      ?>
  	      <tr>
  	      <td style="height: 30px;">
- 	     <?php echo $newsletter->name ?> </td><td><a class="button" href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php&act=custom_field&nid=<?php echo $newsletter->id ?>">Manage Custom Fields</a></td></tr>
+ 	     <?php echo $newsletter->name ?> </td><td><a class="button" href="admin.php?page=wpresponder/newsletter.php&act=custom_field&nid=<?php echo $newsletter->id ?>">Manage Custom Fields</a></td></tr>
  	      <?php
       }
       ?></table>
@@ -319,7 +319,7 @@ function wpr_customfields()
       else
       {
       ?>
-	<p style="padding: 20px; display:block; text-align:center; width: 600px; background-color: #fefefe;border: 1px solid #000;">There are no newsletter to which custom fields can be associated.<a href="http://localhost/blog/wp-admin/admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php&act=add">Create a newsletter</a> to add custom fields.</p>
+	<p style="padding: 20px; display:block; text-align:center; width: 600px; background-color: #fefefe;border: 1px solid #000;">There are no newsletter to which custom fields can be associated.<a href="http://localhost/blog/wp-admin/admin.php?page=wpresponder/newsletter.php&act=add">Create a newsletter</a> to add custom fields.</p>
 	<?php
       }
            

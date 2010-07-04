@@ -1,15 +1,37 @@
 <?php
+
+
 /*
 Plugin Name: WP Responder
 Plugin URI: http://www.wpresponder.com
 Description: Add a autopresponder to your blog with features like Aweber.
-Version: 4.8
+Version: 4.9
 Author: Raj Sekharan
 Author URI: http://www.expeditionpost.com/
 */
 
-include "wpr_install.php";
+/*  Define the customized cron recurrances */
 
+//__DIR__ doesn't work on < PHP 5.3
+$plugindir = str_replace("wpresponder.php","",__FILE__);
+define("WPR_PLUGIN_DIR",$plugindir);
+
+function wpr_cronschedules()
+{
+    $schedules['every_five_minutes'] = array(
+         'interval'=> 300,
+         'display'=>  __('Every 5 Minutes')
+          );
+	$schedules ['every_half_hour'] = array(
+										   'interval'=>1800,
+										   'display'=>__('Every Half an Hour')
+										   );
+     return  $schedules;
+}
+
+add_filter('cron_schedules','wpr_cronschedules');
+
+include "wpr_install.php";
 include "home.php" ;
 
 
@@ -31,32 +53,17 @@ include "customizeblogemail.php";
 
 
 include "subscribers.php";
-
-
-
 include "wpr_settings.php";
-
 include "wpr_deactivate.php";
-
 include "all_mailouts.php";
-
-
-
+include "runcronnow.php";
 include "errors.php";
-
 include "thecron.php";
 
 include("lib/swift_required.php");
 
 include "importexport.php";
-
-
-
-error_reporting(0);
-
-
-define("WPR_VERSION","11");
-
+define("WPR_VERSION","4.9");
 $address = get_option("wpr_address");
 
 //-------------------------------------------DEBUG----------
@@ -77,10 +84,7 @@ function wpr_services_notice()
 
 	?>
 
-
-
 <a href="http://www.expeditionpost.com/redirect.php"><img src="http://www.expeditionpost.com/wpresad-<?php echo WPR_VERSION; ?>.gif" /></a><br />
-
 <?php
 
 }
@@ -91,7 +95,7 @@ function no_address_error()
 
 {
 
-	echo '<div class="error fade" style="background-color:red; line-height: 20px;"><p><strong>You must set your address in the  <a href="' . admin_url( 'admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/settings.php' ) . '">newsletter settings page</a> to avoid spam complaints and avoid the e-mails you send being flagged as spam. <br />
+	echo '<div class="error fade" style="background-color:red; line-height: 20px;"><p><strong>You must set your address in the  <a href="' . admin_url( 'admin.php?page=wpresponder/settings.php' ) . '">newsletter settings page</a> to avoid spam complaints and avoid the e-mails you send being flagged as spam. <br />
 
 <br />
 
@@ -120,19 +124,12 @@ function _wpr_no_newsletters($message)
 	{
 
 		?>
-
 <div class="wrap">
-
   <h2>No Newsletters Created Yet</h2>
-
 </div>
-
 <?php echo $message ?>, you must first create a newsletter. <br />
-
 <br/>
-
-<a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php&act=add" class="button">Create Newsletter</a>
-
+<a href="admin.php?page=wpresponder/newsletter.php&act=add" class="button">Create Newsletter</a>
 <?php
 
 		return true;
@@ -159,29 +156,57 @@ function wpresponder_init_method()
 		
 		$option = get_option("timezone_string");
 		
-		date_default_timezone_set();
+		//a visitor is trying to subscribe.
+		if (isset($_GET['wpr-optin']) && $_GET['wpr-optin'] == 1)
+		{
+			require "optin.php";			
+			exit;
+		}
+		
+		if (isset($_GET['wpr-optin']) && $_GET['wpr-optin'] == 2)
+		{
+			require "verify.php";	
+			exit;
+		}
+		
+		//a subscriber is trying to confirm their subscription. 
+		if (isset($_GET['wpr-confirm']) && $_GET['wpr-confirm']!=2)
+		{
+			include "confirm.php";			
+			exit;
+		}
+		
+		if (isset($_GET['wpr-confirm']) && $_GET['wpr-confirm']==2)
+		{
+			include "confirmed.php";
+			exit;
+		}
 
 	if (is_admin())
 
 	{
 
 		wp_enqueue_script('jquery');
+		
+		$directory = str_replace("wpresponder.php","",__FILE__);
+		$containingdirectory = basename($directory);
 
-		wp_enqueue_script('wpresponder-uis',"/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/jqueryui.js");
+		
+		wp_enqueue_script('wpresponder-uis',"/".PLUGINDIR."/".$containingdirectory."/jqueryui.js");
 
-		wp_enqueue_style("wpresponder-ui-style","/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/jqueryui.css");
+		wp_enqueue_style("wpresponder-ui-style","/".PLUGINDIR."/".$containingdirectory."/jqueryui.css");
 
-		wp_enqueue_style("wpresponder-style","/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/style.css");
+		wp_enqueue_style("wpresponder-style","/".PLUGINDIR."/".$containingdirectory."/style.css");
 
                 
 
-                wp_register_script( "wpresponder-tabber", "/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/tabber.js");
+                wp_register_script( "wpresponder-tabber", "/".PLUGINDIR."/".$containingdirectory."/tabber.js");
 
-                wp_register_script( "wpresponder-ckeditor", "/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/ckeditor/ckeditor.js");
+                wp_register_script( "wpresponder-ckeditor", "/".PLUGINDIR."/".$containingdirectory."/ckeditor/ckeditor.js");
 
-                wp_register_script( "wpresponder-addedit", "/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/script.js");
-
+                wp_register_script( "wpresponder-addedit", "/".PLUGINDIR."/".$containingdirectory."/script.js");
                 add_action('admin_menu', 'wpresponder_meta_box_add');
+				
 
         	add_action('edit_post', "wpr_edit_post_save");
 
@@ -197,7 +222,7 @@ function wpresponder_init_method()
 
                 {
 
-                    wp_enqueue_style("wpresponder-tabber","/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/tabber.css");
+                    wp_enqueue_style("wpresponder-tabber","/".PLUGINDIR."/".$containingdirectory."/tabber.css");
 
                     wp_enqueue_script("wpresponder-tabber");
 
@@ -220,7 +245,7 @@ function wpresponder_init_method()
 
 		//if the current request is for exporting a csv then run the export!
 
-		if (isset($_GET['page']) && $_GET['page'] == "wp-responder-email-autoresponder-and-newsletter-plugin/importexport.php" && $_GET['action'] == "download")
+		if (isset($_GET['page']) && $_GET['page'] == "wpresponder/importexport.php" && $_GET['action'] == "download")
 
 		{
 
@@ -243,21 +268,18 @@ function wpresponder_init_method()
 
 
 
+
 add_action('init', "wpresponder_init_method");
-
 add_action('admin_menu', 'wpr_admin_menu');
-
 add_action('wpr_cronjob','wpr_processEmails');
-
 add_action('wpr_cronjob','wpr_processqueue');
-
 register_activation_hook(__FILE__,"wpresponder_install");
-
 register_deactivation_hook(__FILE__,"wpresponder_deactivate");
 
 
 
-//
+
+
 
 add_action('edit_post', array($aiosp, 'post_meta_tags'));
 
@@ -299,27 +321,28 @@ function wpr_admin_menu()
 
 	add_submenu_page(__FILE__,"Dashboard","Dashboard",8,__FILE__,"wpr_dashboard");
 
-	add_submenu_page(__FILE__,'New Broadcast','New Broadcast',8,"wp-responder-email-autoresponder-and-newsletter-plugin/newmail.php","wpr_newmail");
+	add_submenu_page(__FILE__,'New Broadcast','New Broadcast',8,"wpresponder/newmail.php","wpr_newmail");
 
-	add_submenu_page(__FILE__,'All Broadcasts','All Broadcasts',8,"wp-responder-email-autoresponder-and-newsletter-plugin/allmailouts.php","wpr_all_mailouts");
+	add_submenu_page(__FILE__,'All Broadcasts','All Broadcasts',8,"wpresponder/allmailouts.php","wpr_all_mailouts");
 
-	add_submenu_page(__FILE__,'Newsletters','Newsletters',8,"wp-responder-email-autoresponder-and-newsletter-plugin/newsletter.php","wpr_newsletter");
+	add_submenu_page(__FILE__,'Newsletters','Newsletters',8,"wpresponder/newsletter.php","wpr_newsletter");
 
-        add_submenu_page(__FILE__,'Custom Fields','Custom Fields',8,"wp-responder-email-autoresponder-and-newsletter-plugin/custom_fields.php","wpr_customfields");
+        add_submenu_page(__FILE__,'Custom Fields','Custom Fields',8,"wpresponder/custom_fields.php","wpr_customfields");
 
-	add_submenu_page(__FILE__,'Subscription Forms','Subscription Forms',8,"wp-responder-email-autoresponder-and-newsletter-plugin/subscriptionforms.php","wpr_subscriptionforms");
+	add_submenu_page(__FILE__,'Subscription Forms','Subscription Forms',8,"wpresponder/subscriptionforms.php","wpr_subscriptionforms");
 
-	add_submenu_page(__FILE__,'Post Series','Post Series',8,"wp-responder-email-autoresponder-and-newsletter-plugin/blogseries.php","wpr_blogseries");
+	add_submenu_page(__FILE__,'Post Series','Post Series',8,"wpresponder/blogseries.php","wpr_blogseries");
 
-	add_submenu_page(__FILE__,'Autoresponders','Autoresponders',8,"wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php","wpr_autoresponder");
+	add_submenu_page(__FILE__,'Autoresponders','Autoresponders',8,"wpresponder/autoresponder.php","wpr_autoresponder");
 
-	add_submenu_page(__FILE__,'Subscribers','Subscribers',8,"wp-responder-email-autoresponder-and-newsletter-plugin/subscribers.php","wpr_subscribers");
+	add_submenu_page(__FILE__,'Subscribers','Subscribers',8,"wpresponder/subscribers.php","wpr_subscribers");
 
-	add_submenu_page(__FILE__,'Settings','Settings',8,"wp-responder-email-autoresponder-and-newsletter-plugin/settings.php","wpr_settings");
+	add_submenu_page(__FILE__,'Settings','Settings',8,"wpresponder/settings.php","wpr_settings");
 
-	add_submenu_page(__FILE__,'Subscription Errors','Subscription Errors',8,"wp-responder-email-autoresponder-and-newsletter-plugin/errors.php","wpr_errorlist");
+	add_submenu_page(__FILE__,'Subscription Errors','Subscription Errors',8,"wpresponder/errors.php","wpr_errorlist");
 
-	add_submenu_page(__FILE__,'Import/Export Subscribers','Import/Export Subscribers',8,"wp-responder-email-autoresponder-and-newsletter-plugin/importexport.php","wpr_importexport");
+	add_submenu_page(__FILE__,'Import/Export Subscribers','Import/Export Subscribers',8,"wpresponder/importexport.php","wpr_importexport");
+	add_submenu_page(__FILE__,'Run CRON','Run WPR Cron',8,"wpresponder/runcronnow.php","wpr_runcronnow_start");
 
 }
 
@@ -338,9 +361,7 @@ function wpr_send_errors()
 	ob_start();
 
 	?>
-
 <table>
-
   <?php
 
 	foreach ($errors as $error)
@@ -348,23 +369,16 @@ function wpr_send_errors()
 	{
 
 		?>
-
   <tr>
-
     <td><?php echo $error->error ?></td>
-
     <td><?php echo date("g:i d F Y",$error->time); ?></td>
-
   </tr>
-
   <?php
 
 	}
 
 	?>
-
 </table>
-
 <?php
 
 	$errors = ob_get_clean();
@@ -390,13 +404,9 @@ function wpr_send_errors()
 function wp_credits()
 {
 	?>
-
 <br />
-
 <br />
-
 <div style="border: 1px solid #ccc; text-align:center; background-color:#e0e0e0; padding: 10px; margin-left:auto; margin-right:auto; width:500px;">Powered by <a href="http://www.expeditionpost.com/wp-responder/">WP Responder</a></div>
-
 <?php
 
 }
@@ -1164,10 +1174,6 @@ function getImagesInMessage($message)
 
         $contents = ob_get_contents();
         ob_end_clean();
-
-        
-
-
 	return array_unique($list);
 
 }
@@ -1190,4 +1196,4 @@ function email($to,$subject,$body)
 
 	$message->batchSend();
 
-}
+} 

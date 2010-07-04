@@ -1,10 +1,9 @@
 <?php
-ini_set("display_errors","on");
-error_reporting(E_ALL);
 
-include "../../../wp-config.php";
+include "wp-config.php";
 
-$string = $_GET['p'];
+global $wpdb;
+$string = $_GET['wpr-confirm'];
 
 $args = base64_decode($string);
 
@@ -71,7 +70,7 @@ if (count($form))
      $confirmed_body = $form[0]->confirmed_body;   
 }
 
-$redirectionUrl = "confirmed.php";
+$redirectionUrl = get_bloginfo("home")."/?wpr-confirm=2";
 $params = array($confirmed_subject,$confirmed_body);
 
 wpr_place_tags($sub->id,$params);
@@ -86,9 +85,10 @@ $from_name = get_bloginfo("name");
 
 $fromheader = "From: $from_name <$from_email>";
 wp_mail($email,$params[0],$params[1],$fromheader);
-header("HTTP/1.1 301 Moved Permanently");
-header("Location: $redirectionUrl");
 
+?><script>
+window.location='<?php echo $redirectionUrl ?>';
+</script><?php
 exit;
 
 ?>

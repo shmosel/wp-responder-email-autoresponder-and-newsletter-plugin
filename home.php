@@ -36,7 +36,7 @@ function wpr_dashboard()
 	
 }
 </style>
-<div style="display:block"><img src="<?php echo get_option("home"); ?><?php echo "/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/images/dash.jpg" ?>" /></div><br />
+<div style="display:block"><img src="<?php echo get_option("home"); ?><?php echo "/".PLUGINDIR."/wpresponder/images/dash.jpg" ?>" /></div><br />
 <div style="display:block;">
 
 
@@ -47,7 +47,7 @@ function wpr_dashboard()
           <td>
             <br />
             <div style="display:block;">
-                <img src="<?php echo get_option("home"); ?><?php echo "/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/images/subscount.jpg" ?>">
+                <img src="<?php echo get_option("home"); ?><?php echo "/".PLUGINDIR."/wpresponder/images/subscount.jpg" ?>">
             <table cellpadding="10" id="statstable" width="100%">
                 <br/>
               <tr id="throw">
@@ -114,7 +114,7 @@ When you subscribe to the newsletter you get:
 </ul> 
 <div style="padding-top:15px; ">I will not sell or rent your email address. Nor will I overload you with sales pitches. I promise!</div>
    </td>
-   <td style="padding-left:40px; border: 1px solid #ccc; background-color:#FFF; padding:20px;"><form action="http://www.expeditionpost.com/wp-content/plugins/wp-responder-email-autoresponder-and-newsletter-plugin/optin.php" method="post">
+   <td style="padding-left:40px; border: 1px solid #ccc; background-color:#FFF; padding:20px;"><form action="http://www.expeditionpost.com/wp-content/plugins/wpresponder/optin.php" method="post">
   <input type="hidden" name="blogsubscription" value="none" />
     <input type="hidden" name="newsletter" value="4" />
       <input type="hidden" name="fid" value="9" />
@@ -137,7 +137,7 @@ When you subscribe to the newsletter you get:
 </table>
 
 <hr size="1" color="#CCCCCC"/>
-            <div id="news"> <a href="#"><img src="<?php echo get_option("home") ?>/<?php echo PLUGINDIR ?>/wp-responder-email-autoresponder-and-newsletter-plugin/images/expostnews.jpg" /></a>
+            <div id="news"> <a href="#"><img src="<?php echo get_option("home") ?>/<?php echo PLUGINDIR ?>/wpresponder/images/expostnews.jpg" /></a>
               <?php 
 $rss = fetch_feed("http://feeds.feedburner.com/ExpeditionPost");
 $type = get_class($rss);
@@ -177,7 +177,7 @@ Unable to fetch the feed.<br />
 }
      ?>       </div>
 
-            <div id="reportbug"> <a href="#"><img src="<?php echo get_option("home") ?>/<?php echo PLUGINDIR ?>/wp-responder-email-autoresponder-and-newsletter-plugin/images/bug.jpg" /></a>
+            <div id="reportbug"> <a href="#"><img src="<?php echo get_option("home") ?>/<?php echo PLUGINDIR ?>/wpresponder/images/bug.jpg" /></a>
               <form method="post" id="reportform" action="http://www.expeditionpost.com/wpr/sb.php">
                 <table width="100%">
                   <tr>

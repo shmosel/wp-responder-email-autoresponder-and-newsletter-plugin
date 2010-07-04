@@ -2,8 +2,9 @@
 
 function CreateNewTemplateSwitcherButton($nameOfCKEditorObject,$nameOfTextArea,$number="")
 {
-  
-    $templateFilesDirectory = ABSPATH.PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/htmltemplates/";
+    $pluginpath = str_replace("htmltemplates.lib.php","",__FILE__);	
+	
+    $templateFilesDirectory = WPR_PLUGIN_DIR."/htmltemplates/";
     $dir = opendir($templateFilesDirectory);
     $listOfTemplates = array();
     while ($item = readdir($dir))
@@ -17,7 +18,7 @@ function CreateNewTemplateSwitcherButton($nameOfCKEditorObject,$nameOfTextArea,$
 
     $home = get_bloginfo("home");
     $path = PLUGINDIR;
-    $fullpath = $home."/".$path."/wp-responder-email-autoresponder-and-newsletter-plugin/htmltemplates";
+    $fullpath = $home."/".$path."/wpresponder/htmltemplates";
     ?>
 <script>
     var fullPath = "<?php echo $fullpath ?>";

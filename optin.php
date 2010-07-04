@@ -1,8 +1,8 @@
 <?php
-ini_set("display_errors","on");
-error_reporting(E_ALL);
 
-include "../../../wp-config.php";
+require "wp-load.php";
+
+global $wpdb;
 
 if ($_GET['subscribed'] == "true")
 
@@ -106,7 +106,7 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 
 	$skiplist = array("name","email","followup","blogsubscription","cat","return_url","responder");
 	$query = "SELECT count(*) count FROM ".$wpdb->prefix."wpr_newsletters where id=$newsletter";	
-	$results =$wpdb->get_results($query);	
+	$results = $wpdb->get_results($query);	
 	$count = $results[0]->count;	
 	if ($count == 0)
 	{  
@@ -251,10 +251,8 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 
 
 	$query = "SELECT * FROM ".$wpdb->prefix."wpr_subscribers where email='$email' and nid='$nid';";
-
-	$subscriber = $wpdb->get_results($query);
-
-	if (count($subscriber) ==0)  //the visitor is a new subscriber
+	$subscribeList = $wpdb->get_results($query);
+	if (count($subscribeList) ==0)  //the visitor is a new subscriber
 
 	{
 
@@ -267,25 +265,32 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 		$wpdb->query($query);
 
 		//now get the subscriber object 
-
 		$query = "SELECT * FROM ".$wpdb->prefix."wpr_subscribers where email='$email' and nid='$nid';";
-
 		$subscriber = $wpdb->get_results($query);
-
 		$subscriber = $subscriber[0];
-
 	}
-
 	else   //the subscriber already exists
 	{
-			error("You are already subscribed to this newsletter.");
+		 //find if the subscriber had already subscribed before and is still subscribed.
+		 $query = "select * from ".$wpdb->prefix."wpr_subscribers where active=1 and confirmed=1 and email='$email' and nid='$nid'; ";
+		 $results = $wpdb->get_results($query);
+
+		 if (count($results) >0)
+		 {
+ 			 error("You are already subscribed to this newsletter.");
+		 }
+		 else
+		 {	 
+		     
+     		 $subscriber = $subscribeList[0];		 
+			 $query = "update ".$wpdb->prefix."wpr_subscribers set active=1, confirmed=0 where email='$email' and nid='$nid';";
+   			 $wpdb->get_results($query);
+		 }
 	}
 	$id = $subscriber->id;
 	//insert the subscriber's custom field values
 	foreach ($_POST as $field_name=>$value)
-
 	{
-
 		if (ereg('cus_.*',$field_name))
 
 		{
@@ -478,13 +483,11 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 
 	$p = base64_encode($theqstring);
 
-	$link = get_bloginfo("siteurl")."/".PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/confirm.php?p=".$p;
-
-	$confirm = file_get_contents("templates/confirm.txt");
-
-	$confirm = str_replace("[!confirm_link!]",$link,$confirm);
-
+	$link = get_bloginfo("siteurl")."/?wpr-confirm=".$p;
 	
+	$dirname = str_replace("optin.php","",__FILE__);
+	$confirm = file_get_contents($dirname."/templates/confirm.txt");
+	$confirm = str_replace("[!confirm_link!]",$link,$confirm);
 
 	$newsletter = _wpr_newsletter_get($nid);
 
@@ -579,32 +582,25 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 	}
  
 	
-
 	if (!empty($return_url))
-
 	{ 
-
-
-
-		header( "HTTP/1.1 301 Moved Permanently" ); 
-
-		header( "Location: $return_url"); 
-
+        ?>
+        <script>
+		window.location='<?php echo $return_url; ?>';
+		</script>
+        <?php
 		exit;
-
 	}
-
 	else
-
 	{
-
-		header( "HTTP/1.1 301 Moved Permanently" ); 
-
-		header( "Location: verify.php"); 
-
+        ?>
+        <script>
+		window.location='<?php echo get_bloginfo("home")."/?wpr-optin=2" ?>';
+		</script>
+        <?php
 		exit;
-
 	}
+	exit;
 
 }
 
@@ -613,15 +609,11 @@ else
 {
 
 	if (!isset($_POST['newsletter']))
-
 	{
-
 		?>        
-
         <div align="center" style="font-family:Georgia, 'Times New Roman', Times, serif; font-size:24px; width:600; margin-left:auto; margin-right:auto">        <h2>Invalid Request</h2>This page should not be visited. Please use a subscription form to subscribe to a newsletter.</div>
-
         <?php
-
 	}
 
 }
+exit;

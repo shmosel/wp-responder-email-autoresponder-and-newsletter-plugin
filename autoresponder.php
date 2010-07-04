@@ -84,7 +84,7 @@ function _wpr_autoresponder_list()
 			   <td><?php echo $responder->name ?></td>
 			   <td><?php $newsletter = _wpr_newsletter_get($responder->nid);
 			   echo $newsletter->name ?></td>
-			   <td><input type="button" value="Manage Messages" class="button" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php&action=manage&aid=<?php echo $responder->id ?>';" /><input type="button" value="Delete" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php&action=delete&aid=<?php echo $responder->id ?>';" class="button" />
+			   <td><input type="button" value="Manage Messages" class="button" onclick="window.location='admin.php?page=wpresponder/autoresponder.php&action=manage&aid=<?php echo $responder->id ?>';" /><input type="button" value="Delete" onclick="window.location='admin.php?page=wpresponder/autoresponder.php&action=delete&aid=<?php echo $responder->id ?>';" class="button" />
 			   </tr>
 			<?php
 		}
@@ -99,7 +99,7 @@ function _wpr_autoresponder_list()
 	 }
 	?>
     </table>
-    <input type="button" value="Create New" class="button-primary" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php&action=create';" />
+    <input type="button" value="Create New" class="button-primary" onclick="window.location='admin.php?page=wpresponder/autoresponder.php&action=create';" />
     <?php
 }
 
@@ -126,7 +126,7 @@ function _wpr_autoresponder_create()
 				$query = "INSERT INTO ".$wpdb->prefix."wpr_autoresponders (nid, name) values ('$nid','$name')";
 				$result = $wpdb->query($query);
 				?>
-                <script>window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php';</script>
+                <script>window.location='admin.php?page=wpresponder/autoresponder.php';</script>
                 <?php
 			}
 		}
@@ -173,7 +173,7 @@ function _wpr_autoresponder_form($params,$form)
        </tr>
   
   <tr>
-   <td colspan="2"><input type="submit" value="Create" class="button" /><input type="button" value="Cancel" onclick="window.location='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php'" class="button" /></td></tr>
+   <td colspan="2"><input type="submit" value="Create" class="button" /><input type="button" value="Cancel" onclick="window.location='admin.php?page=wpresponder/autoresponder.php'" class="button" /></td></tr>
 </table>
 </form>
 <?php
@@ -184,7 +184,7 @@ function _wpr_autoresponder_back2home($delay=0)
 {
 	?>
     <script> 
-	window.setTimeout("window.location ='admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php'",<?php echo $delay ?>*1000);</script>
+	window.setTimeout("window.location ='admin.php?page=wpresponder/autoresponder.php'",<?php echo $delay ?>*1000);</script>
     <?php
 }
 ?>

@@ -4,7 +4,7 @@ ob_start();
 The subscribers have been imported from your CSV file to the database. You may now start sending them emails.<br />
 <br />
 
-<a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/importexport.php" class="button-primary" style="margin:10px;"> Done &raquo; </a>
+<a href="admin.php?page=wpresponder/importexport.php" class="button-primary" style="margin:10px;"> Done &raquo; </a>
 <?php
 $content = ob_get_clean();
 return $content;

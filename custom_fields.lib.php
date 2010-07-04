@@ -24,4 +24,46 @@ function _wpr_newsletter_custom_fields_update($info)
 	$result = $wpdb->query($query);
 }
 
+
+function getCustomField($cid,$name="",$value="")
+{
+
+	global $wpdb;
+
+	$theField = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."wpr_custom_fields where id=$cid");
+
+	$theField = $theField[0];	
+	if ($name=="")
+	{
+		$name = $theField->name;
+	}
+	switch ($theField->type)
+	{
+		case 'text':
+		
+		return "<input type=\"text\" name=\"$name\" value=\"$value\"/>";
+		
+		break;
+		case 'enum':
+		
+		$selectField = "<select name=\"$name\">\n<option value=\"\">&lt;Not Specified&gt;</option>";
+		$options = explode(",",$theField->enum);
+		foreach ($options as $option)
+		{
+			$selectField .="<option ".(($option==$value)?'selected="selected"':"").">$option</option>\n";
+		}
+		$selectField .="</select>";
+		return $selectField;
+		
+		break;
+		case 'hidden':
+
+		return "<input type=\"text\" name=\"$name\" value=\"$value\"/>";
+		
+		break;
+	
+		
+	}
+}
+
 ?>

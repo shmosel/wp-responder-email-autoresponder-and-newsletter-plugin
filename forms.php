@@ -156,7 +156,7 @@ Use the subscription forms below to gather subscribers for your newsletter.
 		?>
   <tr>
     <td><?php echo $form->name ?></td>
-    <td><a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/subscriptionforms.php&action=edit&fid=<?php echo $form->id ?>" class="button">Edit</a>&nbsp;<a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/subscriptionforms.php&action=form&fid=<?php echo $form->id ?>" class="button">Get Form HTML</a></td>
+    <td><a href="admin.php?page=wpresponder/subscriptionforms.php&action=edit&fid=<?php echo $form->id ?>" class="button">Edit</a>&nbsp;<a href="admin.php?page=wpresponder/subscriptionforms.php&action=form&fid=<?php echo $form->id ?>" class="button">Get Form HTML</a></td>
   </tr>
   <?php
 
@@ -164,7 +164,7 @@ Use the subscription forms below to gather subscribers for your newsletter.
 
 ?>
 </table>
-<a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/subscriptionforms.php&action=create" class="button">Create New Form</a>
+<a href="admin.php?page=wpresponder/subscriptionforms.php&action=create" class="button">Create New Form</a>
 <?php
 
 }
@@ -200,7 +200,7 @@ function preview()
 }
 
 </script>
-<a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/subscriptionforms.php" class="button">&laquo; Back To Forms</a>&nbsp;
+<a href="admin.php?page=wpresponder/subscriptionforms.php" class="button">&laquo; Back To Forms</a>&nbsp;
 <input type="button" value="Select All" onclick="document.getElementById('wpr_code').select();" class="button"/>
 <input type="button" onclick="preview();" value="Preview" class="button" />
 <?php
@@ -219,14 +219,14 @@ function _wpr_subscriptionform_code($form)
 
 		$url = get_bloginfo('siteurl');			
 
-		$pathto = PLUGINDIR."/wp-responder-email-autoresponder-and-newsletter-plugin/optin.php";			
+		$pathto = PLUGINDIR."/wpresponder/optin.php";			
 
 					
 
 		ob_start();
 
 		?>
-<form action="<?php echo $url?>/<?php echo $pathto ?>" method="post">
+<form action="<?php echo $url?>/?wpr-optin=1" method="post">
   <input type="hidden" name="blogsubscription" value="<?php echo $form->blogsubscription_type ?>" />
   <?php if ($form->blogsubscription_type == "cat") { ?>
   <input type="hidden" name="cat" value="<?php echo $form->blogsubscription_id ?>" />
@@ -907,7 +907,7 @@ foreach ($newsletters as $newsletter)
 
 		 ?>
             </select>
-            autoresponder series. <a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/autoresponder.php&action=create" style="float:right">Create Autoresponder</a></label>
+            autoresponder series. <a href="admin.php?page=wpresponder/autoresponder.php&action=create" style="float:right">Create Autoresponder</a></label>
           <br />
           <?php 
 
@@ -934,7 +934,7 @@ foreach ($newsletters as $newsletter)
 		 ?>
             </select>
             post series.</label>
-          <a href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/blogseries.php&action=create" style="float:right">Create Post Series</a> <br />
+          <a href="admin.php?page=wpresponder/blogseries.php&action=create" style="float:right">Create Post Series</a> <br />
           <input type="radio" name="followup" value="none" id="nonea" <?php 
 
 		  if ($parameters->followup_type == 'none' || empty($parameters->followup_type)) 
@@ -1100,7 +1100,7 @@ else
     </tr>
     <tr>
       <td colspan="2"><input class="button" type="submit" value="Create Form And Get Code" />
-        &nbsp;<a class="button" href="admin.php?page=wp-responder-email-autoresponder-and-newsletter-plugin/subscriptionforms.php">Cancel</a></td>
+        &nbsp;<a class="button" href="admin.php?page=wpresponder/subscriptionforms.php">Cancel</a></td>
     </tr>
   </table>
 </form>

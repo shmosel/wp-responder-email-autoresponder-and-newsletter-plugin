@@ -22,6 +22,7 @@ function wpr_mail_form($parameters=array(),$mode="new",$error)
 </script>
 <script>
 
+
 function Field(id,name,label)
 
 {
@@ -195,7 +196,7 @@ function showPreviewForm()
 
     var nid = wpr_GetNewsletter();
 
-    if (window.open('<?php echo bloginfo("home") ?>/<?php echo PLUGINDIR ?>/wp-responder-email-autoresponder-and-newsletter-plugin/preview_email.php?nid='+nid,'previewWindow','width=500,height=500'))
+    if (window.open('<?php echo bloginfo("home") ?>/<?php echo PLUGINDIR ?>/wpresponder/preview_email.php?nid='+nid,'previewWindow','width=500,height=500'))
 
     {
 
@@ -350,7 +351,7 @@ if (isset($_GET['nid']))
           </div></td>
       </tr>
       <tr>
-        <td colspan="2"><input type="checkbox" name="htmlenabled" id="htmlenabled" onchange="changeHTMLBodyFieldsAvailability(this.checked,'htmlbodyfields');" id="htmlenable" <?php if (!isset($paramaters->htmlenabled) || $parameters->htmlenabled=="on" ) { echo 'checked="checked"'; } ?> />
+        <td colspan="2"><input type="checkbox" name="htmlenabled" id="htmlenabled" onchange="changeHTMLBodyFieldsAvailability(this.checked,'htmlbodyfields');" <?php if (!isset($paramaters->htmlenabled) || $parameters->htmlenabled=="on" ) { echo 'checked="checked"'; } ?> />
           <label for="htmlenable">Enable HTML Body</label>
           <br />
           <div id="htmlbodyfields"> <small>Check/uncheck this checkbox to enable or disable the HTML body of the email. When disabled only the text body will be sent.</small><br/>
@@ -361,6 +362,8 @@ if (isset($_GET['nid']))
             <small>If you enable embedding images, subscribers on opening your email will not receive a security warning about loading external images. They will be able to see the images directly. But all the images in the HTML body will be sent to all subscribers so this may consume much bandwidth. The subscriber will not receive the images as email attachments but the images will be a part of the email.</small> <br/>
             <br/>
             <?php CreateNewTemplateSwitcherButton("editor","htmlbody"); ?>
+            <div style="clear:both;display:block;padding: 10px;" align="right"><a class="button-primary" href="http://www.krusible.com/newsletter-design/">Get Custom E-Mail Newsletter Templates</a>
+            </div>
             <label for="htmlbody">Enter the HTML Body Of The Email:</label>
             <br>
             <small>When HTML is enabled, most of your subscribers will see only the content in this body when they open the email.  If you don't enter a HTML body the email will be sent as text email.
@@ -388,7 +391,7 @@ if (isset($_GET['nid']))
 	  ?>
       <tr>
         <td>Send At: </td>
-        <td><?php if (empty($parameters->time)) { ?>
+        <td bgcolor="#FF0000"><?php if (empty($parameters->time)) { ?>
           <input name="whentosend" <?php if ($parameters->whentosend == "now") { echo "checked=\"checked\""; } ?> type="radio" id="sendnow" value="now" checked="checked" />
           <label for="sendnow"> Immediately </label>
           (Now)<br />
@@ -413,11 +416,200 @@ if (isset($_GET['nid']))
             <?php
 
   }
-
   ?>
           </select>
           :00 Hrs<br/>
           Date format: mm/dd/yyyy
+          <div style="background-color: #fefefe; padding: 5px; border: 1px solid #ccc;">
+          <strong style="color: #f00">Caution: </strong><strong>the time on your computer may not be the same as the time on the server</strong>. See the time difference below:</strong><br />
+
+          Current Time On Server: <?php echo date("H:i:s l, jS F"); ?><br />
+
+          Current Time On Your Computer: <span id="currenttime"><script>///////////////////////////////////////////////////////////
+// "Live Clock Advanced" script - Version 1.0
+// By Mark Plachetta (astroboy@zip.com.au)
+//
+// Get the latest version at:
+// http://www.zip.com.au/~astroboy/liveclock/
+//
+// Based on the original script: "Upper Corner Live Clock"
+// available at:
+// - Dynamic Drive (http://www.dynamicdrive.com)
+// - Website Abstraction (http://www.wsabstract.com)
+// ========================================================
+// CHANGES TO ORIGINAL SCRIPT:
+// - Gave more flexibility in positioning of clock
+// - Added date construct (Advanced version only)
+// - User configurable
+// ========================================================
+// Both "Advanced" and "Lite" versions are available free
+// of charge, see the website for more information on the
+// two scripts.
+///////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////
+/////////////// CONFIGURATION /////////////////////////////
+
+	// Set the clock's font face:
+	var myfont_face = "Verdana";
+
+	// Set the clock's font size (in point):
+	var myfont_size = "10";
+
+	// Set the clock's font color:
+	var myfont_color = "#000000";
+	
+	// Set the clock's background color:
+	var myback_color = "#FFFFFF";
+
+	// Set the text to display before the clock:
+	var mypre_text = "";
+
+	// Set the width of the clock (in pixels):
+	var mywidth = 300;
+
+	// Display the time in 24 or 12 hour time?
+	// 0 = 24, 1 = 12
+	var my12_hour = 0;
+
+	// How often do you want the clock updated?
+	// 0 = Never, 1 = Every Second, 2 = Every Minute
+	// If you pick 0 or 2, the seconds will not be displayed
+	var myupdate = 1;
+
+	// Display the date?
+	// 0 = No, 1 = Yes
+	var DisplayDate = 1;
+
+/////////////// END CONFIGURATION /////////////////////////
+///////////////////////////////////////////////////////////
+
+// Browser detect code
+        var ie4=document.all
+        var ns4=document.layers
+        var ns6=document.getElementById&&!document.all
+
+// Global varibale definitions:
+
+	var dn = "";
+	var mn = "th";
+	var old = "";
+
+// The following arrays contain data which is used in the clock's
+// date function. Feel free to change values for Days and Months
+// if needed (if you wanted abbreviated names for example).
+	var DaysOfWeek = new Array(7);
+		DaysOfWeek[0] = "Sunday";
+		DaysOfWeek[1] = "Monday";
+		DaysOfWeek[2] = "Tuesday";
+		DaysOfWeek[3] = "Wednesday";
+		DaysOfWeek[4] = "Thursday";
+		DaysOfWeek[5] = "Friday";
+		DaysOfWeek[6] = "Saturday";
+
+	var MonthsOfYear = new Array(12);
+		MonthsOfYear[0] = "January";
+		MonthsOfYear[1] = "February";
+		MonthsOfYear[2] = "March";
+		MonthsOfYear[3] = "April";
+		MonthsOfYear[4] = "May";
+		MonthsOfYear[5] = "June";
+		MonthsOfYear[6] = "July";
+		MonthsOfYear[7] = "August";
+		MonthsOfYear[8] = "September";
+		MonthsOfYear[9] = "October";
+		MonthsOfYear[10] = "November";
+		MonthsOfYear[11] = "December";
+
+// This array controls how often the clock is updated,
+// based on your selection in the configuration.
+	var ClockUpdate = new Array(3);
+		ClockUpdate[0] = 0;
+		ClockUpdate[1] = 1000;
+		ClockUpdate[2] = 60000;
+
+// For Version 4+ browsers, write the appropriate HTML to the
+// page for the clock, otherwise, attempt to write a static
+// date to the page.
+	if (ie4||ns6) { document.write('<span id="LiveClockIE" style="width:'+mywidth+'px; background-color:'+myback_color+'"></span>'); }
+	else if (document.layers) { document.write('<ilayer bgColor="'+myback_color+'" id="ClockPosNS" visibility="hide"><layer width="'+mywidth+'" id="LiveClockNS"></layer></ilayer>'); }
+	else { old = "true"; show_clock(); }
+
+// The main part of the script:
+	function show_clock() {
+		if (old == "die") { return; }
+	
+	//show clock in NS 4
+		if (ns4)
+                document.ClockPosNS.visibility="show"
+	// Get all our date variables:
+		var Digital = new Date();
+		var day = Digital.getDay();
+		var mday = Digital.getDate();
+		var month = Digital.getMonth();
+		var hours = Digital.getHours();
+
+
+
+		var minutes = Digital.getMinutes();
+		var seconds = Digital.getSeconds();
+
+	// Fix the "mn" variable if needed:
+		if (mday == 1) { mn = "st"; }
+		else if (mday == 2) { mn = "nd"; }
+		else if (mday == 3) { mn = "rd"; }
+		else if (mday == 21) { mn = "st"; }
+		else if (mday == 22) { mn = "nd"; }
+		else if (mday == 23) { mn = "rd"; }
+		else if (mday == 31) { mn = "st"; }
+
+	// Set up the hours for either 24 or 12 hour display:
+		if (my12_hour) {
+			dn = "AM";
+			if (hours > 12) { dn = "PM"; hours = hours - 12; }
+			if (hours == 0) { hours = 12; }
+		} else {
+			dn = "";
+		}
+		if (minutes <= 9) { minutes = "0"+minutes; }
+		if (seconds <= 9) { seconds = "0"+seconds; }
+
+	// This is the actual HTML of the clock. If you're going to play around
+	// with this, be careful to keep all your quotations in tact.
+		myclock = '';
+		myclock += '<font style="color:'+myfont_color+'; font-family:'+myfont_face+'; font-size:'+myfont_size+'pt;">';
+		myclock += mypre_text;
+		myclock += hours+':'+minutes;
+		if ((myupdate < 2) || (myupdate == 0)) { myclock += ':'+seconds; }
+		myclock += ' '+dn;
+		if (DisplayDate) { myclock += ' on '+DaysOfWeek[day]+', '+mday+mn+' '+MonthsOfYear[month]; }
+		myclock += '</font>';
+
+		if (old == "true") {
+			document.write(myclock);
+			old = "die";
+			return;
+		}
+
+	// Write the clock to the layer:
+		if (ns4) {
+			clockpos = document.ClockPosNS;
+			liveclock = clockpos.document.LiveClockNS;
+			liveclock.document.write(myclock);
+			liveclock.document.close();
+		} else if (ie4) {
+			LiveClockIE.innerHTML = myclock;
+		} else if (ns6){
+			document.getElementById("LiveClockIE").innerHTML = myclock;
+                }            
+
+	if (myupdate != 0) { setTimeout("show_clock()",ClockUpdate[myupdate]); }
+}
+
+show_clock();</script></span><br />
+<br />
+Provide the correct time that corresponds to <strong><u>your server's time</u></strong>.
+          </div>
        <script>
 
 jQuery(document).ready(function()
@@ -510,7 +702,6 @@ function setVisibilityOfHTMLFields()
 
 setVisibilityOfHTMLFields();
 toggleHTML();
-
 
 </script></td>
       </tr>
@@ -644,7 +835,7 @@ toggleHTML();
         <td colspan="3"><br />
           <input type="hidden" name="mid" value="<?php echo $parameters->id ?>"  />
           <input type="hidden" name="recipients" id="recipients" value="<?php echo $parameters->recipients ?>" />
-          <a href="javascript:showWindow();" class="button">Customize Recipients <img src="<?php bloginfo("siteurl") ?>/<?php echo PLUGINDIR ?>/wp-responder-email-autoresponder-and-newsletter-plugin/newwindow.gif" /></a><br />
+          <a href="javascript:showWindow();" class="button">Customize Recipients <img src="<?php bloginfo("siteurl") ?>/<?php echo PLUGINDIR ?>/wpresponder/newwindow.gif" /></a><br />
           <br /></td>
       </tr>
       <?php
