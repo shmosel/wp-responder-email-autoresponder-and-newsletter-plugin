@@ -3,18 +3,13 @@
 require "wp-load.php";
 
 global $wpdb;
+date_default_timezone_set("UTC");
 
 if ($_GET['subscribed'] == "true")
-
 {
-
 	require "templates/confirm_subscription.html";
-
 	exit;
-
 }
-
-
 
 function error($error)
 
@@ -23,27 +18,13 @@ function error($error)
 	?>
 
 <div style="font-family: Arial">
-
-    <h2 align="center">An Error Has Occured</h2>
-
-    <div align="center">
-
-    <div style="width: 400px; padding: 10px; text-align: left; background-color: #336699; color: #fff; font-weight:bold; font-family: Arial; border: 1px solid #ccc;">
-
-    <?php echo $error ?>
-
-    </div>
-
-        <a href="javascript:window.history.go(-1);">Click Here To Go Back</a>
-
-    </div>
-
+  <h2 align="center">An Error Has Occured</h2>
+  <div align="center">
+    <div style="width: 400px; padding: 10px; text-align: left; background-color: #336699; color: #fff; font-weight:bold; font-family: Arial; border: 1px solid #ccc;"> <?php echo $error ?> </div>
+    <a href="javascript:window.history.go(-1);">Click Here To Go Back</a> </div>
 </div>
-
-    
-
-    <?php
-
+<?php
+	wp_credits();
 	exit;
 
 }
@@ -85,35 +66,25 @@ function sanitize($string)
 
 
 if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email']))
-
 {
-
 	$name = sanitize($_POST['name']);
-
 	$email = strtolower(sanitize($_POST['email']));
-
 	$followup = sanitize($_POST['followup']);
-
 	$newsletter = (int) sanitize($_POST['newsletter']);
-
 	$bsubscription = sanitize($_POST['blogsubscription']);
-
 	$responder = (int) sanitize($_POST['responder']);
-
 	$bcategory = (int) sanitize($_POST['cat']);
-
 	$return_url = sanitize($_POST['return_url']);
-
+	
 	$skiplist = array("name","email","followup","blogsubscription","cat","return_url","responder");
+	
 	$query = "SELECT count(*) count FROM ".$wpdb->prefix."wpr_newsletters where id=$newsletter";	
 	$results = $wpdb->get_results($query);	
 	$count = $results[0]->count;	
 	if ($count == 0)
 	{  
 	     error("The newsletter to which you are trying to subscribe doesn't exist in our records.");
-		
 	}
-
 
 	$fid = (int) $_POST['fid'];
 	if (!empty($followup) && !in_array($followup,array("autoresponder","postseries")))
@@ -172,13 +143,9 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 			break;
 
 			case 'autoresponder':
-
 			$query = "SELECT COUNT(*) count FROM ".$wpdb->prefix."wpr_autoresponders where id=".$responder;
-
 			$items = $wpdb->get_results($query);
-
 			$count = $items[0]->count;
-
 			if ($count == 0)
 
 			{
@@ -192,6 +159,7 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 			break;
 			default:
 			print "Error! The form is badly formed. ";
+			exit;
 		}
 
 	}
@@ -221,10 +189,7 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 
 	$nid = $newsletter->id;
 
-
-
 	//the hash...
-
 
     //gnerate a small string
 	/*
@@ -252,18 +217,18 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 
 	$query = "SELECT * FROM ".$wpdb->prefix."wpr_subscribers where email='$email' and nid='$nid';";
 	$subscribeList = $wpdb->get_results($query);
+	
+	
+	$zone = date_default_timezone_get();
+	date_default_timezone_set("UTC");
 	if (count($subscribeList) ==0)  //the visitor is a new subscriber
 
 	{
-
 		//new subscriber, add him to records
-
+		
 		$date = time();
-
 		$query = "INSERT INTO ".$wpdb->prefix."wpr_subscribers (nid,name,email,date,active,fid,hash) values ('$nid','$name','$email','$date',1,'$fid','$hash');";
-
 		$wpdb->query($query);
-
 		//now get the subscriber object 
 		$query = "SELECT * FROM ".$wpdb->prefix."wpr_subscribers where email='$email' and nid='$nid';";
 		$subscriber = $wpdb->get_results($query);
@@ -280,14 +245,16 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
  			 error("You are already subscribed to this newsletter.");
 		 }
 		 else
-		 {	 
-		     
+		 {
      		 $subscriber = $subscribeList[0];		 
-			 $query = "update ".$wpdb->prefix."wpr_subscribers set active=1, confirmed=0 where email='$email' and nid='$nid';";
+			 $date = time();
+			 $query = "update ".$wpdb->prefix."wpr_subscribers set active=1, confirmed=0, date='$date' where email='$email' and nid='$nid';";
    			 $wpdb->get_results($query);
 		 }
 	}
 	$id = $subscriber->id;
+	
+	
 	//insert the subscriber's custom field values
 	foreach ($_POST as $field_name=>$value)
 	{
@@ -407,28 +374,17 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 
 	}
 
-	
-
 	//if blog subscription is mentioned in the form
-
-	
-
-	if ($bsubscription)
-
+	if (!empty($bsubscription))
 	{
-
 		$suffix = ($bsubscription == "cat")?" and a.catid='$bcategory'":"";
-
-	
 
 		$query = "SELECT * FROM ".$wpdb->prefix."wpr_blog_subscription a,".$wpdb->prefix."wpr_subscribers b where a.sid=b.id and b.id=$id and a.type='$bsubscription' $suffix ;";
 
 		$blogSubscriptions = $wpdb->get_results($query);
 
 		//subscribe to blog or blog category only if they are not already subscribed.
-
 		if (count($blogSubscriptions) == 0)
-
 		{	
 
 			$query = "INSERT INTO ".$wpdb->prefix."wpr_blog_subscription (sid,type,catid) values ('$id','$bsubscription','$bcategory');";
@@ -465,8 +421,10 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 
 	}
 
-	
 
+	
+	
+	
 	if (empty($confirm_subject) && empty($confirm_body))
 
 	{
@@ -476,8 +434,6 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 		$confirm_body = $newsletter->confirm_body;
 
 	}	
-
-	
 
 	$theqstring = $subscriber->id."%%".$subscriber->hash."%%".$fid;
 
@@ -522,82 +478,71 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 	
 
 	$confirm_subject = str_replace("[!newslettername!]",$newslettername,$confirm_subject);
-
 	$confirm_body = str_replace("[!newslettername!]",$newslettername,$confirm_body);
 
-	//don know why i am doing this VVVV
 
 	$confirm_subject = str_replace("[!address!]",$address,$confirm_subject);
-
 	$confirm_body = str_replace("[!address!]",$address,$confirm_body);
-
-
-
 	$confirm_body = str_replace("[!confirm!]",$confirm,$confirm_body);
-
 	$additional_parameters = array(
-
 								    	"ipaddress" => $_SERVER['REMOTE_ADDR'],
-
 										"date"     => date("g:i d F Y",time()),
-
 										"url"      => $_SERVER['HTTP_REFERER']
-
 								   );
 
 	$params = array();
-
 	
-
+	date_default_timezone_set($zone);
+	
 	$params[0] = $confirm_subject;
-
 	$params[1] = $confirm_body;
-
 	wpr_create_temporary_tables($nid);	
-
 	wpr_make_subscriber_temptable($nid);
-
 	wpr_place_tags($id,$params,$additional_parameters);
-
-	$from_email = get_bloginfo("admin_email");
-
-	$from_name = get_bloginfo("name");
-
-	$fromheader = "From: $from_name <$from_email>";
-
+	$from_email = $newsletter->fromemail;
 	
+	if (!$from_email)	
+		$from_email = get_bloginfo("admin_email");	
 
-	wp_mail($email,$params[0],$params[1],$fromheader);
+	$from_name = $newsletter->fromname;
+	
+	if (!$from_name)
+		$from_name = get_bloginfo("name");
 
-
-
+	$subject = $params[0];
+	$body = $params[1];
+	
+	$verificationEmail = array(
+							   		'to'=>$email,
+									'subject'=>$subject,
+									'textbody'=>$body,
+									'fromname'=>$from_name,
+									'from'=>$from_email
+								);
+    dispatchEmail($verificationEmail);
+	 
 	if (empty($return_url))
-
 	{
-
 		if (isset($theForm))
-
 		   $return_url = $theForm->return_url;
-
 	}
- 
-	
+
 	if (!empty($return_url))
 	{ 
         ?>
-        <script>
+<script>
 		window.location='<?php echo $return_url; ?>';
 		</script>
-        <?php
+<?php
 		exit;
 	}
 	else
 	{
         ?>
-        <script>
+<script>
 		window.location='<?php echo get_bloginfo("home")."/?wpr-optin=2" ?>';
 		</script>
-        <?php
+<?php
 		exit;
 	}
 	exit;
@@ -610,9 +555,11 @@ else
 
 	if (!isset($_POST['newsletter']))
 	{
-		?>        
-        <div align="center" style="font-family:Georgia, 'Times New Roman', Times, serif; font-size:24px; width:600; margin-left:auto; margin-right:auto">        <h2>Invalid Request</h2>This page should not be visited. Please use a subscription form to subscribe to a newsletter.</div>
-        <?php
+		?>
+<div align="center" style="font-family:Georgia, 'Times New Roman', Times, serif; font-size:24px; width:600; margin-left:auto; margin-right:auto">
+  <h2>Invalid Request</h2>
+  This page should not be visited. Please use a subscription form to subscribe to a newsletter.</div>
+<?php
 	}
 
 }

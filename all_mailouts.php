@@ -7,6 +7,11 @@ function wpr_all_mailouts()
 		
 		_wpr_edit_mailout();
 		break;
+		case 'show_broadcast':
+		
+		_wpr_show_broadcast();		
+		
+		break;
 		default:
 		?>
         <?php
@@ -16,9 +21,6 @@ function wpr_all_mailouts()
 		<input type="button" class="button" value="Create Broadcast" onclick="window.location='admin.php?page=wpresponder/newmail.php';"/>
 		<br />
 <br />
-	
-       
-
 		<?php
 		_wpr_finished_mailouts();
 	}
@@ -41,6 +43,8 @@ function _wpr_edit_mailout()
 		return;
 	}
 	$param = $mailouts[0];
+	$param->htmlenabled = (empty($param->htmlbody))?0:1;
+	
 	
 	if (isset($_POST['subject']))
 	{
@@ -50,7 +54,10 @@ function _wpr_edit_mailout()
 		$htmlbody = trim($_POST['htmlbody']);
 		$whentosend = $_POST['whentosend'];	
 		$date = $_POST['date'];
-		$htmlenabled  = ($_POST['htmlenabled'] == "on");
+		
+		$attachimages = (isset($_POST['attachimages']) && $_POST['attachimages'] ==1)?1:0;																
+		$htmlenabled  = (isset($_POST['htmlenabled']) && $_POST['htmlenabled'] == "on");
+
 		$recipients = $_POST['recipients'];
 		$hour = $_POST['hour'];
 		$min = $_POST['minute'];
@@ -59,16 +66,7 @@ function _wpr_edit_mailout()
 			$timeToSend = time();
 		else
 		{
-			if (empty($date))
-			{
-				$error = "The date field is required";
-				echo "Date is required";
-			}
-			else
-			{
-				$sections = explode("/",$date);
-				$timeToSend =mktime($hour,$min,0,$sections[0],$sections[1],$sections[2]); 
-			}
+				$timeToSend = $_POST['actualTime'];
 		}
 		if (!(trim($subject) && trim($textbody)))
 		{
@@ -91,19 +89,24 @@ function _wpr_edit_mailout()
 			$htmlbody = "";
 		}
 		
+		$htmlenabled = ($htmlenabled)?1:0;
+		
+		
 		if (!$error)
 		{
-			$query = "UPDATE ".$wpdb->prefix."wpr_newsletter_mailouts set subject='$subject', textbody='$textbody', htmlbody='$htmlbody',time='$timeToSend',recipients='$recipients',nid='$nid' where id=$id;";
+			$query = "UPDATE ".$wpdb->prefix."wpr_newsletter_mailouts set subject='$subject', textbody='$textbody', htmlbody='$htmlbody',time='$timeToSend',attachimages='$attachimages',recipients='$recipients', nid='$nid' where id=$id;";
 			$wpdb->query($query);
 			_wpr_mail_sending();
 			return;
 		}
-			$param = (object)  array("nid"=>$nid,"textbody"=>$textbody,"subject"=>$subject,"htmlbody"=>$htmlbody,"htmlenabled"=>$htmlenabled,"whentosend"=>$whentosend,"time"=>$timeToSend,"title"=>"New Mail");
+		
+		$param = (object)  array("nid"=>$nid,"textbody"=>$textbody,"subject"=>$subject,"htmlbody"=>$htmlbody,"htmlenabled"=>!empty($htmlbody),"whentosend"=>$whentosend,"time"=>$timeToSend,"title"=>"New Mail","buttontext"=>"Save Broadcast");
 
 	}
-
-	wpr_mail_form($param,"new",$error);
 	
+	
+	
+	wpr_mail_form($param,"new",$error);	
 }
 
 function _wpr_pending_mailouts()
@@ -113,8 +116,8 @@ function _wpr_pending_mailouts()
 	$mailouts = $wpdb->get_results($query);
 	?>
     <script>
-	var delurl = '<?php bloginfo("siteurl") ?>/<?php echo PLUGINDIR ?>/wpresponder/delmailout.php';
-	var viewurl = '<?php bloginfo("siteurl") ?>/<?php echo PLUGINDIR ?>/wpresponder/viewbroadcast.php';
+	var delurl = '<?php bloginfo("siteurl") ?>/?wpr-admin-action=delete_mailout';
+
 	var currentDeletion;
 	function deleteMailout(id)
 	{
@@ -123,7 +126,7 @@ function _wpr_pending_mailouts()
 		{
 			jQuery.ajax({
 							type: "GET",
-							url:  delurl+'?mid='+id,
+							url:  delurl+'&mid='+id,
 							cache: false,
 							success: removeRow
 						});
@@ -134,37 +137,8 @@ function _wpr_pending_mailouts()
 		var row = document.getElementById('mailout_'+currentDeletion);
 		par = row.parentNode;
 		par.removeChild(row);
-	}
-	function showBroadcast(html)
-	{
-		var diag = document.createElement("div");
-		diag.innerHTML = html;
-		jQuery(diag).dialog({
-								bgiframe: true,
-								modal: true,
-								title: "Broadcast Information",
-								width: 700,
-								height: 500,
-								buttons: {
-											Ok: function () 
-												{
-														jQuery(this).dialog('close')
-												}
-										}
-							});
-	}
+	}	
 	
-	function viewBroadcast(id)
-	{
-		jQuery.ajax({
-						type: "GET",
-						url: viewurl+"?mid="+id,
-						success:  function(html)
-						{
-							showBroadcast(html);
-						}
-					});
-	}
 	</script>
     <div class="wrap"><h2>Pending Broadcasts</h2></div>
     <table class="widefat">
@@ -185,7 +159,9 @@ function _wpr_pending_mailouts()
            <td><?php echo $mailout->subject ?></td>
            <td><?php $newsletter = _wpr_newsletter_get($mailout->nid);
 		   echo $newsletter->name ?></td>
-           <td><?php echo date("g:ia d F Y",$mailout->time); ?></td>
+           <td><?php 
+		   echo date("g:ia \o\\n dS F Y",$mailout->time); ?> GMT
+</td>
            <td><?php $recipients = implode("<br>",explode("%set%",$mailout->recipients));
 		   echo ($recipients)?$recipients:"All Subscribers";?></td>
            <td><input type="button" value="Edit" class="button" onclick="window.location='admin.php?page=wpresponder/allmailouts.php&action=edit&id=<?php echo $mailout->id ?>';" /><input type="button" value="Cancel" class="button" onclick="deleteMailout(<?php echo $mailout->id ?>)" /></td>
@@ -226,7 +202,7 @@ function _wpr_finished_mailouts()
            <td><?php $recipients = implode("<br>",explode("%set%",$mailout->recipients));
 		   echo ($recipients)?$recipients:"All Subscribers";
 		   ?></td>
-           <td><input type="button" value="View" onclick="viewBroadcast(<?php echo $mailout->id ?>);" class="button" /></td>
+           <td><a href="<?php echo $_SERVER['REQUEST_URI']?>&action=show_broadcast&id=<?php echo $mailout->id ?>" class="button" style="margin:10px; margin-top:20px;" >View Broadcast</a></td>
         </tr>
         <?php
 	}
@@ -237,4 +213,19 @@ function _wpr_finished_mailouts()
     * Time is approximate. Actual send time depends on the frequency you set for the wordpress cron job or amount of traffic you get.
     <?php
 }
+
+function _wpr_show_broadcast()
+{
+	global $wpdb;
+	$id = $_GET['id'];
+	require "viewbroadcast.php";
+//    $query = "SELECT * FROM ".$wpdb->prefix."wpr_newsletter_mailouts where id=$";
 ?>
+
+
+
+<?php
+	
+}
+
+

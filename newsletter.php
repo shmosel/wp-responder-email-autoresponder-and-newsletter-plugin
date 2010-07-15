@@ -226,7 +226,6 @@ function _wpr_newsletter_list()
 
        <input type="button" name="Edit" onclick="window.location='admin.php?page=wpresponder/newsletter.php&act=edit&nid=<?php echo $list->id ?>';" value="Edit" class="button" />
 
-       <input type="button" name="Delete" value="Delete" class="button" />
 
        <input type="button" name="Delete" value="Manage Leads" class="button" onclick="window.location='admin.php?page=wpresponder/subscribers.php&action=nmanage&nid=<?php echo $list->id ?>';" />
 

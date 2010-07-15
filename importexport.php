@@ -90,8 +90,7 @@ function export_csv()
 		}
 		$row = implode(",",$subsarray);
 		$output .= $row."\n";
-	}
-	
+	}	
 	header ("Content-disposition: attachment; filename=export_$nid.csv");
 	echo $output;
 	exit;
@@ -134,7 +133,7 @@ function step2()
 {
 	global $wpdb;
 	$rootpath = realpath("..");        
-	$output = include($rootpath."/".PLUGINDIR."/wpresponder/import.php");
+	$output = include($rootpath."/".PLUGINDIR."/".WPR_PLUGIN_DIR."/import.php");
 	echo $output;
 }
 
@@ -142,7 +141,7 @@ function step4()
 {
 	global $wpdb;
 	$rootpath = realpath("..");
-	$output = include($rootpath."/".PLUGINDIR."/wpresponder/import3.php");
+	$output = include($rootpath."/".PLUGINDIR."/".WPR_PLUGIN_DIR."/import3.php");
 	echo $output;
 }
 
@@ -203,7 +202,7 @@ function step3($error="")
 {
 	global $wpdb;
 	$rootpath = realpath("..");
-	$output = include($rootpath."/".PLUGINDIR."/wpresponder/import2.php");
+	$output = include($rootpath."/".PLUGINDIR."/".WPR_PLUGIN_DIR."/import2.php");
 	echo $output;
 }
 

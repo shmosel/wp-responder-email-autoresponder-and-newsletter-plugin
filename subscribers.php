@@ -451,7 +451,7 @@ function _wpr_subscriber_nmanage_home()
 		$numberPerPage = (int)$_GET['perpage'];
 		$numberPerPage  = ($numberPerPage <=0)?10:$numberPerPage;
 		$start = ($pageNumber-1)*$numberPerPage;
-		$start=$start+1;
+		$start=$start;
 		$limitClause = "limit $start , $numberPerPage ";
 
 	$query = "SELECT * FROM ".$wpdb->prefix."wpr_subscribers where nid=$nid order by date desc $limitClause;";
@@ -484,9 +484,6 @@ function _wpr_subscriber_nmanage_home()
 	$numberOfPages = ceil($subscriberCount/$numberPerPage);
 	pageNumbers($numberOfPages);
 	recordsPerPageSelector();
-	
-	
-
 }
 
 function _wpr_subscriber_search_form($nid="")
@@ -722,7 +719,6 @@ function _wpr_subscriber_list($subscribers,$allNewslettersMode=true,$backUrl="")
 						   
 						   $query = "select distinct a.name from ".$prefix."wpr_newsletters a, ".$prefix."wpr_subscribers b where a.id=b.nid and b.email='".$subscriber->email."' and b.active=1;";
 						   $subscribedNewsletters = $wpdb->get_results($query);
-						   $wpdb->print_error();
 						   $list = array();
 						   if (count($subscribedNewsletters))
 						   {
@@ -767,4 +763,3 @@ function _wpr_subscriber_list($subscribers,$allNewslettersMode=true,$backUrl="")
 <?php if ($backUrl) { ?>    <a href="admin.php?<?php echo $backUrl; ?>" class="button"> &laquo; Back </a> <?php } ?>
     <?php
 }
-?>

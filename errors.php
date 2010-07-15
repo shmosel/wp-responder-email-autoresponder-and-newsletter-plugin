@@ -41,5 +41,3 @@ Sometimes a subscriber may try to subscribe to a newsletter, autoresponder, post
 </table>
     <?php
 }
-
-?>

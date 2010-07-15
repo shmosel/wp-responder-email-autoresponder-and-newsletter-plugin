@@ -8,4 +8,3 @@ function _wpr_postseries_get($id)
 	
 }
 
-?>

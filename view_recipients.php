@@ -1,11 +1,10 @@
 <?php
-include "../../../wp-config.php";
+include "wp-load.php";
+global $wpdb;
 get_currentuserinfo();	
-$level = $current_user->user_level;
-if ($level < 8 )
+if (!current_user_can('level_8'))
 {
-	header("HTTP/1.0 404 Not Found");
-	exit;
+ 	  exit;
 }
 
 if (!isset($_GET['string']) || !isset($_GET['nid']))
@@ -135,9 +134,26 @@ for ($count=0;$count<$size;)
 	}
 	
 }
+$final = trim($final);
+if (empty($final))
+{
+   ?>
+   <center><h3 style="font-family:Arial, Helvetica, sans-serif;">No Conditions Specified</h3></center>
+   <?php
+   exit;
+   
+}
 $tableName = $wpdb->prefix."wpr_subscribers_".$nid;
 $query = "SELECT * FROM $tableName where $final and `active`=1 and `confirmed`=1";
 $subscribers = $wpdb->get_results($query);
+
+if (count($subscribers)==0)
+{
+	?>
+    <h2 align="center" style="font-family:Arial, Helvetica, sans-serif">No Confirmed Subscribers Were Found Matching The Specified Conditions</h2>
+    <?php
+	exit;
+}
 
 $keys = array_keys( (array) $subscribers[0]);
 
@@ -209,4 +225,3 @@ foreach ($subscribers as $subscriber)
 //drop it.
 
 
-?>

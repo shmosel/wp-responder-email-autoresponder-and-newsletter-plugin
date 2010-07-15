@@ -4,7 +4,7 @@ function CreateNewTemplateSwitcherButton($nameOfCKEditorObject,$nameOfTextArea,$
 {
     $pluginpath = str_replace("htmltemplates.lib.php","",__FILE__);	
 	
-    $templateFilesDirectory = WPR_PLUGIN_DIR."/htmltemplates/";
+    $templateFilesDirectory = ABSPATH."/".PLUGINDIR."/".WPR_PLUGIN_DIR."/htmltemplates/";
     $dir = opendir($templateFilesDirectory);
     $listOfTemplates = array();
     while ($item = readdir($dir))
@@ -18,7 +18,8 @@ function CreateNewTemplateSwitcherButton($nameOfCKEditorObject,$nameOfTextArea,$
 
     $home = get_bloginfo("home");
     $path = PLUGINDIR;
-    $fullpath = $home."/".$path."/wpresponder/htmltemplates";
+	
+    $fullpath = $home."/?wpr-template="
     ?>
 <script>
     var fullPath = "<?php echo $fullpath ?>";
@@ -28,8 +29,7 @@ function changeTemplate<?php echo $number?>(editorObject, nameOfTextArea,selectO
     var filename = selectObject.options[selectObject.selectedIndex].value;
     if (!filename)
         return;
-    urloffiletoget = fullPath+'/'+filename;
-    
+    urloffiletoget = fullPath+filename;
     var return_value= jQuery.ajax({ type: "GET", url: urloffiletoget, async: false }).responseText;
     editorObject.setData(return_value);
         
@@ -55,4 +55,3 @@ function codeReady()
     $formItem .= "</select></div>";
     echo $formItem;
 }
-?>

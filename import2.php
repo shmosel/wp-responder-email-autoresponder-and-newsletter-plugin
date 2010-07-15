@@ -19,4 +19,3 @@ Import File:  <input type="file" name="feedimport" />
 $content = ob_get_contents();
 ob_clean();
 return $content;
-?>

@@ -24,15 +24,20 @@ function createEditor(editorId)
      //create the editor
 	document.getElementById("editor-"+editorId);
 	listOfEditors[editorId] = CKEDITOR.replace( 'htmlbody-'+editorId, {
+											   skin: 'office2003',
         toolbar :
         [
             
 
-            
-            
-            ['Source','-','Undo','Redo','-','Find','Replace','-','SelectAll','RemoveFormat','-','NumberedList','BulletedList','-','Outdent','Indent','Blockquote'],['Bold', 'Italic', '-', 'NumberedList', 'BulletedList', '-', 'Link','Image'],
+
+            ['Source','Maximize','-','ShowBlocks','-','Cut','Copy','Paste','PasteText','PasteFromWord','-','Undo','Redo','-','Find','Replace','-','SelectAll','RemoveFormat'],
+			'/',
+			['Bold', 'Italic','Underline','Strike', '-', 'NumberedList', 'BulletedList','-','Subscript','Superscript','-','JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock', '-','Outdent','Indent','Blockquote','-', 'Link','Image','SpellChecker'],['Link','Unlink','Anchor',],
+
             '/',
-            ['Styles', 'Format','Font','FontSize','-','Cut','Copy','Paste','PasteText','PasteFromWord','-','Table'],
+
+            ['Format','Font','FontSize','TextColor','BGColor','-','-','Table','CreateDiv'],
+
 
         ]
 
@@ -47,15 +52,7 @@ function removeEditor(editorId)
           return;
       var html = listOfEditors[editorId].getData();      
       listOfEditors[editorId].destroy();
-      //create the texteditor
-      theTextArea=document.createElement("textarea");
-      theTextArea.setAttribute("rows","20");
-      theTextArea.setAttribute("cols","80");
-      theTextArea.setAttribute("id","htmlbody-"+editorId);
-      theTextArea.setAttribute("name","htmlbody-"+editorId);
-      theTextArea.innerHTML = html;      
-      //set the data.
-      document.getElementById("editor-"+editorId).appendChild(theTextArea);
+	  
       delete listOfEditors[editorId];
       
       

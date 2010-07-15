@@ -76,6 +76,5 @@ foreach ($listOfCategories as $category)
 
 <input type="reset" value="Reset" class="button"/><input type="submit" value="Next: Upload CSV &raquo;" class="button" /></form>
 <?php
-$cotnent = ob_get_cotnents();
+$cotnent = ob_get_contents();
 return $content;
-?>

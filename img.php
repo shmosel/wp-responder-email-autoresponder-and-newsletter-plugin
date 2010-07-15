@@ -69,8 +69,7 @@ function  generate_chart($nid)
 	$theChart->drawPlotGraph($subscriptionsList->GetData(),$subscriptionsList->GetDataDescription(),3,2,255,255,255);
 	$theChart->drawGrid(4,TRUE,230,230,230,50);
 	$uploadPath= get_option("upload_path");
-	$theFile = "$uploadPath/wpresponder/subscription_graph_".$nid.".png";
+	$theFile = "$uploadPath/".WPR_PLUGIN_DIR."/subscription_graph_".$nid.".png";
 	$theChart->Render($theFile);
 	
 }
-?>

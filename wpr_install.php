@@ -3,8 +3,13 @@
 function wpresponder_install()
 {
 	global $wpdb;
-
-	add_filter('cron_schedules','wpr_cronshedules');
+	
+	$phpVersion = phpversion();
+	if (!preg_match("@5\.[0-9\.]*@",$phpVersion) && !preg_match("@6\.[0-9\.]*@",$phpVersion) ) 
+	{
+		echo "<strong>Incompatibility Detected</strong>: WP Responder works only in PHP Version 5 and above. You are running a lower version: PHP ".phpversion();
+		exit;
+	}
 
 	$prefix = $wpdb->prefix;
 	$queries[] = "CREATE TABLE IF NOT EXISTS `".$prefix."wpr_autoresponders` (
@@ -37,6 +42,7 @@ function wpresponder_install()
 	  PRIMARY KEY (`id`),
 	  UNIQUE KEY `name` (`name`)
 	) TYPE=InnoDB;";
+	
 	$queries[] = "CREATE TABLE IF NOT EXISTS `".$prefix."wpr_blog_subscription` (
 	  `id` int(11) NOT NULL auto_increment,
 	  `sid` int(11) NOT NULL,
@@ -57,7 +63,6 @@ function wpresponder_install()
 	  UNIQUE KEY `nid` (`nid`,`name`)
 	) TYPE=InnoDB ;";
 	
-
 	$queries[] = "CREATE TABLE IF NOT EXISTS `".$prefix."wpr_custom_fields_values` (
 	  `id` int(11) NOT NULL AUTO_INCREMENT,
 	  `nid` int(11) NOT NULL,
@@ -163,20 +168,28 @@ function wpresponder_install()
 	//get the latest posted 
 	//get the post. if it exists.";
 	delete_option("wpr_last_post_date");
+	
 	$args = array('orderby'=> 'date','order'=>'DESC','numberposts'=>1,'post_type'=>'post');
 	$posts = get_posts($args);
-	$post = $posts[0];
-	$last_post_date = $post->post_date;
-	add_option("wpr_last_post_date",$last_post_date);
-		
-		
-	$confirm_subject = file_get_contents(ABSPATH. PLUGINDIR. "/wpresponder/templates/confirm_subject.txt");
-	$confirm_body = file_get_contents(ABSPATH. PLUGINDIR. "/wpresponder/templates/confirm_body.txt");
-	$confirmed_subject = file_get_contents(ABSPATH. PLUGINDIR. "/wpresponder/templates/confirmed_subject.txt");
-	$confirmed_body = file_get_contents(ABSPATH. PLUGINDIR. "/wpresponder/templates/confirmed_body.txt");
-
-
-        file_put_contents("./installog","These are the values from the files: '$confirm_body', '$confirm_subject'");
+	if (count($posts) >0 ) //if there are any posts at all
+	{
+		$post = $posts[0];
+		$last_post_date = $post->post_date_gmt;
+	}
+	else //if there are absolutely no posts in the blog then use the current time.
+	{
+		$last_post_date = date("Y-m-d H:i:s",time());	
+	}
+	
+	add_option("wpr_last_post_date",$last_post_date);		
+	
+	
+	$plugindirname = str_replace("wpr_install.php","",__FILE__);
+	
+	$confirm_subject = file_get_contents("$plugindirname/templates/confirm_subject.txt");
+	$confirm_body = file_get_contents("$plugindirname/templates/confirm_body.txt");
+	$confirmed_subject = file_get_contents("$plugindirname/templates/confirmed_subject.txt");
+	$confirmed_body = file_get_contents("$plugindirname/templates/confirmed_body.txt");
 
 	if (!get_option("wpr_confirm_subject"))
 		add_option("wpr_confirm_subject",$confirm_subject);
@@ -199,32 +212,26 @@ function wpresponder_install()
             update_option("wpr_confirmed_body",$confirmed_body);
 		//the cron variable.
 	if (!get_option("wpr_next_cron"))
-	 	add_option("wpr_next_cron",time()+600);
+	 	add_option("wpr_next_cron",time()+300);
          else
             update_option("wpr_next_cron",$confirm_subject);
 	if (!get_option("wpr_address"))
 	 	add_option("wpr_address","");
-         else
-            update_option("wpr_address","");
-
+  
          
 	if (!get_option("wpr_hourlylimit"))
 	 	add_option("wpr_hourlylimit","100");
          else
             update_option("wpr_hourlylimit","100");
-	if (!get_option("wpr_attachimages"))
-	 	add_option("wpr_attachimages","off");
-         else
-            update_option("wpr_attachimages","off");
 	if (get_option("wpr_sent_posts"))
 	 	add_option("wpr_sent_posts","off");
          else
             update_option("wpr_sent_posts","off");
-
+	createNotificationEmail();
+	wpr_enable_tutorial();
+	wpr_enable_updates();
 //configure the cron to run hourly.
+
 	wp_schedule_event(time(), 'every_five_minutes', 'wpr_cronjob');
 	wp_schedule_event(time()+6040000,'daily','wpr_send_errors'); //send weekly error reports.
-     
 }
-
-?>

@@ -60,7 +60,6 @@ ListOfFields['<?php echo $newsletter->id ?>'] = new Array();
 <?php
 
 	foreach ($fields as $field)
-
 	{
 
 		?>
@@ -80,19 +79,12 @@ ListOfFields['<?php echo $newsletter->id ?>'].push(new Field("<?php echo $field-
 	var container = document.getElementById('custom_fields');
 
 	container.innerHTML=''
-
 	var listItem  = document.createElement("ol");
-
 	var item1 = document.createElement("li");
-
 	newItem = document.createElement("li");
-
 	newItem.innerHTML = "Enter <strong>[!name!]</strong> to substitute for Name.";
-
 	listItem.appendChild(newItem);
-
 	newItem = document.createElement("li");
-
 	newItem.innerHTML = "Enter <strong>[!email!]</strong> to substitute for E-Mail Address.";
 
 	listItem.appendChild(newItem);
@@ -196,7 +188,7 @@ function showPreviewForm()
 
     var nid = wpr_GetNewsletter();
 
-    if (window.open('<?php echo bloginfo("home") ?>/<?php echo PLUGINDIR ?>/wpresponder/preview_email.php?nid='+nid,'previewWindow','width=500,height=500'))
+    if (window.open('<?php echo bloginfo("home") ?>/?wpr-admin-action=preview_email&nid='+nid,'previewWindow','width=500,height=500'))
 
     {
 
@@ -303,7 +295,7 @@ if (!isset($_GET['aid']))
         <td colspan="2"><label for="textbody">Text Body </label>
           <br />
           <small>Enter the email to be shown to subscribers who read your email in a mail client that doesn't support HTML email. </small>
-          <div style="float:right"><a href="http://www.krusible.com/"><img style="border: 1px solid #000; width:300px; height: 250px;" src="http://www.wpresponder.com/mailpage.png" /></a></div>
+          <div style="float:right"><a href="http://www.krusible.com/"><img src="http://www.wpresponder.com/mailpage.png" /></a></div>
           <textarea name="body" id="textbody" cols="55" rows="20" wrap="hard"><?php echo $parameters->textbody ?></textarea>
           
           <br />
@@ -351,7 +343,13 @@ if (isset($_GET['nid']))
           </div></td>
       </tr>
       <tr>
-        <td colspan="2"><input type="checkbox" name="htmlenabled" id="htmlenabled" onchange="changeHTMLBodyFieldsAvailability(this.checked,'htmlbodyfields');" <?php if (!isset($paramaters->htmlenabled) || $parameters->htmlenabled=="on" ) { echo 'checked="checked"'; } ?> />
+        <td colspan="2">
+       
+        <input type="checkbox" name="htmlenabled" id="htmlenabled" onchange="changeHTMLBodyFieldsAvailability(this.checked,'htmlbodyfields');" <?php
+		if ($parameters->htmlenabled==1 ) 
+		{ 
+			echo 'checked="checked"';
+		} ?> />
           <label for="htmlenable">Enable HTML Body</label>
           <br />
           <div id="htmlbodyfields"> <small>Check/uncheck this checkbox to enable or disable the HTML body of the email. When disabled only the text body will be sent.</small><br/>
@@ -402,7 +400,7 @@ if (isset($_GET['nid']))
             <input type="text" name="date" id="date" value="<?php echo $date ?>">
           </label>
           at
-          <select name="hour" onfocus="document.getElementById('sendattime').checked=true;">
+          <select name="hour" id="hour" onfocus="document.getElementById('sendattime').checked=true;">
             <?php
 
 		 for ($i=0; $i<24; $i++)
@@ -412,208 +410,172 @@ if (isset($_GET['nid']))
 	  $hour = sprintf("%'02d",$i);
 
 	  ?>
-            <option <?php if ( $hour == $thehour ) { echo "selected=\"selected\""; } ?>><?php echo $hour; ?></option>
+            <option><?php echo $hour; ?></option>
             <?php
 
   }
   ?>
           </select>
-          :00 Hrs<br/>
+          :<select name="minute" id="minute"> <option value="0">00</option>
+          <option value="30">30</option>
+          </select>
+           Hrs<br/>
           Date format: mm/dd/yyyy
           <div style="background-color: #fefefe; padding: 5px; border: 1px solid #ccc;">
-          <strong style="color: #f00">Caution: </strong><strong>the time on your computer may not be the same as the time on the server</strong>. See the time difference below:</strong><br />
+          
+          The e-mail will delivered as per your local time. Your timezone has been detected to be:<br />
 
-          Current Time On Server: <?php echo date("H:i:s l, jS F"); ?><br />
+  <strong>        
+  <input type="hidden" name="timezoneoffset" id="timezonefield" value="0" />
+<script>
+var thedate =  new Date();
+var theoffset = thedate.getTimezoneOffset();
+var theoffset = theoffset *60;
+var theDirection = (theoffset<0)?1:0;
+theoffset = (theoffset<0)?-theoffset:theoffset;
+var theHours = Math.floor(theoffset/3600);
+var theMinutes = ((theoffset%3600)/3600)*60;
+var theSymbol = (theDirection==1)?"+":"-";
+document.write("GMT "+theSymbol+" "+theHours+" hours and "+theMinutes+" minutes");
+document.getElementById('timezonefield').value=(-theoffset);
+var theBroadcastTime = <?php 
 
-          Current Time On Your Computer: <span id="currenttime"><script>///////////////////////////////////////////////////////////
-// "Live Clock Advanced" script - Version 1.0
-// By Mark Plachetta (astroboy@zip.com.au)
-//
-// Get the latest version at:
-// http://www.zip.com.au/~astroboy/liveclock/
-//
-// Based on the original script: "Upper Corner Live Clock"
-// available at:
-// - Dynamic Drive (http://www.dynamicdrive.com)
-// - Website Abstraction (http://www.wsabstract.com)
-// ========================================================
-// CHANGES TO ORIGINAL SCRIPT:
-// - Gave more flexibility in positioning of clock
-// - Added date construct (Advanced version only)
-// - User configurable
-// ========================================================
-// Both "Advanced" and "Lite" versions are available free
-// of charge, see the website for more information on the
-// two scripts.
-///////////////////////////////////////////////////////////
+if (empty($parameters->time)) 
+{
+ 	echo time()+3600;
+} 
+else
+{
+	echo $parameters->time; 
+}  ?>;
 
-///////////////////////////////////////////////////////////
-/////////////// CONFIGURATION /////////////////////////////
+theBroadcastTime *= 1000;
 
-	// Set the clock's font face:
-	var myfont_face = "Verdana";
-
-	// Set the clock's font size (in point):
-	var myfont_size = "10";
-
-	// Set the clock's font color:
-	var myfont_color = "#000000";
+function setTheTime()
+{
+	var theDate = new Date();
+	if (theBroadcastTime ==0)
+		return 	false;
+	theDate.setTime(theBroadcastTime);
+	var month = (theDate.getMonth()+1).toString();
+	//add a zero if the month is a single digit. 
+	if (month.length==1)
+	{
+		month = "0"+month;
+	}
 	
-	// Set the clock's background color:
-	var myback_color = "#FFFFFF";
-
-	// Set the text to display before the clock:
-	var mypre_text = "";
-
-	// Set the width of the clock (in pixels):
-	var mywidth = 300;
-
-	// Display the time in 24 or 12 hour time?
-	// 0 = 24, 1 = 12
-	var my12_hour = 0;
-
-	// How often do you want the clock updated?
-	// 0 = Never, 1 = Every Second, 2 = Every Minute
-	// If you pick 0 or 2, the seconds will not be displayed
-	var myupdate = 1;
-
-	// Display the date?
-	// 0 = No, 1 = Yes
-	var DisplayDate = 1;
-
-/////////////// END CONFIGURATION /////////////////////////
-///////////////////////////////////////////////////////////
-
-// Browser detect code
-        var ie4=document.all
-        var ns4=document.layers
-        var ns6=document.getElementById&&!document.all
-
-// Global varibale definitions:
-
-	var dn = "";
-	var mn = "th";
-	var old = "";
-
-// The following arrays contain data which is used in the clock's
-// date function. Feel free to change values for Days and Months
-// if needed (if you wanted abbreviated names for example).
-	var DaysOfWeek = new Array(7);
-		DaysOfWeek[0] = "Sunday";
-		DaysOfWeek[1] = "Monday";
-		DaysOfWeek[2] = "Tuesday";
-		DaysOfWeek[3] = "Wednesday";
-		DaysOfWeek[4] = "Thursday";
-		DaysOfWeek[5] = "Friday";
-		DaysOfWeek[6] = "Saturday";
-
-	var MonthsOfYear = new Array(12);
-		MonthsOfYear[0] = "January";
-		MonthsOfYear[1] = "February";
-		MonthsOfYear[2] = "March";
-		MonthsOfYear[3] = "April";
-		MonthsOfYear[4] = "May";
-		MonthsOfYear[5] = "June";
-		MonthsOfYear[6] = "July";
-		MonthsOfYear[7] = "August";
-		MonthsOfYear[8] = "September";
-		MonthsOfYear[9] = "October";
-		MonthsOfYear[10] = "November";
-		MonthsOfYear[11] = "December";
-
-// This array controls how often the clock is updated,
-// based on your selection in the configuration.
-	var ClockUpdate = new Array(3);
-		ClockUpdate[0] = 0;
-		ClockUpdate[1] = 1000;
-		ClockUpdate[2] = 60000;
-
-// For Version 4+ browsers, write the appropriate HTML to the
-// page for the clock, otherwise, attempt to write a static
-// date to the page.
-	if (ie4||ns6) { document.write('<span id="LiveClockIE" style="width:'+mywidth+'px; background-color:'+myback_color+'"></span>'); }
-	else if (document.layers) { document.write('<ilayer bgColor="'+myback_color+'" id="ClockPosNS" visibility="hide"><layer width="'+mywidth+'" id="LiveClockNS"></layer></ilayer>'); }
-	else { old = "true"; show_clock(); }
-
-// The main part of the script:
-	function show_clock() {
-		if (old == "die") { return; }
+	var date = theDate.getDate().toString();
+	date = (date.length==1)?"0"+date:date;
+	var year = theDate.getFullYear();	
+	theFullDate = month+"/"+date+"/"+year;
 	
-	//show clock in NS 4
-		if (ns4)
-                document.ClockPosNS.visibility="show"
-	// Get all our date variables:
-		var Digital = new Date();
-		var day = Digital.getDay();
-		var mday = Digital.getDate();
-		var month = Digital.getMonth();
-		var hours = Digital.getHours();
-
-
-
-		var minutes = Digital.getMinutes();
-		var seconds = Digital.getSeconds();
-
-	// Fix the "mn" variable if needed:
-		if (mday == 1) { mn = "st"; }
-		else if (mday == 2) { mn = "nd"; }
-		else if (mday == 3) { mn = "rd"; }
-		else if (mday == 21) { mn = "st"; }
-		else if (mday == 22) { mn = "nd"; }
-		else if (mday == 23) { mn = "rd"; }
-		else if (mday == 31) { mn = "st"; }
-
-	// Set up the hours for either 24 or 12 hour display:
-		if (my12_hour) {
-			dn = "AM";
-			if (hours > 12) { dn = "PM"; hours = hours - 12; }
-			if (hours == 0) { hours = 12; }
-		} else {
-			dn = "";
+	document.getElementById('date').value = theFullDate;
+	whichHour = theDate.getHours().toString();
+	if (whichHour.length==1)
+	{
+		whichHour = "0"+whichHour;
+	}
+	hourField = document.getElementById('hour')
+	var size = hourField.options.length;	
+	for (var curr=0; curr<size;curr++)
+	{
+		if (hourField.options[curr].value==whichHour)
+		{
+			hourField.selectedIndex=curr;
+			break;
 		}
-		if (minutes <= 9) { minutes = "0"+minutes; }
-		if (seconds <= 9) { seconds = "0"+seconds; }
-
-	// This is the actual HTML of the clock. If you're going to play around
-	// with this, be careful to keep all your quotations in tact.
-		myclock = '';
-		myclock += '<font style="color:'+myfont_color+'; font-family:'+myfont_face+'; font-size:'+myfont_size+'pt;">';
-		myclock += mypre_text;
-		myclock += hours+':'+minutes;
-		if ((myupdate < 2) || (myupdate == 0)) { myclock += ':'+seconds; }
-		myclock += ' '+dn;
-		if (DisplayDate) { myclock += ' on '+DaysOfWeek[day]+', '+mday+mn+' '+MonthsOfYear[month]; }
-		myclock += '</font>';
-
-		if (old == "true") {
-			document.write(myclock);
-			old = "die";
-			return;
+	}
+	
+	whichMinute = theDate.getMinutes();
+	whichMinute = (whichMinute/3600==0)?0:30;	
+	minuteField = document.getElementById('minute')
+	var size = minuteField.options.length;	
+	for (var curr=0; curr<size;curr++)
+	{
+		if (minuteField.options[curr].value==whichMinute)
+		{
+			minuteField.selectedIndex=curr;
+			break;
 		}
-
-	// Write the clock to the layer:
-		if (ns4) {
-			clockpos = document.ClockPosNS;
-			liveclock = clockpos.document.LiveClockNS;
-			liveclock.document.write(myclock);
-			liveclock.document.close();
-		} else if (ie4) {
-			LiveClockIE.innerHTML = myclock;
-		} else if (ns6){
-			document.getElementById("LiveClockIE").innerHTML = myclock;
-                }            
-
-	if (myupdate != 0) { setTimeout("show_clock()",ClockUpdate[myupdate]); }
+	}
 }
 
-show_clock();</script></span><br />
+setTheTime();
+
+
+function setActualTime()
+{
+	var theFullDate = document.getElementById('date').value;
+	var theDateParts = theFullDate.split("/");
+	var month = theDateParts[0];
+	var thedate = theDateParts[1];
+	var theyear = theDateParts[2];
+	
+	var theHour = document.getElementById('hour').options[document.getElementById('hour').selectedIndex].value;
+	
+	var theMinute = document.getElementById('minute').options[document.getElementById('minute').selectedIndex].value;
+	
+	var goDate = new Date();
+	thedate = parseInt(thedate);
+	goDate.setDate(thedate);
+	goDate.setYear(theyear);
+	month= parseInt(month);
+	month -= 1;
+	goDate.setMonth(month);
+	theMinute = parseInt(theMinute);
+	goDate.setMinutes(theMinute);
+	theHour = parseInt(theHour);
+	goDate.setHours(theHour);
+	goDate.setSeconds(0);
+	var utcStamp = goDate.getTime();
+	var utcStamp = utcStamp/1000;
+//	utcStamp += theoffset;
+	utcStamp = Math.floor(utcStamp);
+	document.getElementById('actualTime').value= utcStamp.toString();
+}
+
+
+function getCurrentUTCTime()
+{
+	var theDate = new Date();
+	var theTime = theDate.getTime();
+	theTime = Math.floor(theTime/1000);
+	return (theTime);
+}
+
+
+
+function validateTheForm()
+{
+	
+	currentTime = getCurrentUTCTime();
+	schedultedTime = document.getElementById('actualTime').value;
+	
+	if (currentTime > schedultedTime)
+	{
+		alert('You cannot schedule a mailout to go out in the past. Please select a time in the future.');
+		return false;
+	}
+	
+	return true;
+}
+
+window.setInterval('setActualTime()',10);
+</script>
+</strong>
+<input type="hidden" name="actualTime" value="0" id="actualTime" />
+
+
+          
+          <br />
 <br />
-Provide the correct time that corresponds to <strong><u>your server's time</u></strong>.
+          </div>
+       
+
           </div>
        <script>
 
 jQuery(document).ready(function()
-
 {
 
 	jQuery("#date").datepicker({ minDate: 0});
@@ -623,9 +585,7 @@ jQuery(document).ready(function()
 
 
 function changeHTMLBodyFieldsAvailability(field,nameOfTheDivToHide)
-
 {
-
     if (!field)
         {
             document.getElementById(nameOfTheDivToHide).style.display = "none";
@@ -636,7 +596,6 @@ function changeHTMLBodyFieldsAvailability(field,nameOfTheDivToHide)
 		}
 
 }
-
 
 var editorExists=false;
 
@@ -667,19 +626,20 @@ function toggleHTML()
             var element = document.getElementById("htmlbody");            
 
             editor = CKEDITOR.replace("htmlbody",{
+									  skin: 'office2003',
 
-        toolbar :
-
+           toolbar :
         [
+            
 
 
-
-            ['Source','-','Undo','Redo','-','Find','Replace','-','SelectAll','RemoveFormat','-','NumberedList','BulletedList','-','Outdent','Indent','Blockquote'],['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],['Bold', 'Italic', '-', 'NumberedList', 'BulletedList', '-', 'Link','Image'],
+            ['Source','Maximize','ShowBlocks','-','Cut','Copy','Paste','PasteText','PasteFromWord','-','Undo','Redo','-','Find','Replace','-','SelectAll','RemoveFormat'],
+			'/',
+			['Bold', 'Italic','Underline','Strike', '-', 'NumberedList', 'BulletedList','-','Subscript','Superscript','-','JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock', '-','Outdent','Indent','Blockquote','-', 'Link','Image','SpellChecker'],['Link','Unlink','Anchor',],
 
             '/',
 
-            ['Styles', 'Format','Font','FontSize','-','Cut','Copy','Paste','PasteText','PasteFromWord','-','Table'],
-
+            ['Format','Font','FontSize','TextColor','BGColor','-','-','Table','CreateDiv'],
 
 
         ]
@@ -806,6 +766,9 @@ function toggleHTML()
 
 }
 
+
+
+
 function setVisibilityOfHTMLFields()
 {
 	changeHTMLBodyFieldsAvailability(document.getElementById('htmlenabled').checked,'htmlbodyfields');
@@ -835,17 +798,16 @@ toggleHTML();
         <td colspan="3"><br />
           <input type="hidden" name="mid" value="<?php echo $parameters->id ?>"  />
           <input type="hidden" name="recipients" id="recipients" value="<?php echo $parameters->recipients ?>" />
-          <a href="javascript:showWindow();" class="button">Customize Recipients <img src="<?php bloginfo("siteurl") ?>/<?php echo PLUGINDIR ?>/wpresponder/newwindow.gif" /></a><br />
+          <a href="javascript:showWindow();" class="button">Customize Recipients <img src="<?php bloginfo("siteurl") ?>/<?php echo PLUGINDIR ?>/<?php echo WPR_PLUGIN_DIR ?>/newwindow.gif" /></a><br />
           <br /></td>
       </tr>
       <?php
 
   }
-
   ?>
       <tr>
         <td colspan="2"><label for="button"></label>
-          <input type="submit" class="button-primary" name="button" id="button" value="<?php echo ($parameters->buttontext)?$parameters->buttontext:"Send Message";?>"/>
+          <input type="submit" class="button-primary" onclick="return validateTheForm();" name="button" id="button" value="<?php echo ($parameters->buttontext)?$parameters->buttontext:"Send Message";?>"/>
           <input type="button" name="PreviewEmailButton" onclick="wpr_GetHtmlBody();previewEmail()" value="Preview This Email" class="button-primary"></td>
       </tr>
       <script>

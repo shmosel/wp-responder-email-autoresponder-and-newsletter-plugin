@@ -8,13 +8,12 @@ function wpr_get_mailouts()
 {
 
  	global $wpdb;
-
-	$query = "SELECT * FROM ".$wpdb->
-
-prefix."wpr_newsletter_mailouts where status = 0 and time <= ".time().";";
-
+	
+	$zone = date_default_timezone_get();  //whats the point?
+	$timeStamp = time();
+	$query = "SELECT * FROM ".$wpdb->prefix."wpr_newsletter_mailouts where status = 0 and time <= $timeStamp;";
 	$mailouts = $wpdb->get_results($query);
-
+	date_default_timezone_set($zone);
 	return $mailouts;
 
 }
@@ -68,47 +67,22 @@ function sendmail($sid,$params,$footerMessage="")
 	global $wpdb;
 
 	$subscriber = _wpr_subscriber_get($sid);
-
-
-
 	$email = $subscriber->email;
-
 	$sitename = get_bloginfo('name');
-
 	$siteurl = get_bloginfo('home');
-
-		
-
 	$url = get_bloginfo('siteurl');
-
 	$newsletter = _wpr_newsletter_get($subscriber->nid);
-
-	$nid = $newsletter->id;
-
-		
-
-	$string = $sid."%$%".$nid."%$%".$subscriber->hash;
-
-	$codedString = base64_encode($string);
-
-
 
         //if the fromname field is set in the newsletter, then use that value otherwise use the blog name.
 
 	$fromname = (!empty($params['fromname']))?$params['fromname']:(!empty($newsletter->fromname))?$newsletter->fromname:get_bloginfo("name");
-
 	$fromemail = get_bloginfo("admin_email");
-
 	
-
 	if ($newsletter->reply_to)
-
 		$replytoHeader = "Reply-To: ".$newsletter->reply_to." \r\n";
-
+		
 	$header = "$fromHeader $replytoHeader";	
-
-	$unsuburl = $url."/wp-content/plugins/wpresponder/manage.php?$codedString";	
-
+	$unsuburl = wpr_get_unsubscription_url($sid);
 	$subject = $params['subject'];
 
 	$to = $email;
@@ -123,22 +97,15 @@ function sendmail($sid,$params,$footerMessage="")
 
 
 	$htmlbody = trim($params['htmlbody']);
-
 	//append the address and the unsub link to the email
-
 	$address = "<br>
 <br>
 ".get_option("wpr_address")."<br>
 <br>
 ";
-
 	$htmlUnSubscribeMessage = "<br><br>".$address."<br><br>To unsubscribe or change subscriber options visit:<br />
 \r\n <a href=\"$unsuburl\">$unsuburl</a>";
-
 	$htmlenabled = ($params['htmlenabled'])?1:0;
-
-    
-
 	if (!empty($htmlbody))
 	{
 		if ($footerMessage && (!empty($htmlbody)) )
@@ -151,15 +118,10 @@ function sendmail($sid,$params,$footerMessage="")
 	}	
 
 	if ($footerMessage)
-
 		$params['textbody'] .= $footerMessage."\n\n";
-
 	$textbody .= $params['textbody'].$textUnSubMessage;	
-
 	$textbody = addslashes($textbody);
-
 	$htmlbody = addslashes($htmlbody);
-
 	$subject = addslashes($subject);
 
         $attachImages = ($params['attachimages'])?1:0;
@@ -471,7 +433,10 @@ function wpr_processEmails()
 	$prefix = $wpdb->prefix;
 
 	//email mailouts
-
+	
+	date_default_timezone_set("UTC");
+	
+	
 	$email_mailouts= wpr_get_mailouts();
 	foreach ($email_mailouts as $broadcast)
 	{
@@ -491,7 +456,6 @@ function wpr_processEmails()
 		$customFields = ($customFieldsConditions)?" AND ".$customFieldsConditions:"";
 
 		$query = "SELECT * FROM ".$prefix."wpr_subscribers_".$nid." where active=1 and confirmed=1 $customFields;";
-                $output = "The query was: $query\n\n";
 
 		$subscribersList = $wpdb->get_results($query);
 
@@ -504,10 +468,11 @@ function wpr_processEmails()
 		$whetherToAttachImages = $broadcast->attachimages;
 
 		$query = "SELECT fromname, fromemail from ".$wpdb->prefix."wpr_newsletters where id=".$nid;
-                
 		$results = $wpdb->get_results($query);
 		$fromname = $results[0]->fromname;
 		$fromemail = $results[0]->fromemail;
+		
+		
              
 		if (count($subscribersList))
 
@@ -549,30 +514,23 @@ function wpr_processEmails()
 
 
 
-	$getSubscribersQuery = "SELECT a.* FROM ".$prefix."wpr_followup_subscriptions a,".$prefix."wpr_subscribers b  where a.type='autoresponder' and a.sid=b.id and b.confirmed=1;";
+	$getSubscribersQuery = "SELECT a.* FROM ".$prefix."wpr_followup_subscriptions a,".$prefix."wpr_subscribers b  where a.type='autoresponder' and a.sid=b.id and b.active=1 and b.confirmed=1;";
 
 	$autoresponderSubscriptions = $wpdb->get_results($getSubscribersQuery);
-
 	foreach ($autoresponderSubscriptions as $asubscription)
 
 	{
 
 		$subscriber = _wpr_subscriber_get($asubscription->sid);
-
 		$aid = $asubscription->eid;
-
-		$daysSinceSubscribing = floor(( time()-$asubscription->doc)/86400);
+		$daysSinceSubscribing = floor((time()-$asubscription->doc)/86400);
 
 		$lastSequence = $asubscription->sequence;
 
-		if ($lastSequence == $daysSinceSubscribing)
-
+		if ($lastSequence == $daysSinceSubscribing) //we have alrady delivered this follow up series today.
 			continue;
-
 		$query = "SELECT * FROM ".$prefix."wpr_autoresponder_messages where aid=$aid and sequence=$daysSinceSubscribing limit 1;";
-
 		$messages = get_rows($query);
-
 		if (count($messages))
 		{
 			$messages = $messages[0];
@@ -581,9 +539,6 @@ function wpr_processEmails()
 			sendmail($subscriber->id,$emailParameters);
 			$updateSubscriptionStatusQuery = "UPDATE ".$prefix."wpr_followup_subscriptions set last_date='".time()."', sequence='$messages->sequence' WHERE sid=$subscriber->id";
 			$wpdb->query($updateSubscriptionStatusQuery);
-
-
-
 		}
 
 	}
@@ -592,7 +547,7 @@ function wpr_processEmails()
 
 	//post series
 
-	$query ="SELECT a.* FROM ".$prefix."wpr_followup_subscriptions a, ".$prefix."wpr_subscribers b where a.type='postseries' and a.sid=b.id and b.active=1 and b.confirmed=1;";
+	$query ="SELECT a.* FROM ".$prefix."wpr_followup_subscriptions a, ".$prefix."wpr_subscribers b where a.type='postseries' and a.sequence !='-2' and a.sid=b.id and b.active=1 and b.confirmed=1;";
 	$postseriesSubscriptionList = $wpdb->get_results($query);
 
 	foreach ($postseriesSubscriptionList as $psubscription)
@@ -623,168 +578,154 @@ function wpr_processEmails()
 
 
 		//how many days since subscribing?
-
 		$daysSinceSubscribing = floor((time()-$psubscription->doc)/86400);
                 //get the post series as an object
-
 		$postseries = _wpr_postseries_get($psubscription->eid);
                 //get the posts in the post series
-                $posts = get_postseries_posts($postseries->catid,$nid);
-     
-          
+                $posts = get_postseries_posts($postseries->catid,$nid);         
 		$numberOfPosts = count($posts);
-
-                
-
 		$timeBetweenPosts = $postseries->frequency;
-
-
-
-
 		$last_post = $psubscription->sequence;
-
-                
 		$currentIndex = floor($daysSinceSubscribing/$timeBetweenPosts);
-
 		//if the post has already been sent, leave it, go to the next.
-
-
-
-
-		if ($last_post >= $currentIndex)//sometimes posts get deleted mid delivery
+		if ($last_post > $currentIndex)//sometimes posts get deleted mid delivery
 			continue;
-		//all posts have been sent.
+			
+		if ($last_post == $currentIndex) // if the posts for today have been delivered, skip further processing. 
+			continue;
+		
+		//all posts have been sent. expire the post series subscription
+		
 		if ($last_post >= count($posts)-1)
 		{
+			
+			//TODO: MAKE THIS AND THE SECTION MARKED BELOW AS A FUNCTION 
+			$query = "UPDATE ".$prefix."wpr_followup_subscriptions set sequence='-2', last_date='".time()."' where id='".$psubscription->id."';";
+			$wpdb->query($query);
 			continue;
 		}
+		
+		$indexToDeliver = $last_post+1;
 
 		$category = $psubscription->eid;
-		$postToSend = $posts[$currentIndex];
+		$postToSend = $posts[$indexToDeliver];
 
               
-                //get teh newsletter to which this subscriber belongs.
+        //get teh newsletter to which this subscriber belongs.
 		//check if the post is allowed to be sent.
 		$theoptions = get_post_meta($postToSend->ID,'wpr-options',true);
-                $decodedOptions = base64_decode($theoptions);
-
-                $options = unserialize($decodedOptions);
-                if ($options[$nid]['disable']==1)
-                    {
-                    $skip = "on";
-                }
-                else
-                    {
-                    $skip = "off";
-                    }
-
-
+        $decodedOptions = base64_decode($theoptions);
+        $options = unserialize($decodedOptions);
+        if ($options[$nid]['disable']==1)
+        {
+            $skip = "on";
+        }
+         else
+        {
+            $skip = "off";
+        }
 		if ($skip == "on") //skip this post. get the next post to send that doesn't have a 'don't send by email' option on.
 		{
-
-			$foundAPostToSend = false;
-                        
+			$foundAPostToSend = false;                        
 			//are there any more posts?
-
-			if ($currentIndex+1 < count($posts)) //then find the next post that isn't skipped.
-			{
-                        
-				for ($curr = $currentIndex+1; $curr<count($posts); $curr++)
+			if ($indexToDeliver+1 < count($posts)) //then find the next post that isn't skipped.
+			{        
+				$countOfPosts =count($posts);
+				for ($curr = $indexToDeliver+1; $curr< $countOfPosts; $curr++)
 				{
-
-					$lastId = $posts[$curr]->ID;
-                        
-
-                                        if (!whetherToSkipThisPost($nid,$lastId))
+					$lastId = $posts[$curr]->ID;                        
+                    if (!whetherToSkipThisPost($nid,$lastId))
 					{
-                        			$postToSend = $posts[$curr]; //then send the next post in this post series.
+						$postToSend = $posts[$curr]; //then send the next post in this post series.
 						$foundAPostToSend = true;
-                                                $currentIndex = $curr;
+						$indexToDeliver = $curr;
 						break;
 					}
-
 				}
-                        
+				
 				if (!$foundAPostToSend)
-
 				{
-                        		$query = "UPDATE ".$prefix."wpr_followup_subscriptions set sequence='$lastId' and last_date='".time()."' where id='".$psubscription->id."';";                        
+                       $query = "UPDATE ".$prefix."wpr_followup_subscriptions set sequence='-2', last_date='".time()."' where id='".$psubscription->id."';";                        
+					//mark this follow up sequence as finished.
 					$wpdb->query($query);
 
 					continue;
 
 				}
-
-                                print "";
-
 			}
-
-			else
+			else  //the last post in the post series has been skipped. mark the follow up as finished.
 			{
-				$query = "UPDATE ".$prefix."wpr_followup_subscriptions set sequence=$currentIndex and last_date='".time()."' where id='".$psubscription->id."';";
+				$theCountOfCurrent = $indexToDeliver+1;
+				if ($theCountOfCurrent== count($posts))
+				{
+					$setSequenceTo = -2;
+				}
+				else
+				{
+					$setSequenceTo = $currentIndex;
+				}
+				$query = "UPDATE ".$prefix."wpr_followup_subscriptions set sequence='$setSequenceTo', last_date='".time()."' where id='".$psubscription->id."';";
 				$wpdb->query($query);
 				continue;
-
 			}
-
 			//if we didn't find a post to send.. forget it! move to the next subscription.
-
 		}
-
-                deliverBlogPost($sid,$postToSend->ID,"",true,true);
-		$query = "UPDATE ".$prefix."wpr_followup_subscriptions set sequence=$currentIndex , last_date='".time()."' where id='".$psubscription->id."';";
-                
+		$sitename = get_bloginfo("name");
+        deliverBlogPost($sid,$postToSend->ID,"You are receiving this blog post as a part of a post series at $name.",true,true);
+		$query = "UPDATE ".$prefix."wpr_followup_subscriptions set sequence=$indexToDeliver , last_date='".time()."' where id='".$psubscription->id."';";
 		$wpdb->query($query);
 	}
-
 	//now process the people who subscribe to the blog
 	$lastPostDate = get_option("wpr_last_post_date");
-        $timeNow = current_time("mysql",0);
-	$query = "SELECT * FROM ".$prefix."posts where post_type='post' and  post_status='publish' and post_date > '$lastPostDate' and post_date < '$timeNow';";
+	date_default_timezone_set("UTC");
+    $timeNow = date("Y-m-d H:i:s",time());
+	$query = "SELECT * FROM ".$prefix."posts where post_type='post' and  post_status='publish' and post_date_gmt > '$lastPostDate' and post_date_gmt < '$timeNow';";
 	$posts = $wpdb->get_results($query);
-	foreach ($posts as $post)
+	
+	
+	if (count($posts) > 0 ) // are there posts being delivered? 
 	{
-		$query = "SELECT a.* FROM ".$prefix."wpr_subscribers a, ".$prefix."wpr_blog_subscription b where b.type='all' and a.id=b.sid and a.active=1 and a.confirmed=1;";
-		$subscribers = $wpdb->get_results($query);
-                //deliver this post to all subscribers of the categories of
-                // this post. 
-		$categories = wp_get_post_categories($post->ID);
-                
-		foreach ($categories as $category)
+		foreach ($posts as $post)
 		{
-			deliver_category_subscription($category,$post);
-
+			$query = "SELECT a.* FROM ".$prefix."wpr_subscribers a, ".$prefix."wpr_blog_subscription b where b.type='all' and a.id=b.sid and a.active=1 and a.confirmed=1;";
+			$subscribers = $wpdb->get_results($query);
+					//deliver this post to all subscribers of the categories of
+					// this post.
+			$categories = wp_get_post_categories($post->ID);
+			foreach ($categories as $category)
+			{
+				deliver_category_subscription($category,$post);
+			}
+	
+			if (count($subscribers) > 0)
+			{
+				$blogName = get_bloginfo("name");
+				$blogURL = get_bloginfo("home");
+				$footerMessage = "You are receiving this email because you are subscribed to the latest articles on <a href=\"$blogURL\">$blogName</a>";
+				foreach ($subscribers as $subscriber)
+				{
+							deliverBlogPost($subscriber->id,$post->ID,$footerMessage);
+				}
+			}
+			
+			delete_option("wpr_last_post_date");
+			add_option("wpr_last_post_date",$post->post_date_gmt);
+			
+			
+			$sentPosts = get_option("wpr_sent_posts");
+			$sentPostsList = explode(",",$sentPosts);
+			$sentPostsList[] = $post->ID;
+			$sentPosts = implode(",",$sentPostsList);
+	
+			delete_option('wpr_sent_posts');
+			add_option("wpr_sent_posts",$sentPosts);	
 		}
-
-		$blogName = get_bloginfo("name");
-		$footerMessage = "You are receiving this email because you are subscribed to the latest articles on $blogName";
-
-		foreach ($subscribers as $subscriber)
-		{
-                    deliverBlogPost($subscriber->id,$post->ID,$footerMessage);
-		}
-
-		update_option("wpr_last_post_date",$post->post_date);
-
-		$sentPosts = get_option("wpr_sent_posts");
-
-		$sentPostsList = explode(",",$sentPosts);
-
-		$sentPostsList[] = $post->ID;
-
-		$sentPosts = implode(",",$sentPostsList);
-
-		update_option("wpr_sent_posts",$sentPosts);
-
-
-
 	}
-
-
 
 	$content = ob_get_clean();
 
-	update_option("wpr_next_cron",time()+10);
+	delete_option("wpr_next_cron");
+	add_option("wpr_next_cron",time()+300);
 
 }
 
@@ -887,26 +828,15 @@ function getBlogContentInDefaultLayout($post_id)
  */
 
 /*
-
  * This function sends the blog post with post id $post_id via email to subscriber with subscriber id $sid
-
  * if the the subscriber doesnt belong to a newsletter with newsletter id
-
  * that is in the list of newsletters that are configured to not receive this blog post.
-
  *
-
  *
-
-
  *
-
  */
-
 function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$whetherPostSeries=false)
-
 {
-
     global $wpdb;
 
     //get the post meta
@@ -997,11 +927,17 @@ function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$
        }
        else
        {
+		     $htmlBody = $options[$nid]['htmlbody'].nl2br($footerMessage);
+			 
+			 $htmlEnabled = ($options[$nid]['htmlenable']==1)?1:0;
+			 if (!$htmlEnabled)
+			 	$htmlBody="";
+				
              $params = array("subject"=>$options[$nid]['subject'],
-                            "htmlbody"=>$options[$nid]['htmlbody'].nl2br($footerMessage),
-                            "textbody"=>$options[$nid]['textbody']."$footerMessage",
+                            "htmlbody"=>$htmlBody,
+                            "textbody"=>$options[$nid]['textbody'].strip_tags("$footerMessage"),
                             "attachimages"=>($options[$nid]['attachimages'])?1:0,
-                            "htmlenabled"=>1
+                            "htmlenabled"=> $htmlEnabled
                  );
 
        }
@@ -1009,8 +945,11 @@ function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$
        $params['subject'] = substitutePostRelatedShortcodes($params['subject'],$post_id);
        $params['htmlbody'] = substitutePostRelatedShortcodes($params['htmlbody'],$post_id);
        $params['textbody'] = substitutePostRelatedShortcodes($params['textbody'],$post_id);
+	   
+	   //substitute newsletter related parameters.
+	   
+	   wpr_place_tags($sid,$params);
        sendmail($sid,$params);
-
    }
 
 }
@@ -1019,21 +958,24 @@ function substitutePostRelatedShortcodes($text,$post_id)
         {
 
     //the post's url
+	
+	
     $postUrl = get_permalink($post_id);
     $text = str_replace("[!post_url!]",$postUrl,$text);
-
+	
     //teh post's delivery date
     //which is time right now.
     $time = date("g:iA d F Y ",time());
     $time .= date_default_timezone_get();
     $text = str_replace("[!delivery_date!]",$time,$text);
-    //post date
+	
+    //post publishing date
     $post = get_post($post_id);
     $postDate = $post->post_date;
     $postEpoch = strtotime($postDate);
     $postDate = date("dS, F Y",$postEpoch);
     $text = str_replace("[!post_date!] ",$postDate,$text);
-    
+   
     return $text;
     
 }

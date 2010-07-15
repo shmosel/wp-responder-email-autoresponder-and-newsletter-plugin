@@ -185,4 +185,3 @@ window.location='admin.php?page=wpresponder/autoresponder.php&action=manage&aid=
 }
 
 
-?>

@@ -9,4 +9,3 @@ function _wpr_autoresponder_get($id)
 }
 
 
-?>

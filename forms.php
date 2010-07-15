@@ -217,11 +217,7 @@ function _wpr_subscriptionform_code($form)
 
 			
 
-		$url = get_bloginfo('siteurl');			
-
-		$pathto = PLUGINDIR."/wpresponder/optin.php";			
-
-					
+		$url = get_bloginfo('home');			
 
 		ob_start();
 
@@ -653,7 +649,6 @@ var toSelect = new Array(); //custom field ids to select.
 
 <?php
 
-print_r($fieldsToSelect);
 
 if (count($fieldsToSelect) > 0)
 

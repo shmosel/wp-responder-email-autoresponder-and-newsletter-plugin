@@ -8,4 +8,3 @@ The subscribers have been imported from your CSV file to the database. You may n
 <?php
 $content = ob_get_clean();
 return $content;
-?>

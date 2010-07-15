@@ -66,4 +66,3 @@ function getCustomField($cid,$name="",$value="")
 	}
 }
 
-?>

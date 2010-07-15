@@ -1,8 +1,19 @@
 <?php
-include "../../../wp-config.php";
-include "lib/swift_required.php";
+include "wp-load.php";
 
-//The arguments that are to be give to this page:
+if (!current_user_can('level_8'))
+{
+	exit;
+}
+
+
+$currentDir = str_replace("preview_email.php","",__FILE__);
+include "$currentDir/lib/swift_required.php";
+
+
+
+global $wpdb;
+//The arguments that are to be give to this page: (via Javascript)
 /*
  * 1. The email html body
  * 2. The email text body
@@ -14,13 +25,11 @@ include "lib/swift_required.php";
 
 
 //die if this is not a adminstrator's session
-if (! current_user_can('manage_options') )
+if (! current_user_can('level_8') )
 {
     echo "You are not authorized to view this page.";
     exit;
 }
-
-
 
 if (!isset($_GET['nid']))
     {
@@ -73,7 +82,7 @@ function sendTheEmail($parameters)
         substitutePlaceHoldersWithValues($parameters['textbody'],$fieldsToSubstitute);
     }
     //finsihed replacing the custom fields placeholers with their values.   
-  print_r($parameters); 
+  
   dispatchEmail($parameters);
 
 }

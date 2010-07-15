@@ -1,5 +1,13 @@
 <?php
-include "../../../wp-config.php";
+include "wp-load.php";
+
+
+if (!current_user_can('level_8'))
+{
+	exit;
+}
+
+global $wpdb;
 	$nid = $_GET['nid'];
 	?>
 	<html>
@@ -404,7 +412,11 @@ include "../../../wp-config.php";
 		var thequery='';
 		for (var condition in conditions)
 		{		
-			thequery += getConditionQuery(setnum,condition);
+		    theConditionQuery = getConditionQuery(setnum,condition)
+			if (!theConditionQuery)
+			   return false;
+			thequery += theConditionQuery;
+			
 			if (!thequery)
 			{
 				return false;
@@ -415,8 +427,12 @@ include "../../../wp-config.php";
 	function previewSet(setnum)
 	{
 		thequery = formQuery(setnum);
+		if (!thequery)
+		{
+			 return false;
+		}
 		thestring = encodeBase64(thequery);
-		window.open('<?php bloginfo('siteurl')?>/<?php echo PLUGINDIR ?>/wpresponder/view_recipients.php?string='+thestring+'&nid='+nid,'recipients','width=600,height=600');
+		window.open('<?php bloginfo('home')?>/?wpr-admin-action=view_recipients&string='+thestring+'&nid='+nid,'recipients','width=600,height=600');
 	}
 	
 	function formSetQueries()

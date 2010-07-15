@@ -1,6 +1,6 @@
 <?php
-include "../../../wp-config.php";
-$request = $_SERVER['QUERY_STRING'];
+include "wp-config.php";
+$request = $_GET['wpr-manage'];
 if (empty($request))
 {
      error("We're unable to identify your subscription to help you manage it. Please copy the full URL and paste it in the browser.");
@@ -114,6 +114,7 @@ if (isset($_POST['confirmed']) && $_POST['confirmed'] == "true")
 			{
 			   continue;
 			}
+			global $wpdb;
 			$query = "SELECT id from ".$wpdb->prefix."wpr_subscribers where nid=$nid and email='$email'";
 			$sub = $wpdb->get_results($query);
 			if (count($sub) == 0)
@@ -127,7 +128,7 @@ if (isset($_POST['confirmed']) && $_POST['confirmed'] == "true")
 			//delete blog subscriptions
 			$query = "DELETE FROM ".$wpdb->prefix."wpr_blog_subscription where sid='$sid'";
 			$wpdb->query($query);
-		
+		    //delete custom field values.
 			$query = "DELETE FROM ".$wpdb->prefix."wpr_custom_fields_values where sid='$sid'";
 			$wpdb->query($query);
 			
@@ -160,6 +161,7 @@ function error($error)
     <a href="javascript:window.history.go(-1);">Click Here To Go Back</a> </div>
 </div>
 <?php
+
 
 	exit;
 

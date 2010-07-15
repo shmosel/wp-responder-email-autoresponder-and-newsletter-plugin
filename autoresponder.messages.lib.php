@@ -6,4 +6,3 @@ function _wpr_get_autoresponder_message($id)
 	$result = $wpdb->get_results($query);
 	return $result[0];
 }
-?>

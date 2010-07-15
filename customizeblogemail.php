@@ -130,7 +130,7 @@ function CreateNewsletterPostValuesArray($newsletterId)
 
         "textbody"=> stripslashes($_POST['textbody-'.$newsletterId]),
 
-        "htmlbody"=> stripslashes($_POST['htmlbody-'.$newsletterId]),
+        "htmlbody"=> ($_POST['htmlenable-'.$newsletterId] == 1)?stripslashes($_POST['htmlbody-'.$newsletterId]):"",
 
         "disable"=> (isset($_POST['skipnewsletter-'.$newsletterId]))?1:0,
 
@@ -207,7 +207,9 @@ function getNewsletterOptions($post_id=0)
 
 ?>
 
-<span style="font-size: 12px; line-height: 25px;">Each of the tabs below allow you to customize the email that goes out to the blog subscribers, blog category subscribers and post series subscribers of that newsletter. </span>
+<span style="font-size: 12px; line-height: 25px;">Each of the tabs below allow you to customize the email that goes out to the blog subscribers, blog category subscribers and post series subscribers of that newsletter. The blog post will be delivered ONLY to subscribers who have subscribed to the blog or one of the blog categories under which this blog post will be published. Ordinary newsletter subscribers will not receive this blog post at all.
+
+</span>
 <input type="hidden" name="wpr-blogemailoptions-nonce" value="<?php echo wp_create_nonce('wpr-blogemailoptions-nonce') ?>" />
 <input type="hidden" name="wpr-newsletters-count" value="<?php echo count($results) ?>"/>
 <input type="hidden" name="wpr-newsletters" value="<?php foreach ($results as $newsletter) { $nids[] = $newsletter-> id; }
@@ -413,7 +415,7 @@ function getNewsletterCustomizationFormCode($arguments,$mode="new")
 <h2><?php echo $newsletter->name; ?></h2>
 <p>
   <input type="checkbox" <?php if ($arguments['disable']) { echo 'checked="checked"'; } ?> autocomplete="off" onchange="toggleStatus(<?php echo $nid ?>,this.checked);" id="toggleForm-<?php echo $nid; ?>" name="skipnewsletter-<?php echo $nid; ?>" value="1" id="skipnewsletter-<?php echo $nid; ?>">
-  Don't deliver this blog post to subscribers of this newsletter at all.</p>
+  Don't deliver this blog post to subscribers of this newsletter who have subscribed to all the blog posts or one of the blog categories in which this post is categorized.</p>
 <p>
   <input type="checkbox" <?php if ($arguments['nopostseries']==1) { echo 'checked="checked"'; } ?> name="nopostseries-<?php echo $nid ?>" autocomplete="off" id="nopostseries">
   <label for="nopostseries"> Don't use these settings while delivering email to post series subscribers. Use a default layout that uses the blog post's content.</label>
@@ -423,14 +425,14 @@ function getNewsletterCustomizationFormCode($arguments,$mode="new")
     <input autocomplete="off" type="checkbox"  <?php if ($arguments['skipactivesubscribers']) { echo 'checked="checked"'; } ?> name="skipfollowup-<?php echo $nid ?>" value="1" id="skipfollowup-<?php echo $nid ?>">
     Don't deliver this blog post to subscribers who are receiving a follow up sequence associated with this newsletter.</p>
   <p>
-    <input type="checkbox"  <?php if ($arguments['nocustomization']) { echo 'checked="checked"'; } ?> autocomplete="off" onchange="toggleCustomization(<?php echo $nid ?>, this.checked);" name="disablecustomization-<?php echo $nid ?>" value="1" id="disablecustomization-<?php echo $nid ?>">
-    Disable all customization (use default layout for the email)</p>
+<fieldset style="border:1px solid #909090; padding:10px;"> <legend><input type="checkbox"  <?php if ($arguments['nocustomization']) { echo 'checked="checked"'; } ?> autocomplete="off" onchange="toggleCustomization(<?php echo $nid ?>, this.checked);" name="disablecustomization-<?php echo $nid ?>" value="1" id="disablecustomization-<?php echo $nid ?>">
+    Disable all customization (use default layout for the email)</p></legend>
   <div id="customizationsform-<?php echo $nid ?>">
     <div id="form-<?php echo $nid ?>">
       <p style="font-size: 17px; font-weight: bold">Subject:
-        <input type="text" name="subject-<?php echo $nid ?>" value="<?php echo $arguments['subject'] ?>" size="50">
+        <input type="text" name="subject-<?php echo $nid ?>" value="<?php echo $arguments['subject'] ?>" size="50"></p>w
       <p style="font-size: 17px; font-weight: bold">Text Body:</p>
-      <textarea name="textbody-<?php echo $nid ?>" rows="10" cols="80"><?php echo $arguments['textbody'] ?></textarea>
+      <textarea style="border: 1px solid #c0c0c0;" name="textbody-<?php echo $nid ?>" rows="10" cols="80"><?php echo $arguments['textbody'] ?></textarea>
       <p style="font-size: 17px; font-weight: bold">HTML Body:</p>
       <?php CreateNewTemplateSwitcherButton("listOfEditors[".$nid."]","htmlbody-".$nid,$nid); ?>
       <p>
@@ -440,14 +442,12 @@ function getNewsletterCustomizationFormCode($arguments,$mode="new")
         <p>
           <input type="checkbox" name="attachimages-<?php echo $nid ?>"  <?php if ($arguments['attachimages']) { echo 'checked="checked"'; } ?>  value="1">
           Images in the email are attached with the email instead of being given a URL in the source code</p>
-          <div style="float:right" style="padding-bottom:20px;"><a class="button-primary" target="_blank"  href="http://www.krusible.com/newsletter-design/">Get a custom Email Newsletter template</a>
+          <div style="float:right; padding-bottom:20px;"><a class="button-primary" target="_blank"  href="http://www.krusible.com/newsletter-design/">Get a custom Email Newsletter template</a>
           </div>
 <br/><br/><br/>
           <div style="clear:both"></div> 
         <div id="editor-<?php echo $nid ?>">
-          <textarea id="htmlbody-<?php echo $nid ?>" name="htmlbody-<?php echo $nid ?>" rows="20" cols="80">
-
-    <?php echo ($arguments['htmlenable'])?$arguments['htmlbody']:""; ?></textarea>
+          <textarea id="htmlbody-<?php echo $nid ?>" name="htmlbody-<?php echo $nid ?>" rows="20" cols="80"><?php echo ($arguments['htmlenable'])?$arguments['htmlbody']:""; ?></textarea>
         </div>
         <input type="button" onclick="createEditor(<?php echo $nid ?>)" value="Enable WYSIWYG" name="enable"/>
         <input type="button" value="Disable WYSIWYG" onclick="removeEditor(<?php echo $nid; ?>)" name="enable"/>
@@ -505,6 +505,7 @@ toggleHtmlBody(<?php echo $nid ?>,document.getElementById("htmlenable-<?php echo
       </ol>
     </div>
   </div>
+  </p></fieldset>
 </div>
 <?php
 
@@ -548,4 +549,3 @@ function wpr_add_post_save($id)
 
 }
 
-?>

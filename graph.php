@@ -1,4 +1,5 @@
 <?php
+/*
 function show_graph($nid)
 {
 	global $wpdb;
@@ -29,5 +30,4 @@ The graph cannot be generated because I can't find the newsletter. <a href="admi
 	</div>
 	<?php
 }
-
-?>
+*/

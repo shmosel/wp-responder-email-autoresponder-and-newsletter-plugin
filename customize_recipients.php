@@ -14,7 +14,7 @@ function showWindow()
 	var theSubscribers = recipients.value;
 	var vpos = (screen.availHeight/2)-300;
 	var hpos = (screen.availWidth/2)-300;
-	currentWindow = window.open('<?php bloginfo('siteurl'); ?>/<?php echo PLUGINDIR ?>/wpresponder/filter.php?nid='+getCurrentNewsletter(),'customizer','height=500,width=900,left='+hpos+',top='+vpos);
+	currentWindow = window.open('<?php bloginfo('home'); ?>/?wpr-admin-action=filter&nid='+getCurrentNewsletter(),'customizer','height=500,width=900,left='+hpos+',top='+vpos);
 }
 
 function newsletterChanged(nid)
@@ -22,7 +22,7 @@ function newsletterChanged(nid)
 	if (document.getElementById('recipients').value != '' || currentWindow != null)
     {
         alert('Since you changed the newsletter, the recipient customization has been changed to \'All Subscribers\'.');
-         document.getElementById('recipients').value='';
+        document.getElementById('recipients').value='';
         currentWindow.close();
      }
 }
@@ -56,6 +56,7 @@ function setBase64Str(str){
     base64Str = str;
     base64Count = 0;
 }
+
 function readBase64(){    
     if (!base64Str) return END_OF_INPUT;
     if (base64Count >= base64Str.length) return END_OF_INPUT;
@@ -97,6 +98,7 @@ function encodeBase64(str){
     }
     return result;
 }
+
 function readReverseBase64(){   
     if (!base64Str) return END_OF_INPUT;
     while (true){      

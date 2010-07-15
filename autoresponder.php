@@ -187,4 +187,3 @@ function _wpr_autoresponder_back2home($delay=0)
 	window.setTimeout("window.location ='admin.php?page=wpresponder/autoresponder.php'",<?php echo $delay ?>*1000);</script>
     <?php
 }
-?>

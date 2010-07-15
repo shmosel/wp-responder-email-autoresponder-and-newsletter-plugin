@@ -13,7 +13,7 @@ function wpr_newmail ()
 	if (isset($_POST['subject']))
 
 	{
-
+		date_default_timezone_set("UTC");
 	    $subject = $_POST['subject'];
 
 		$nid = $_POST['newsletter'];
@@ -31,9 +31,10 @@ function wpr_newmail ()
 		$recipients = $_POST['recipients'];
 
 		$hour = $_POST['hour'];
-
-                $shouldAttachImages = (isset($_POST['attachimages']))?1:0;
-
+        $shouldAttachImages = (isset($_POST['attachimages']))?1:0;
+		
+		$timezoneOffset = $_POST['timezoneoffset'];
+	
 		$min = $_POST['minute'];
 
 		if ($whentosend == "now")
@@ -45,53 +46,31 @@ function wpr_newmail ()
 		{
 
 			if (empty($date))
-
 			{
-
 				$error = "The date field is required";
-
-				echo "Date is required";
-
 			}
-
 			else
-
 			{
-
 				$sections = explode("/",$date);
-
 				$timeToSend =mktime($hour,$min,0,$sections[0],$sections[1],$sections[2]); 
-
+				$timeToSend = $timeToSend+$timezoneOffset;
 			}
 
 		}
 
 		if (!(trim($subject) && trim($textbody)))
-
 		{
-
 			$error = "Subject and the Text Body are mandatory.";
-
 		}
-
 		if ($timeToSend < time()  && !$error)
-
 		{
-
 			$error = "The time mentioned is in the past. Please enter a time in the future.";
-
 			if ($htmlenabled && !$error)
-
 			{	
-
 				if (empty($htmlbody))
-
 				{
-
 					$error = "HTML Body is empty. Enter the HTML body of this email";
-
 				}
-
 			}
 
 		}
@@ -112,9 +91,8 @@ function wpr_newmail ()
 
 			$wpdb->query($query);
 
-
 			//schedule the cron to run right now.
-			wp_schedule_single_event( time(), "my_action");			
+			wp_schedule_single_event( time(), "wpr_cronjob");			
 			//make the cron start.
 			spawn_cron(); 
 			
@@ -125,12 +103,8 @@ function wpr_newmail ()
 
 	}
 
-	$param = (object)  array("nid"=>$nid,"textbody"=>$textbody,"subject"=>$subject,"htmlbody"=>$htmlbody,"htmlenabled"=>$htmlenabled,"whentosend"=>$whentosend,"date" => $date,"hour"=>$hour,"minute"=>$min,"title"=>"New Mail");
-
+	$param = (object)  array("nid"=>$nid,"textbody"=>$textbody,"subject"=>$subject,"htmlbody"=>$htmlbody,"htmlenabled"=>1,"whentosend"=>$whentosend,"date" => $date,"hour"=>$hour,"minute"=>$min,"title"=>"New Mail");
 	
-
-	
-
 	//There are no newsletters. Ask to create one before sending mailouts
 
 	if (_wpr_no_newsletters("To send a new e-mail broadcast"))

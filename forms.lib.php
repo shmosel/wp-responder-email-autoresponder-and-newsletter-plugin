@@ -24,4 +24,3 @@ function _wpr_subscriptionform_create($info)
 	$query = "INSERT INTO ".$wpdb->prefix."wpr_subscription_form (nid,name,return_url,followup_type,followup_id,blogsubscription_type,blogsubscription_id,custom_fields, confirm_subject,confirm_body,confirmed_subject,confirmed_body) values ('$info->nid','$info->name','$info->return_url','$info->followup_type','$info->followup_id','$info->blogsubscription_type','$info->blogsubscription_id','$info->custom_fields','$info->confirm_subject','$info->confirm_body','$info->confirmed_subject','$info->confirmed_body');";
 	$wpdb->query($query);
 }
-?>

@@ -326,4 +326,3 @@ function wpr_customfields()
 
 }
 
-?>
