@@ -13,6 +13,7 @@ Author URI: http://www.expeditionpost.com/
 
 //This is a hack. Just a hack. 
 
+
 function wpr_unsupported()
 {
 	
@@ -459,13 +460,9 @@ else
 		
 	
 		//get the columns of the subscribers table.
-	
 		$query = "show columns from ".$wpdb->prefix."wpr_subscribers";
-	
 		$columns = $wpdb->get_results($query);
-	
 		$subsTableColumnList = array();
-	
 		foreach ($columns as $column)
 	
 		{
@@ -747,31 +744,19 @@ else
 		
 	
 		foreach ($custom_fields as $custom_field)
-	
 		{
-	
 			$name = $custom_field->name;
-	
 			$parameters[$custom_field->name] = $subscriber->{$name};
-	
 		}
-	
-		$parameters = array_merge($parameters,$additional);
-	
 		
-	
+		$parameters = array_merge($parameters,$additional);
 		foreach ($parameters as $tag=>$value)
-	
 		{
-	
 			foreach ($strings as $index=>$string)
-	
-			{
-	
+			{	
 				$strings[$index] = str_replace("[!$tag!]",$value,$string);
-	
+
 			}
-	
 		}
 	
 	}

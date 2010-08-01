@@ -8,4 +8,11 @@ function _wpr_autoresponder_get($id)
 	
 }
 
+function _wpr_get_autoresponders_of_newsletter($nid)
+{
+    global $wpdb;
+	$query = "SELECT * FROM ".$wpdb->prefix."wpr_autoresponders where nid=$nid";
+	$results = $wpdb->get_results($query);
+	return $results;
+}
 

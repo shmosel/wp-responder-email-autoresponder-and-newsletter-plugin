@@ -29,9 +29,6 @@ function _wpr_newsletter_update($info)
 	$query = "UPDATE  ".$wpdb->prefix."wpr_newsletters SET name='$info->name', reply_to='$info->reply_to', description='$info->description', confirm_subject='$info->confirm_subject', confirm_body='$info->confirm_body',confirmed_subject='$info->confirmed_subject',confirmed_body='$info->confirmed_body', `fromname`='$info->fromname', `fromemail`='$info->fromemail' where id='$info->id';";	
 
 	$result = $wpdb->query($query);
-
-
-
 }
 
 function _wpr_newsletter_create($info)
@@ -123,9 +120,7 @@ function _wpr_newsletter_form($parameters="",$title="Add List",$button="Create N
           </tr>
           <tr>
             <td colspan="2"> Message Body:<br />
-              <textarea name="confirm_body" rows="10" cols="70" wrap="hard">
-
-<?php 
+              <textarea name="confirm_body" rows="10" cols="70" wrap="hard"><?php 
 
 if (!$parameters->confirm_body) 
 
@@ -145,9 +140,7 @@ else
 
 }
 
-	?>
-
-</textarea>
+	?></textarea>
               <div style="font-size: small; padding: 10px; background-color: #eee; width:700px">
                 <h3>Place Holders</h3>
                 <table cellspacing="10">
@@ -216,4 +209,12 @@ else
 <?php
 
 }
+function _wpr_get_newsletters()
+{
+	global $wpdb;
+	$query = "SELECT * FROM ".$wpdb->prefix."wpr_newsletters";
+	$newsletters = $wpdb->get_results($query);
+	return $newsletters;
+}
+
 

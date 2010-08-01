@@ -46,6 +46,7 @@ function _wpr_manage_responder_delete()
 function _wpr_manage_responder_create()
 {
 	global $wpdb;
+	$parameters->htmlenabled=1;
 	if (isset($_POST['subject']))
 	{
 		$subject = $_POST['subject'];
@@ -81,12 +82,14 @@ function _wpr_manage_responder_create()
 		
 		$parameters->subject = $subject;
 	$parameters->textbody = $textbody;
+	$parameters->htmlenabled = (!empty($htmlbody))?1:0;
 	$parameters->htmlbody = $htmlbody;
 	$parameters->textbody = $textbody;
 	$parameters->sequence = $sequence;
 
 	}
-		$parameters->buttontext = "Create Message";
+	$parameters->buttontext = "Create Message";
+
 	$parameters->formtitle = "Create Folllow Up Mail";
   	wpr_mail_form($parameters,"autoresponder",$error);
 	

@@ -90,17 +90,19 @@ ListOfFields['<?php echo $newsletter->id ?>'].push(new Field("<?php echo $field-
 	listItem.appendChild(newItem);
 
 	var newItem;
-
-	for (field in fieldList)
-
+	if (fieldList.length >0)
 	{
-
-		newItem = document.createElement("li");
-
-		newItem.innerHTML = "Enter <strong>[!"+fieldList[field].name+"!]</strong> to substitute for "+fieldList[field].label+".";
-
-		listItem.appendChild(newItem);
-
+		for (field in fieldList)
+	
+		{
+	
+			newItem = document.createElement("li");
+	
+			newItem.innerHTML = "Enter <strong>[!"+fieldList[field].name+"!]</strong> to substitute for "+fieldList[field].label+".";
+	
+			listItem.appendChild(newItem);
+	
+		}
 	}
 
 	container.appendChild(listItem);
@@ -125,8 +127,6 @@ function wpr_GetNewsletter()
 {
 
     return document.mailForm.newsletter.value;
-
-
 
 }
 
@@ -209,10 +209,9 @@ function showPreviewForm()
 
 
 function previewEmail()
-
 {
-
-    showPreviewForm();
+	if (validateFieldValues())
+	    showPreviewForm();
 
 }
 
@@ -507,7 +506,7 @@ function setActualTime()
 {
 	var theFullDate = document.getElementById('date').value;
 	var theDateParts = theFullDate.split("/");
-	var month = theDateParts[0];
+	var themonth = theDateParts[0];
 	var thedate = theDateParts[1];
 	var theyear = theDateParts[2];
 	
@@ -515,16 +514,25 @@ function setActualTime()
 	
 	var theMinute = document.getElementById('minute').options[document.getElementById('minute').selectedIndex].value;
 	
+	themonth = themonth.replace("0","");
+	thedate = thedate.replace("0","");
+	theHour = theHour.replace("0","");
+	
+	month= parseInt(themonth);
+	thedate = parseInt(thedate);
 	var goDate = new Date();
 	thedate = parseInt(thedate);
 	goDate.setDate(thedate);
 	goDate.setYear(theyear);
-	month= parseInt(month);
-	month -= 1;
+
+	month=parseInt(themonth);
+	month -=1;
 	goDate.setMonth(month);
 	theMinute = parseInt(theMinute);
+
 	goDate.setMinutes(theMinute);
 	theHour = parseInt(theHour);
+
 	goDate.setHours(theHour);
 	goDate.setSeconds(0);
 	var utcStamp = goDate.getTime();
@@ -542,33 +550,78 @@ function getCurrentUTCTime()
 	theTime = Math.floor(theTime/1000);
 	return (theTime);
 }
+function trim(stringToTrim) {
+	stringToTrim = stringToTrim.toString();
+	return stringToTrim.replace(/^\s+|\s+$/g,"");
+}
+function ltrim(stringToTrim) {
+	return stringToTrim.replace(/^\s+/,"");
+}
+function rtrim(stringToTrim) {
+	return stringToTrim.replace(/\s+$/,"");
+}
 
+function validateFieldValues()
+{
+	
+	var errors = new Array();
+	//the subject must be mentioned
+	subject = trim(document.getElementById('subject').value);
+	count=0;
+	if (subject.length== 0)
+	{
+		errors[count++] = "- Subject is empty. A Subject is mandatory for a broadcast";
+	}
+	
+	//the text body must be mentioned
+	textbody = trim(document.getElementById('textbody').value);
+	if (textbody.length==0)
+	{
+		errors[count++] = "- Text body field is empty. A text body is mandatory for a broadcast.";
 
+	}
+	
+	htmlbody = trim(editor.getData());	
+	if (document.getElementById('htmlenabled').checked==true && htmlbody.length==0)
+	{
+		errors[count++] = "- HTML body is enabled but the HTML Body has not filled out.";
+	}
+	
+	if (errors.length > 0)
+	{
+		var message = "Some errors were found in the form: \n\n"+ errors.join("\n");
+		alert(message);
+		return false;
+	}	
+	//if the html body is emabled, the html bdoy should have some text.
+	return true;
+	
+}
 
 function validateTheForm()
 {
 	
 	currentTime = getCurrentUTCTime();
-	schedultedTime = document.getElementById('actualTime').value;
-	
-	if (currentTime > schedultedTime)
+	scheduledTime = document.getElementById('actualTime').value;	
+	if (currentTime > scheduledTime)
 	{
 		alert('You cannot schedule a mailout to go out in the past. Please select a time in the future.');
 		return false;
 	}
 	
+	
+	if (!validateFieldValues())
+	{
+		return false;	
+	}
+	
 	return true;
 }
 
-window.setInterval('setActualTime()',10);
+window.setInterval('setActualTime()',1);
 </script>
 </strong>
-<input type="hidden" name="actualTime" value="0" id="actualTime" />
-
-
-          
-          <br />
-<br />
+<input type="hidden" name="actualTime" value="0" id="actualTime" /><br />
           </div>
        
 

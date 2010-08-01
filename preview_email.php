@@ -68,13 +68,18 @@ function sendTheEmail($parameters)
 
     //the following fields should not be in the fields to substitute array
     $fieldsToRemove = array("to","from","fromname","htmlenabled","attachimages","textbody","htmlbody");
+	
+	//we want the 'to' - the email address of the receipient to actually be named 'email'
+	$fieldsToSubstitute['email'] = $fieldsToSubstitute['to'];
+	
     foreach ($fieldsToRemove as $fieldToRemove)
         {
         unset($fieldsToSubstitute[$fieldToRemove]);
     }
 	
 
-    unset($fieldsToRemove);
+	
+
     foreach ($fieldsToSubstitute as $fieldName=>$value)
     {
         substitutePlaceHoldersWithValues($parameters['subject'],$fieldsToSubstitute);
@@ -284,8 +289,8 @@ function validateAndReturnFormData(&$error)
 
     $fromemail = $_POST['fromemail'];
     if (empty ($fromemail))
-        {
-        $fromemail = get_bloginfo("adminemail");
+    {
+        $fromemail = get_bloginfo("admin_email");
     }
     $subject = $_POST['subject'];
     $textbody = $_POST['textbody'];
@@ -347,6 +352,16 @@ if (formSubmitted())
     if ($arguments = validateAndReturnFormData($error))
     {
 		
+		/*
+		The following line is a hack. The swiftmailer library 
+		throws an error when the email being sent has an image 
+		in it and the src of the image is a different server - an http:// URL. 
+		
+		The swiftmailer is invoked by one of the functions that
+		sendTheEmail invokes.
+		*/
+		error_reporting(~E_ALL);
+		/*End Hack*/
 		
         sendTheEmail($arguments);
 		displayEmailSentMessage();
