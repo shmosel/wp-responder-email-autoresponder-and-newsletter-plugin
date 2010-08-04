@@ -66,8 +66,6 @@ And get in touch with me.
 
 **WP Responder 4.9.2**
 
-Bug fixes:
-
 Bug Fixes:
 
 * In the autoresponder series page, the HTML body is disabled by default. 
