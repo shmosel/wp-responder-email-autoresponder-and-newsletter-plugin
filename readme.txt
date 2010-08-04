@@ -69,6 +69,7 @@ And get in touch with me.
 Bug fixes:
 
 Bug Fixes:
+
 * In the autoresponder series page, the HTML body is disabled by default. 
 * When preview email is sent there is an error when there is an image in the post. 
 * The preview email doesn't replace the [!email!] field with the email address. 
@@ -85,6 +86,5 @@ Bug Fixes:
 New Features:
 
 * Added mechanism to delete subscription forms.
-
 
 
