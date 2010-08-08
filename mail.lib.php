@@ -550,53 +550,7 @@ function getCurrentUTCTime()
 	theTime = Math.floor(theTime/1000);
 	return (theTime);
 }
-function trim(stringToTrim) {
-	stringToTrim = stringToTrim.toString();
-	return stringToTrim.replace(/^\s+|\s+$/g,"");
-}
-function ltrim(stringToTrim) {
-	return stringToTrim.replace(/^\s+/,"");
-}
-function rtrim(stringToTrim) {
-	return stringToTrim.replace(/\s+$/,"");
-}
 
-function validateFieldValues()
-{
-	
-	var errors = new Array();
-	//the subject must be mentioned
-	subject = trim(document.getElementById('subject').value);
-	count=0;
-	if (subject.length== 0)
-	{
-		errors[count++] = "- Subject is empty. A Subject is mandatory for a broadcast";
-	}
-	
-	//the text body must be mentioned
-	textbody = trim(document.getElementById('textbody').value);
-	if (textbody.length==0)
-	{
-		errors[count++] = "- Text body field is empty. A text body is mandatory for a broadcast.";
-
-	}
-	
-	htmlbody = trim(editor.getData());	
-	if (document.getElementById('htmlenabled').checked==true && htmlbody.length==0)
-	{
-		errors[count++] = "- HTML body is enabled but the HTML Body has not filled out.";
-	}
-	
-	if (errors.length > 0)
-	{
-		var message = "Some errors were found in the form: \n\n"+ errors.join("\n");
-		alert(message);
-		return false;
-	}	
-	//if the html body is emabled, the html bdoy should have some text.
-	return true;
-	
-}
 
 function validateTheForm()
 {
@@ -732,7 +686,7 @@ toggleHTML();
           <small>0 for immediately after subscribing</small></td>
         <td><label for="select2"></label>
           <label for="textfield2"></label>
-          <input name="sequence" type="text" id="textfield2" size="4" maxlength="2" value="<?php echo (int) $parameters->sequence ?>" />
+          <input name="sequence" type="text" id="textfield2" size="4" maxlength="3" value="<?php echo (int) $parameters->sequence ?>" />
           <label for="radio3"> Days </label>
           
                  <script>
@@ -864,6 +818,52 @@ toggleHTML();
           <input type="button" name="PreviewEmailButton" onclick="wpr_GetHtmlBody();previewEmail()" value="Preview This Email" class="button-primary"></td>
       </tr>
       <script>
+function validateFieldValues()
+{
+	
+	var errors = new Array();
+	//the subject must be mentioned
+	subject = trim(document.getElementById('subject').value);
+	count=0;
+	if (subject.length== 0)
+	{
+		errors[count++] = "- Subject is empty. A Subject is mandatory for a broadcast";
+	}
+	
+	//the text body must be mentioned
+	textbody = trim(document.getElementById('textbody').value);
+	if (textbody.length==0)
+	{
+		errors[count++] = "- Text body field is empty. A text body is mandatory for a broadcast.";
+
+	}
+	
+	htmlbody = trim(editor.getData());	
+	if (document.getElementById('htmlenabled').checked==true && htmlbody.length==0)
+	{
+		errors[count++] = "- HTML body is enabled but the HTML Body has not filled out.";
+	}
+	
+	if (errors.length > 0)
+	{
+		var message = "Some errors were found in the form: \n\n"+ errors.join("\n");
+		alert(message);
+		return false;
+	}	
+	//if the html body is emabled, the html bdoy should have some text.
+	return true;
+	
+}
+function trim(stringToTrim) {
+	stringToTrim = stringToTrim.toString();
+	return stringToTrim.replace(/^\s+|\s+$/g,"");
+}
+function ltrim(stringToTrim) {
+	return stringToTrim.replace(/^\s+/,"");
+}
+function rtrim(stringToTrim) {
+	return stringToTrim.replace(/\s+$/,"");
+}
 
   function getCurrentNewsletter()
 

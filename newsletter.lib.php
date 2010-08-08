@@ -189,11 +189,7 @@ else
           </tr>
           <tr>
             <td colspan="2"> Message Body:<br />
-              <textarea name="confirmed_body" rows="10" cols="70">
-
-<?php echo (!$parameters->confirmed_body)?get_option("wpr_confirmed_body"):$parameters->confirmed_body ?>
-
-</textarea></td>
+              <textarea name="confirmed_body" rows="10" cols="70"><?php echo (!$parameters->confirmed_body)?get_option("wpr_confirmed_body"):$parameters->confirmed_body ?></textarea></td>
           </tr>
         </table></td>
     </tr>
@@ -209,6 +205,7 @@ else
 <?php
 
 }
+
 function _wpr_get_newsletters()
 {
 	global $wpdb;

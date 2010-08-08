@@ -15,12 +15,309 @@ function wpr_importexport()
 		case 'download':
 		export_csv();
 		break;
+		
+		case 'manual':
+		wpr_manual_import();
+		break;
 		default:
+                    ?>
+<div class="wrap"><?php
 		display_newsletter_list();
-		show_link_to_wizard();		
+		show_link_to_wizard();
+		show_manual_import_form();
+               ?>
+</div><?php
 	}
 }
 
+
+function show_manual_import_form()
+{
+    unset($_SESSION['mi_newsletter']);
+    unset($_SESSION['mi_blogsub']);
+    unset($_SESSION['mi_csv']);
+	?>
+    <form action="admin.php?page=wpresponder/importexport.php&action=manual" method="post">
+    
+    <h2>Import Subscribers Manually</h2>
+    <table>
+    	<tr>
+            <td>Newsletter name:</td>
+            <td>
+    <select name="mi_newsletter">
+    <?php
+    $newsletters = _wpr_get_newsletters();
+    foreach ($newsletters as $nl)
+    {
+        ?>
+        <option value="<?php echo $nl->id ?>"><?php echo $nl->name ?></option>
+        <?php
+    }
+    ?>
+    </select>
+            </td>
+
+        </tr>
+        <tr>
+            <td>Blog Subscription:</td>
+            <td><select name="mi_blogsub">
+                    <option value="none">None</option>
+                    <option value="all">Subscribe to All Posts Published</option>
+                    <optgroup label="To Blog Category:">
+                        <?php
+                        $args = array(
+                                            'type'                     => 'post',
+                                            'child_of'                 => 0,
+                                            'orderby'                  => 'name',
+                                            'order'                    => 'ASC',
+                                            'hide_empty'               => false,
+                                            'hierarchical'             => 0);
+		 $categories = get_categories($args);
+                 foreach ($categories as $category)
+                 {
+                     ?>
+                        <option value="<?php echo $category->term_id ?>"><?php echo $category->cat_name ?></option>
+
+                     <?php
+                 }
+                 ?>
+                 </optgroup>
+
+                </select>
+        </tr>
+        <tr>
+            <td colspan="2">
+                
+                
+
+                The subscriber information in CSV format:<p>
+                <p>If you have a <strong>.csv file</strong>, then open the file in a text editor like notepad, copy its contents and then
+                paste it here.</p>
+                    
+                </p><textarea rows="30" cols="80" name="mi_csv"></textarea>
+                <div style="font-size: 11px;"><p>
+                 <strong>In the above file, information should be entered as follows:</strong>
+                 <p>Raj,someone@gmail.com</p>
+                 <p>Ankita,ankita@adol.com</p>
+                 <p>Priya,priya@tc.com</p>
+                 <p>somename,someemail@somedomain.com</p>
+                 All values after the first two values in a row will be ignored.
+                </p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td><input type="submit" value="Import Subscribers" class="button"></td>
+    </table>
+    </form>
+    <?php
+	
+}
+
+
+/*
+This is the function that performs the manual import.
+*/
+function wpr_manual_import()
+{
+    global $wpdb;
+    $newsletter = $_POST['mi_newsletter'];
+    $blog = $_POST['mi_blogsub'];
+    $subscribers = $_POST['mi_csv'];
+
+    if (!isset($_SESSION['mi_newsletter']))
+    {
+        $_SESSION['mi_newsletter'] = $newsletter;
+        $_SESSION['mi_blogsub'] = $blog;
+        $_SESSION['mi_csv'] = $subscribers;
+    }
+    switch ($_GET['maction'])
+    {
+        case 'confirmed':
+            //start importing
+            ?>
+<div class="wrap">
+    <h2>Importing Subscribers...</h2>
+    <?php
+            $newsletter = $_SESSION['mi_newsletter'];
+            $list = mi_csv_sublist($_SESSION['mi_csv']);
+            $no = _wpr_newsletter_get($newsletter);
+            $nname = $no->name;
+            $insertedIds = array();
+            ?>
+    <h3>Importing Subscribers</h3>
+    <?php
+    if (count($list)>0)
+    {
+            foreach ($list as $email=>$name)
+            {
+                $hash="";
+                for ($i=0;$i<6;$i++)
+                {
+                        $a[] = rand(65,90);
+                        $a[] = rand(97,123);
+                        $a[] = rand(48,57);
+                        $whichone = rand(0,2);
+                        $currentCharacter = chr($a[$whichone]);
+                        $hash .= $currentCharacter;
+                        unset($a);
+                }
+                $hash .= time();
+                $time = time();
+                echo "Importing subscriber $name ($email) to '$nname' newsletter...<br>";
+                $checkExists = "SELECT * FROM ".$wpdb->prefix."wpr_subscribers where nid=$newsletter and email='$email' and active=1 and confirmed=1;";;
+                
+                $existingRowOfSubscriber = $wpdb->get_results($checkExists);
+
+                //if there is no email address
+                if (count($existingRowOfSubscriber)==0)
+                {
+                        $insertSubscriberQuery = "INSERT INTO ".$wpdb->prefix."wpr_subscribers (nid, name, email,date,active,confirmed,hash) values ('$newsletter','$name','$email','$time',1,1,'$hash')";
+                        $wpdb->query($insertSubscriberQuery);
+                        $lastId = $wpdb->insert_id;
+                        
+                }
+                else
+                {
+                    echo "<br>Subscriber exists. Activating subscription and updating subscriber name...<br>";
+                    $id = $existingRowOfSubscriber[0]->id;
+                    $query = "UPDATE ".$wpdb->prefix."wpr_subscribers set active=1, confirmed=1, name='$name' where nid=$newsletter and id=$id";
+                    $wpdb->query($query);
+                    $lastId=$id;
+                }
+                
+                $insertedIds[] = $lastId;
+
+
+                
+            }
+
+            switch ($_SESSION['mi_blogsub'])
+            {
+                case 'all':
+                    ?>
+    <h3>Importing Blog Subscriptions</h3>
+    <?php
+                    foreach ($insertedIds as $id)
+                    {
+                        $subscriber = _wpr_subscriber_get($id);
+                        $name=$subscriber->name;
+                        $email = $subscriber->email;
+                        echo "Subscribing $name ($email) to all posts on ".get_bloginfo("name")."....<br>";
+                        $subscribeToBlogQuery = "INSERT INTO ".$wpdb->prefix."wpr_blog_subscription (sid,type,catid) values ('$id','all','0');";
+                        $wpdb->query($subscribeToBlogQuery);
+                    }
+                    break;
+               case 'none':
+
+                   break;
+                default:
+                           ?>
+    <h3>Importing Blog Category Subscriptions</h3>
+    <?php
+                    $catid = $_SESSION['mi_blogsub'];
+                    $category = get_category($catid);
+                    $catname = $category->name;
+                    foreach ($insertedIds as $id)
+                    {
+                        $subscriber = _wpr_subscriber_get($id);
+                        $name=$subscriber->name;
+                        $email = $subscriber->email;
+                        echo "Subscribing $name ($email) to the $catname category on ".get_bloginfo("name")."....<br>";
+                        
+                        $subscribeToCategory = "INSERT INTO ".$wpdb->prefix."wpr_blog_subscription (sid,type,catid) values ('$id','cat','$catid')";
+                        $wpdb->query($subscribeToCategory);
+                    }
+
+            }
+    }
+    else
+    {
+        ?>No subscribers found. <?php
+    }
+
+            ?>
+    <p></p>    <p>Done.</p>
+<p><a href="admin.php?page=wpresponder/importexport.php" class="button">&laquo; Back</a></p>
+</div>
+<?php
+    unset($_SESSION['mi_newsletter']);
+    unset($_SESSION['mi_blogsub']);
+    unset($_SESSION['mi_csv']);
+            break;
+        default:
+            $thelist = mi_csv_sublist($_SESSION['mi_csv']);
+ 
+            if (count($thelist) > 0)
+            {
+        ?>
+<div class="wrap">
+    <h2>Verify Subscriber List</h2>
+
+    <p>Does this look alright? Show below are a maximum of 50 rows. If these seem alright, then click on Yes below to import all the data.</p>
+    <table border="1" cellpadding="10" cellspacing="0" style="margin: 20px;">
+        <tr style="background-color:#ccc">
+            <td width="150"><strong>Name</strong></td>
+            <td width="200"><strong>Email</strong></td>
+        </tr>
+    <?php
+    
+    $count=0;
+    $color="#fff";
+    foreach ($thelist as $email=>$name)
+    {
+        
+?>
+        <tr style="background-color: <?php echo $color; ?>">
+            <td><?php echo $name ?></td>
+            <td><?php echo $email ?></td>
+        </tr>
+        <?php
+        $count++;
+        $color = ($color=="#fff")?"#f0f0f0":"#fff";
+        //don't show more than 50 subscribers
+        if ($count==50)
+            break;
+    }
+
+    ?>
+    </table>
+    <a href="admin.php?page=wpresponder/importexport.php&action=manual&maction=confirmed" class="button-primary">Yes</a> <a class="button" href="admin.php?page=wpresponder/importexport.php">No</a>
+</div>
+
+
+<?php
+            }
+            else
+            {
+                ?>
+<div class="wrap"><h2>No subscribers were found</h2>
+    <p>No Subscribers Were Entered. Please go back and enter some data. </p>
+    <a href="admin.php?page=wpresponder/importexport.php" class="button-primary">&laquo; Back</a>
+
+</div><?php
+            }
+    }
+}
+
+function mi_csv_sublist($csv)
+{
+    $lines = explode("\n",$csv);
+    $subs = array();
+    if (count($lines)>0)
+    foreach ($lines as $line)
+    {
+        
+            $subscriberInfo = explode(",",$line);
+            $name = $subscriberInfo[0];
+            $email = $subscriberInfo[1];
+            if (empty($email))
+                continue;
+            $email = trim($email);
+            $subs[$email] = trim($name);
+    }
+    return $subs;
+}
 function export_csv()
 {
 	global $wpdb;

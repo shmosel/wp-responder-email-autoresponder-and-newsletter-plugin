@@ -61,19 +61,20 @@ function wpr_autoresponder()
 function _wpr_autoresponder_list()
 {
 	global $wpdb;
-	$getAutorespondersQuery = "SELECT * FROM ".$wpdb->prefix."wpr_autoresponders";
+	$getAutorespondersQuery = "SELECT a.* FROM ".$wpdb->prefix."wpr_autoresponders a, ".$wpdb->prefix."wpr_newsletters b where a.nid=b.id;";
 	$autoresponders = $wpdb->get_results($getAutorespondersQuery);
 	
 	?>
     <div class="wrap"><h2>Manage Autoresponders</h2></div>
     <table class="widefat">
+              <thead>
     <tr>
-      <thead>
+
         <th scope="col">Autoresponder Name</th>
         <th scope="col">Belongs To Newsletter</th>
         <th scope="col">Actions</th>
-        </thead>
-        </tr>
+    </tr>
+    </thead>
      <?php
 	 if (count($autoresponders))
 	 {

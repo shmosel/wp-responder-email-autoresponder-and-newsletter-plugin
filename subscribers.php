@@ -3,7 +3,9 @@ include("subscriber.lib.php");
 function wpr_subscribers()
 {
 	$action = $_GET['action'];
-	
+
+        if (current_user_can('level_8'))
+        {
 	switch ($action)
 	{
 		case 'profile':
@@ -34,12 +36,36 @@ function wpr_subscribers()
 		case 'search':
 		_wpr_subscriber_search();
 		break;
+                case 'delete':
+
+                _wpr_subscribers_delete();
+                break;
 
 		default:
 		_wpr_subscriber_home();
 	}
+        }
 }
+function _wpr_subscribers_delete()
+{
+    $subs = $_POST['sub'];
+    global $wpdb;
+    if (count($subs) > 0)
+    {
+        foreach ($subs as $id)
+        {
+            $query = "DELETE FROM ".$wpdb->prefix."wpr_subscribers where id=$id";
+            
+            $wpdb->query($query);
+        }
 
+    }
+    ?>
+<script>window.location='<?php echo $_POST['back'] ?>';</script>
+    <?php
+    exit;
+
+}
 function _wpr_subscriber_profile($subscriber)
 {
 	global $wpdb;
@@ -62,6 +88,7 @@ function _wpr_subscriber_profile($subscriber)
 		$nid = $_POST['custom_field_newsletter'];
 		$query = "SELECT * FROM ".$wpdb->prefix."wpr_custom_fields where nid = $nid;";
 		$results = $wpdb->get_results($query);
+                $theSubscriberId = $_POST['custom_field_sid'];
 		$formData = array();
 		foreach ($_POST as $name=>$value)
 		{
@@ -77,11 +104,13 @@ function _wpr_subscriber_profile($subscriber)
 			
 			$cid = $cfield->id;
 			
-			$query = "DELETE FROM ".$wpdb->prefix."wpr_custom_fields_values where sid = $sid and cid=$cid;";
+			$query = "DELETE FROM ".$wpdb->prefix."wpr_custom_fields_values where sid = $theSubscriberId and cid=$cid;";
+                        
 			$wpdb->query($query);			
 			if (empty($value))
 			    continue;
-			$query = "INSERT INTO ".$wpdb->prefix."wpr_custom_fields_values (nid,sid,cid,value) VALUES ('$nid','$sid','$cid','$value')";
+			$query = "INSERT INTO ".$wpdb->prefix."wpr_custom_fields_values (nid,sid,cid,value) VALUES ('$nid','$theSubscriberId','$cid','$value')";
+                        
 			$wpdb->query($query);
 			
 			
@@ -117,8 +146,24 @@ function _wpr_subscriber_profile($subscriber)
 			case 'delete':
 			
 			$sid = $_POST['sid'];
-			$query = "DELETE FROM ".$wpdb->prefix."wpr_subscribers where id=$sid;";
-			$wpdb->query($query);
+                        $subscriber = _wpr_subscriber_get($sid);
+                        $theEmail = $subscriber->email;
+                        
+                        $query = "SELECT id from ".$wpdb->prefix."wpr_subscribers where email='$theEmail';";
+                        $subscriptions = $wpdb->get_results($query);
+
+                        foreach ($subscriptions as $theSubscription)
+                        {
+                            $deleteBlogSubscriptions = "DELETE FROM ".$wpdb->prefix."wpr_blog_subscription where sid=$theSubscription";
+                            $wpdb->query($deleteBlogSubscriptions);
+                            $deleteFollowupSubscriptions = "DELETE FROM ".$wpdb->prefix."wpr_followup_subscriptions where sid=$theSubscription";
+                            $wpdb->query($deleteFollowupSubscriptions);
+                            $deleteCustomFieldValues = "DELETE FROM ".$wpdb->prefix."wpr_custom_field_values where sid=$theSubscription";
+                            $wpdb->query($deleteCustomFieldValues);
+                            $deleteSubscriber = "DELETE FROM ".$wpdb->prefix."wpr_subscribers where id=$theSubscription";
+                            $wpdb->query($deleteSubscriber);
+                            
+                        }
 			?><script> window.location='admin.php?page=wpresponder/subscribers.php';</script><?php			
 			return;
 			break;			
@@ -178,7 +223,7 @@ function _wpr_subscriber_profile($subscriber)
 
 <h3>Current Newsletter Subscriptions:</h3>
 <?php
-$query = "select distinct a.id id, a.name name from ".$wpdb->prefix."wpr_newsletters a, ".$wpdb->prefix."wpr_subscribers b where a.id=b.nid and b.email='".$subscriber->email."' and b.active=1";
+$query = "select distinct a.id id, a.name name from ".$wpdb->prefix."wpr_newsletters a, ".$wpdb->prefix."wpr_subscribers b where a.id=b.nid and b.email='".$subscriber->email."' and b.active in(1,2)";
 
 $subscribedNewsletters = $wpdb->get_results($query);
 foreach ($subscribedNewsletters as $newsletter)
@@ -298,6 +343,7 @@ foreach ($subscribedNewsletters as $newsletter)
 			 ?>
 			 <form name="newsletter-<?php echo $nid ?>-customfields" method="post">
 			 <input type="hidden" name="customfielddata" value="1" />
+                         <input type="hidden" name="custom_field_sid" value="<?php echo $theSubscriberObject->id ?>">
 			 <input type="hidden" name="custom_field_newsletter" value="<?php echo $nid ?>" />
 			 <table width="800">
 			 <?php
@@ -339,25 +385,27 @@ foreach ($subscribedNewsletters as $newsletter)
 	 }
 	 
 	 ?><br />
-<br />
-<br />
-
-
-<br />
-
 
 
 
 <?php
-if ($subscriber->active==1)
+if ($theSubscriberObject->active==1)
 {
 	?>
+<strong>Subscription Status: </strong> Subscribed<p></p>
 <form action="admin.php?page=wpresponder/subscribers.php&action=profile&sid=<?php echo $sid ?>" method="post">
 <input type="hidden" name="sid" value="<?php echo $sid ?>" />
 <input type="hidden" name="unsubscription_form" value="1" />
 <input type="submit" name="submit" onclick="return window.confirm('Are you sure you want to unsusbcribe this reader from this newsletter?');" value="Unsubscribe from this newsletter" class="button-primary" /> 
 </form>
 <?php
+}
+else if ($theSubscriberObject->active ==2)
+{
+    ?>
+<strong>Subscription Status:</strong> Transfered. The subscriber's subscription to this newsletter was deactivated in accordance
+with a <a href="admin.php?page=wpresponder/actions.php">transfer rule</a>.
+    <?php
 }
 else
 {
@@ -674,12 +722,16 @@ function pageNumbers($numberOfPages)
 function _wpr_subscriber_list($subscribers,$allNewslettersMode=true,$backUrl="")
 {
 	global $wpdb;
-	
 
-	?>    
+	?>
+<form action="admin.php?page=wpresponder/subscribers.php&action=delete" method="post">
+<?php
+if ($allNewslettersMode) { ?><input type="hidden" name="delete_all" value="1"/><?php } ?>
+    <input type="hidden" name="back" value="<?php echo $_SERVER['PHP_SELF']."?".$_SERVER['QUERY_STRING'] ?>">
     <table class="widefat">
      <tr>
        <thead>
+           <th align="left"><input onclick="checkAllElements(this.checked);" type="checkbox" value="1" ></th>
          <th>Name(s)</th>
          <th>E-Mail</th>
          <th>All Active Subscription(s)</th>
@@ -700,6 +752,7 @@ function _wpr_subscriber_list($subscribers,$allNewslettersMode=true,$backUrl="")
 				$prefix = $wpdb->prefix;
 				?>
 				<tr>
+                                    <td><input type="checkbox" name="sub[]" " class="subselect" value="<?php echo $subscriber->id ?>"/></td>
 				   <td><?php 
 				   $query = "select DISTINCT name from ".$wpdb->prefix."wpr_subscribers where email='".$subscriber->email."'";
 				   $results = $wpdb->get_results($query);
@@ -717,7 +770,7 @@ function _wpr_subscriber_list($subscribers,$allNewslettersMode=true,$backUrl="")
 					{
 						?>     <td><?php
 						   
-						   $query = "select distinct a.name from ".$prefix."wpr_newsletters a, ".$prefix."wpr_subscribers b where a.id=b.nid and b.email='".$subscriber->email."' and b.active=1;";
+						   $query = "select distinct a.name from ".$prefix."wpr_newsletters a, ".$prefix."wpr_subscribers b where a.id=b.nid and b.email='".$subscriber->email."' and b.active in(1,2);";
 						   $subscribedNewsletters = $wpdb->get_results($query);
 						   $list = array();
 						   if (count($subscribedNewsletters))
@@ -740,7 +793,23 @@ function _wpr_subscriber_list($subscribers,$allNewslettersMode=true,$backUrl="")
                    <td><?php
 				   echo date('H:ia d F Y',$subscriber->date);
 				   ?>
-                   <td><?php if ($subscriber->active==1 && $subscriber->confirmed==1) { echo "Subscribed"; } else if ($subscriber->active==1 && $subscriber->confirmed==0) { echo 'Subscribed & Unconfirmed'; } else if ($subscriber->confirmed==1 && $subscriber->active=0) { echo "Unsubscribed"; } ?></td>
+                   <td><?php if ($subscriber->active==1 && $subscriber->confirmed==1)
+                           {
+                                echo "Subscribed";
+                           }
+                           else if ($subscriber->active==1 && $subscriber->confirmed==0)
+                           {
+                               echo 'Subscribed & Unconfirmed';
+                           }
+                           else if ($subscriber->confirmed==1 && $subscriber->active=0)
+                          {
+                               echo "Unsubscribed";
+                          }
+                          else if ($subscriber->confirmed==1 && $subscriber->active=2)
+                          {
+                              echo "Transfered";
+                          }
+                          ?></td>
                    <td>
 				   <a href="admin.php?page=wpresponder/subscribers.php&action=profile&sid=<?php echo $subscriber->id ?>" class="button">Edit</a>&nbsp;
 				   </td>
@@ -758,6 +827,16 @@ function _wpr_subscriber_list($subscribers,$allNewslettersMode=true,$backUrl="")
 	  }
 	?>
     </table>
+                With Selected: <input type="submit" value="Delete" onclick="return confirm('Are you sure you want to delete the selected subscribers?');" class="button-primary">
+            </form>
+                <script>
+
+                    function checkAllElements(state)
+                    {
+                        jQuery(".subselect").attr({  checked: state});
+                    }
+
+                    </script>
 <br />
 <br />
 <?php if ($backUrl) { ?>    <a href="admin.php?<?php echo $backUrl; ?>" class="button"> &laquo; Back </a> <?php } ?>

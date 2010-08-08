@@ -40,41 +40,47 @@ function error($error)
 function validateEmail($email)
 
 {
-
     //test with regular expressions.
-
-    return eregi('^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.([a-zA-Z]{2,4})$',$email);
-
-
-
+    return true;//eregi('^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.([a-zA-Z]{2,4})$',$email);
 }
 
-
-function sanitize($string)
+if (!function_exists("wpr_sanitize"))
 {
-	$string = strip_tags($string);
-	$string = trim($string);
-	if (get_magic_quotes_gpc())
+					
+	function wpr_sanitize($string)
 	{
-	    return $string;	
-	}
-	else
-	{
-	    return addslashes($string);	
+		$string = strip_tags($string);
+		$string = trim($string);
+		if (get_magic_quotes_gpc())
+		{
+			return $string;	
+		}
+		else
+		{
+			return addslashes($string);	
+		}
 	}
 }
-
 
 if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email']))
 {
-	$name = sanitize($_POST['name']);
-	$email = strtolower(sanitize($_POST['email']));
-	$followup = sanitize($_POST['followup']);
-	$newsletter = (int) sanitize($_POST['newsletter']);
-	$bsubscription = sanitize($_POST['blogsubscription']);
-	$responder = (int) sanitize($_POST['responder']);
-	$bcategory = (int) sanitize($_POST['cat']);
-	$return_url = sanitize($_POST['return_url']);
+	$name = wpr_sanitize($_POST['name']);
+	$email = strtolower(wpr_sanitize($_POST['email']));
+	$followup = wpr_sanitize($_POST['followup']);
+	$newsletter = (int) wpr_sanitize($_POST['newsletter']);
+	$bsubscription = wpr_sanitize($_POST['blogsubscription']);
+	$responder = (int) wpr_sanitize($_POST['responder']);
+	$bcategory = (int) wpr_sanitize($_POST['cat']);
+	$return_url = wpr_sanitize($_POST['return_url']);
+	$commentfield = $_POST['comment'];
+	
+	
+	
+	if (!empty($commentfield))
+	{
+		//stupid spambot spamming my subscription forms. damn the bot!
+		exit;
+	}
 	
 	$skiplist = array("name","email","followup","blogsubscription","cat","return_url","responder");
 	
@@ -420,9 +426,11 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 		}		
 
 	}
-
-
 	
+	
+	
+	
+
 	
 	
 	if (empty($confirm_subject) && empty($confirm_body))

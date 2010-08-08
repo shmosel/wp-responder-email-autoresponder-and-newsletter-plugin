@@ -75,6 +75,8 @@ function sendmail($sid,$params,$footerMessage="")
 
         //if the fromname field is set in the newsletter, then use that value otherwise use the blog name.
 
+        
+
 	$fromname = (!empty($params['fromname']))?$params['fromname']:(!empty($newsletter->fromname))?$newsletter->fromname:get_bloginfo("name");
 	$fromemail = get_bloginfo("admin_email");
 	
@@ -168,8 +170,8 @@ function get_postseries_posts($catid,$nid="")
 				);
 	$posts = get_posts($args);
 
-        if ($nid !="")
-            {
+        if (!empty($nid))
+        {
                     foreach ($posts as $num=>$post)
                         {
                         $pid = $post->ID;
@@ -186,7 +188,7 @@ function get_postseries_posts($catid,$nid="")
                         }                        
 
                     }
-            }
+        }
 			
 		
 	return $theRealPosts;
@@ -196,11 +198,8 @@ function get_postseries_posts($catid,$nid="")
 function mailout_expire($id)
 
 {
-
 	global $wpdb;
-
 	$query = "UPDATE ".$wpdb->prefix."wpr_newsletter_mailouts set status=1 where id=$id";
-
 	$wpdb->query($query);
 
 }
@@ -517,6 +516,7 @@ function wpr_processEmails()
 	$getSubscribersQuery = "SELECT a.* FROM ".$prefix."wpr_followup_subscriptions a,".$prefix."wpr_subscribers b  where a.type='autoresponder' and a.sid=b.id and b.active=1 and b.confirmed=1;";
 
 	$autoresponderSubscriptions = $wpdb->get_results($getSubscribersQuery);
+
 	foreach ($autoresponderSubscriptions as $asubscription)
 
 	{
@@ -527,19 +527,30 @@ function wpr_processEmails()
 
 		$lastSequence = $asubscription->sequence;
 
+
+                if ($lastSequence > $daysSinceSubscribing)
+                    continue;
+                //somoen changed the server time.                
+                //or the server went Marty..get it? Marty?
+
 		if ($lastSequence == $daysSinceSubscribing) //we have alrady delivered this follow up series today.
 			continue;
-		$query = "SELECT * FROM ".$prefix."wpr_autoresponder_messages where aid=$aid and sequence=$daysSinceSubscribing limit 1;";
-		$messages = get_rows($query);
-		if (count($messages))
+		$query = "SELECT * FROM ".$prefix."wpr_autoresponder_messages where aid=$aid and sequence=$daysSinceSubscribing;";
+                
+		$listOfMessages = get_rows($query);
+		if (count($listOfMessages))
 		{
-			$messages = $messages[0];
-			$emailParameters = array("subject" => $messages->subject, "textbody" => $messages->textbody , "htmlbody" => $messages->htmlbody, "htmlenabled"=> $messages->htmlenabled,"attachimages"=> $messages->attachimages);
+                    foreach ($listOfMessages as $number=>$message)
+                    {			
+			$emailParameters = array("subject" => $message->subject, "textbody" => $message->textbody , "htmlbody" => $message->htmlbody, "htmlenabled"=> $message->htmlenabled,"attachimages"=> $message->attachimages);
 			wpr_place_tags($subscriber->id,$emailParameters);
 			sendmail($subscriber->id,$emailParameters);
-			$updateSubscriptionStatusQuery = "UPDATE ".$prefix."wpr_followup_subscriptions set last_date='".time()."', sequence='$messages->sequence' WHERE sid=$subscriber->id";
+			$updateSubscriptionStatusQuery = "UPDATE ".$prefix."wpr_followup_subscriptions set last_date='".time()."', sequence='$message->sequence' WHERE sid=$subscriber->id";
+                
 			$wpdb->query($updateSubscriptionStatusQuery);
+                    }
 		}
+
 
 	}
 
@@ -551,11 +562,7 @@ function wpr_processEmails()
 	$postseriesSubscriptionList = $wpdb->get_results($query);
 
 	foreach ($postseriesSubscriptionList as $psubscription)
-
 	{
-
-
-
                 if (!isPostSeriesSubscriptionActive($psubscription))
                     {
 

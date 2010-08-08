@@ -3,41 +3,38 @@
 Plugin Name: WP Responder
 Plugin URI: http://www.wpresponder.com
 Description: Add a autopresponder to your blog with features like Aweber.
-Version: 4.9.2
+Version: 4.9.3
 Author: Raj Sekharan
 Author URI: http://www.expeditionpost.com/
 */
 
-//__DIR__ doesn't work on < PHP 5.3
-
-
-//This is a hack. Just a hack. 
-
-
-function wpr_unsupported()
+if (!defined("WPR_DEFS"))
 {
+    define("WPR_DEFS",1);
 	
+     function wpr_unsupported()
+     {
 	if (current_user_can('level_8'))
 	{
 	?>
-    <div class="error fade" style="background-color:red; line-height: 20px;"><p><strong>Your web server is running PHP 4. WP Responder is not programmed to work with PHP 4.x. To prevent damage to your website please deactivate WP Responder from the <a href="<?php bloginfo("home") ?>/wp-admin/plugins.php">Plugins</a> page. </strong></p></div>
-    <?php
+<div class="error fade" style="background-color:red; line-height: 20px;">
+  <p><strong>Your web server is running PHP 4. WP Responder is not programmed to work with PHP 4.x. To prevent damage to your website please deactivate WP Responder from the <a href="<?php bloginfo("home") ?>/wp-admin/plugins.php">Plugins</a> page. </strong></p>
+</div>
+<?php
 	}
-}
-
-$phpVersion = phpversion();
-if (preg_match("@4\.[0-9\.]*@",$phpVersion)) 
-{
-	add_action('admin_notice',"wpr_unsupported");
-}
-else
-{
-	
-	if (!defined("WPR_DEFS"))
+    }
+       if (preg_match("@4\.[0-9\.]*@",$phpVersion))
+        {
+                add_action('admin_notice',"wpr_unsupported");
+        }
+        else
 	{
-	define("WPR_DEFS",1);
+	
 
-	$plugindir = str_replace("wpresponder.php","",__FILE__);
+	$plugindir =  str_replace(basename(__FILE__),"",__FILE__);
+        $plugindir = str_replace("\\","/",$plugindir);
+        $plugindir = rtrim($plugindir,"/");
+
 	include "wpr_install.php";
 	include "home.php" ;
 	include "newsletter.php";
@@ -50,14 +47,15 @@ else
 	include "wpr_settings.php";
 	include "wpr_deactivate.php";
 	include "all_mailouts.php";
+        include "actions.php";
 	include "runcronnow.php";
 	include "errors.php";
 	include "thecron.php";
-	include("lib/swift_required.php");
+	include $plugindir."/lib/swift_required.php";
 	include "importexport.php";
+        include "widget.php";
 	
-	define("WPR_VERSION","4.9.1");
-	
+	define("WPR_VERSION","4.9.3");
 
 	
 	//-------------------------------------------DEBUG----------
@@ -80,8 +78,8 @@ else
 	function wpr_services_notice()
 	{ //this images is used to announce new versions. DO NOT REMOVE THIS. 
 	?>
-	<a href="http://www.expeditionpost.com/redirect.php"><img src="http://www.expeditionpost.com/wpresad-<?php echo WPR_VERSION; ?>.gif" /></a><br />
-	<?php
+<a href="http://www.expeditionpost.com/redirect.php"><img src="http://www.expeditionpost.com/wpresad-<?php echo WPR_VERSION; ?>.gif" /></a><br />
+<?php
 	}
 	
 	function no_address_error()
@@ -112,13 +110,13 @@ else
 		{
 	
 			?>
-	<div class="wrap">
-	  <h2>No Newsletters Created Yet</h2>
-	</div>
-	<?php echo $message ?>, you must first create a newsletter. <br />
-	<br/>
-	<a href="admin.php?page=wpresponder/newsletter.php&act=add" class="button">Create Newsletter</a>
-	<?php
+<div class="wrap">
+  <h2>No Newsletters Created Yet</h2>
+</div>
+<?php echo $message ?>, you must first create a newsletter. <br />
+<br/>
+<a href="admin.php?page=wpresponder/newsletter.php&act=add" class="button">Create Newsletter</a>
+<?php
 	
 			return true;
 	
@@ -187,11 +185,19 @@ else
 		add_action('wpr_tutorial_cron','wpr_process_tutorial');
 		//the cron that delivers plugin updates
 		add_action('wpr_updates_cron','wpr_process_updates');
-		
+
+                
+	
 		//whats the point you ask? 
 		@ini_set( 'upload_max_size' , '100M' );
 		@ini_set( 'post_max_size', '105M');
 		@ini_set( 'max_execution_time', '300' );
+
+
+                if (isset($_GET['page']) && preg_match("@^wpresponder/.*@",$_GET['page']))
+                {
+                    _wpr_dispatch_call();
+                }
 			
 			$option = get_option("timezone_string");
 			
@@ -283,17 +289,12 @@ else
 		}
 	
 	}    
-	
+	add_action('widgets_init','wpr_widgets_init');
 	add_action('init', "wpresponder_init_method");
 	register_activation_hook(__FILE__,"wpresponder_install");
 	register_deactivation_hook(__FILE__,"wpresponder_deactivate");
-	
-	
-	
-	
+        
 	$url = $_SERVER['REQUEST_URI'];
-	
-	
 	
 	/*if (preg_match("@wpresponder/.*@",$url))
 	
@@ -303,8 +304,7 @@ else
 	
 		add_action("admin_notices","wpr_services_notice");
 	
-	}*/
-	
+	}*/	
 	function wpr_admin_menu()
 	{
 		add_menu_page('Newsletters','Newsletters',8,__FILE__);
@@ -317,23 +317,20 @@ else
 		add_submenu_page(__FILE__,'Post Series','Post Series',8,"wpresponder/blogseries.php","wpr_blogseries");
 		add_submenu_page(__FILE__,'Autoresponders','Autoresponders',8,"wpresponder/autoresponder.php","wpr_autoresponder");
 		add_submenu_page(__FILE__,'Subscribers','Subscribers',8,"wpresponder/subscribers.php","wpr_subscribers");
+                add_submenu_page(__FILE__,'Actions','Actions',8,"wpresponder/actions.php","wpr_actions");
 		add_submenu_page(__FILE__,'Settings','Settings',8,"wpresponder/settings.php","wpr_settings");
 		add_submenu_page(__FILE__,'Import/Export Subscribers','Import/Export Subscribers',8,"wpresponder/importexport.php","wpr_importexport");
 		add_submenu_page(__FILE__,'Run CRON','Run WPR Cron',8,"wpresponder/runcronnow.php","wpr_runcronnow_start");
 	}
 	
-	
-	
-	
 	function wp_credits()
 	{
 	?>
-	<br />
-	<br />
-	<div style="border: 1px solid #ccc; text-align:center; background-color:#e0e0e0; padding: 10px; margin-left:auto; margin-right:auto; width:500px;">Powered by <a href="http://www.expeditionpost.com/wp-responder/">WP Responder</a></div>
-	<?php
+<br />
+<br />
+<div style="border: 1px solid #ccc; text-align:center; background-color:#e0e0e0; padding: 10px; margin-left:auto; margin-right:auto; width:500px;">Powered by <a href="http://www.expeditionpost.com/wp-responder/">WP Responder</a></div>
+<?php
 	}
-	
 	
 	function wpr_replace_tags($sid,&$subject,&$body,$additional = array())
 	{
@@ -611,8 +608,6 @@ else
 	
 	}
 	
-	
-	
 	function wpr_create_temporary_tables($nid)
 	
 	{
@@ -656,8 +651,6 @@ else
 		}
 	
 	}
-	
-	
 	
 	function wpr_error($error)
 	
@@ -760,8 +753,6 @@ else
 		}
 	
 	}
-	
-	
 	
 	function getMailTransport()
 	
@@ -896,6 +887,7 @@ else
 	 *                             textbody = The text body of the email
 	
 	 *                             htmlenabled = Whether the html body of the email is enabled	
+
 	 *                                           1 = Yes, the html body is enabled
 	 *                                           0 = No, the html body is disabled.
 	 *                             attachimages = Whether the images are to be attached to the email
@@ -940,10 +932,6 @@ else
 	
 	}
 	
-	
-	
-	
-	
 	function attachImagesToMessageAndSetBody(&$message,$body)
 	
 	{
@@ -965,8 +953,6 @@ else
 		$message->setBody($body,'text/html');
 	
 	}
-	
-	
 	
 	function getImagesInMessage($message)
 	
@@ -1046,8 +1032,6 @@ else
 	
 	}
 	
-	
-	
 	function email($to,$subject,$body)
 	
 	{
@@ -1069,8 +1053,8 @@ else
 	
 	
 	
-		function wpr_cronschedules()
-		{
+	function wpr_cronschedules()
+	{
 			$schedules['every_five_minutes'] = array(
 				 'interval'=> 300,
 				 'display'=>  __('Every 5 Minutes')
@@ -1080,17 +1064,11 @@ else
 												   'display'=>__('Every Half an Hour')
 												   );
 			 return  $schedules;
-		}
-	
-	
-	add_filter('cron_schedules','wpr_cronschedules');
-		
 	}
-}
-
-
+        
+        add_filter('cron_schedules','wpr_cronschedules');
 	function wpr_get_unsubscription_url($sid)
-	{	
+	{
 			$baseURL = get_bloginfo("home");
 			$subscriber = _wpr_subscriber_get($sid);
 			$newsletter = _wpr_newsletter_get($subscriber->nid);
@@ -1100,7 +1078,7 @@ else
 			$unsubscriptionUrl = $baseURL."/?wpr-manage=$codedString";
 			return $unsubscriptionUrl;
 	}
-	
+
 	function sendConfirmedEmail($id)
 	{
 		global $wpdb;
@@ -1108,58 +1086,58 @@ else
 		$sub = $wpdb->get_results($query);
 		$sub  = $sub[0];
 		//get the confirmation email and subject from newsletter
-		
+
 		$newsletter = _wpr_newsletter_get($sub->nid);
-		
+
 		$confirmed_subject = $newsletter->confirmed_subject;
-		
+
 		$confirmed_body = $newsletter->confirmed_body;
-		
+
 		//if a registered form was used to subscribe, then override the newsletter's confirmed email.
-		
+
 		$sid = $sub->id; //the susbcriber id
 		$unsubscriptionURL = wpr_get_unsubscription_url($sid);
-				
+
 		$unsubscriptionInformation = "\n\nTo manage your email subscriptions or to unsubscribe click on the URL below:\n$unsubscriptionURL\n\nIf the above URL is not a clickable link simply copy it and paste it in your web browser.";
-		
-		
+
+
 		$fid = $args[2];
 		$query = "SELECT a.* from ".$wpdb->prefix."wpr_subscription_form a, ".$wpdb->prefix."wpr_subscribers b  where a.id=b.fid and b.id=$sid;";
-		
+
 		$form = $wpdb->get_results($query);
 		if (count($form))
 		{
 			 $confirmed_subject = $form[0]->confirmed_subject;
-			 $confirmed_body = $form[0]->confirmed_body;   
+			 $confirmed_body = $form[0]->confirmed_body;
 		}
-		
 
-		
+
+
 		$confirmed_body .= $unsubscriptionInformation;
-		
+
 		$params = array($confirmed_subject,$confirmed_body);
 
 		wpr_place_tags($sub->id,$params);
-	
+
 		$fromname = $newsletter->fromname;
 		if (!$fromname)
 		{
 			$fromname = get_bloginfo('name');
 		}
-		
+
 		$fromemail = $newsletter->fromemail;
 		if (!$fromemail)
 		{
 			$fromemail = get_bloginfo('admin_email');
 		}
-		
+
 		$email = $sub->email;
 		$emailBody = $params[1];
 		$emailSubject = $params[0];
-		
-		
 
-		
+
+
+
 		$mailToSend = array(
 								'to'=>$email,
 								'fromname'=>  $fromname,
@@ -1167,39 +1145,34 @@ else
 								'textbody' => $emailBody,
 								'subject'=> $emailSubject,
 							);
-		
-		
-		
+
+
+
 		dispatchEmail($mailToSend);
 	}
 
-
-
-
 	function wpr_enable_tutorial()
 	{
-		
-		
+
+
 		$isItEnabled = get_option("wpr_tutorial_active");
 		if (empty($isItEnabled))
 		{
 			//enabling the tutorial for the first time.
 			add_option('wpr_tutorial_active','on');
 			add_option('wpr_tutorial_activation_date',time());
-			add_option('wpr_tutorial_current_index',"0");//set the index to zero.		
-			
-			//schedule the cron to run once every day. 		
+			add_option('wpr_tutorial_current_index',"0");//set the index to zero.
+
+			//schedule the cron to run once every day.
 		}
 		else
 		{
 			delete_option('wpr_tutorial_active');
 			add_option('wpr_tutorial_active','on');
-		}	
-		
-		wp_schedule_event(time()+86400, 'daily' ,  "wpr_tutorial_cron");	
+		}
+
+		wp_schedule_event(time()+86400, 'daily' ,  "wpr_tutorial_cron");
 	}
-
-
 
 	function wpr_disable_tutorial()
 	{
@@ -1224,7 +1197,6 @@ else
 		return true;
 	}
 
-
 	/*
 	Dispatch tutorial series to the user.
 	*/
@@ -1232,11 +1204,11 @@ else
 	function wpr_process_tutorial()
 	{
 		$isTutorialSeriesActive = get_option('wpr_tutorial_active');
-		//double check before starting to check for a new post. 
+		//double check before starting to check for a new post.
 		if ($isTutorialSeriesActive == "on")
-		{	
+		{
 			$theTutorialArticles = fetch_feed("http://www.wpresponder.com/tutorial/feed/");
-			if (is_wp_error($theTutorialArticles)) //no feed? do nothing. leave it. 
+			if (is_wp_error($theTutorialArticles)) //no feed? do nothing. leave it.
 			{
 				return false;
 			}
@@ -1245,7 +1217,7 @@ else
 				//get the index of the last email that was sent:
 				$indexOfEmailLastSent = (int) get_option('wpr_tutorial_current_index');
 				$numberOfTutorialArticles = $theTutorialArticles->get_item_quantity();
-				
+
 				if ($indexOfEmailLastSent < $numberOfTutorialArticles) //we have a new post to send.
 				{
 					$indexOfPostToSend = $indexOfEmailLastSent + 1;
@@ -1253,10 +1225,10 @@ else
 					$theArticle = $items[$indexOfPostToSend-1];
 					$theTitle = $theArticle->get_title();
 					$theContent = $theArticle->get_content();
-					$theURL = $theArticle->get_link();		
+					$theURL = $theArticle->get_link();
 					$theEmailAddress = getNotificationEmailAddress();
-									
-					
+
+
 					$mail = array(   'to'=> $theEmailAddress,
 									 'from'=> get_bloginfo('admin_email'),
 									 'fromname'=> 'WP Responder Tutorial',
@@ -1267,22 +1239,22 @@ else
 									 );
 					dispatchEmail($mail);
 					delete_option('wpr_tutorial_current_index');
-					add_option('wpr_tutorial_current_index',$indexOfPostToSend);				
+					add_option('wpr_tutorial_current_index',$indexOfPostToSend);
 					return true;
 				}
 			}
 		}
 		else
 		{
-			return false;		
+			return false;
 		}
 	}
-	
+
 	function createNotificationEmail()
 	{
-		
-		$not_email = get_option('wpr_notification_custom_email');		
-		if (empty($not_email))		
+
+		$not_email = get_option('wpr_notification_custom_email');
+		if (empty($not_email))
 			add_option('wpr_notification_custom_email','admin_email');
 		else
 			return false;
@@ -1290,14 +1262,14 @@ else
 
 	function wpr_enable_updates()
 	{
-		
+
 		$updatesOption = get_option('wpr_updates_active');
 
 		if (empty($updatesOption))
-		{	
+		{
 			add_option('wpr_updates_active','on');
 		}
-		//set the date to current date.		
+		//set the date to current date.
 		delete_option('wpr_updates_lastdate');
 		add_option('wpr_updates_lastdate',time());
 		//schedule the cron to run daily.
@@ -1313,14 +1285,14 @@ else
 
 	function wpr_process_updates()
 	{
-		
-		//double check	
+
+		//double check
 		$updatesEnabled = get_option('wpr_updates_active');
 		if ($updatesEnabled == 'on')
 		{
 			//fetch the updates feed
 			$updatesfeed = fetch_feed('http://www.wpresponder.com/updates/feed/');
-			
+
 			if (is_wp_error($updatesfeed))
 			{
 				return false;
@@ -1334,16 +1306,16 @@ else
 
 				$lastDate = get_option('wpr_updates_lastdate');
 				$dateOfLatestPost = $lastDate;
-				
-				
+
+
 				$postToDeliver = false;
-				
-				//this loop loops through all the items in the feed and then delivers the latest possible post. 
-				
-				
+
+				//this loop loops through all the items in the feed and then delivers the latest possible post.
+
+
 				foreach ($items as $item)
 				{
-					$itemDate = $item->get_date();					
+					$itemDate = $item->get_date();
 					$itemDateStamp = strtotime($itemDate);
 					if ($dateOfLatestPost < $itemDateStamp) //
 					{
@@ -1352,10 +1324,10 @@ else
 					}
 					$debug .= "\nNope..";
 				}//end for loop to loop through the feed items.
-				
+
 				if ($postToDeliver != false)
 				{
-					//deliver the latest post. 
+					//deliver the latest post.
 					$title = $postToDeliver->get_title();
 					$theBody = $postToDeliver->get_content();
 					$notificationEmail = getNotificationEmailAddress();
@@ -1374,10 +1346,10 @@ else
 					add_option('wpr_updates_lastdate',$dateOfLatestPost);
 					return true;
 				}//end - if the post is to be delivered.
-				
+
 			}//end - if the field is available
 
-			
+
 		}//end if updates are on.
 		else
 		{
@@ -1397,5 +1369,26 @@ else
 		else
 			return get_bloginfo('admin_email');
 	}
-	
-	
+
+        function wpr_widgets_init()
+        {
+            return register_widget("WP_Subscription_Form_Widget");
+        }
+
+
+
+        function _wpr_dispatch_call()
+        {
+
+            if (count($_POST)>0 && isset($_POST['wpr_form']))
+            {
+                $formName = $_POST['wpr_form'];
+                $actionName = "_wpr_".$formName."_post";
+                do_action($actionName);
+                
+            }
+        }
+
+
+    }
+} 

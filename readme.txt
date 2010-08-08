@@ -85,4 +85,19 @@ New Features:
 
 * Added mechanism to delete subscription forms.
 
+**WP Responder 4.9.3**
 
+Bug Fixes:
+
+* Preview e-mail button wasn't working in the form for add new messages to autoresponder series
+* Sometimes users will not be able to create a newsletter using the create newsletter form
+* Subscriber profile page did not allow editing a subscriber's custom field values if they are subscribed to more than one newsletter.
+* If multiple autoresponder messages were scheduled to be delivered on the same day, only one will be delivered.
+* Subscription form allowed the selection of any autoresponder for any newsletter.
+
+New Features:
+
+* Automatic Subscriber Transfer - Automatically deactivate a subscriber of Newsletter A when they subscribe to Newsletter B. Ideal for separating buyers from prospects.
+* Delete subscribers in mass
+* Delete subscription forms in mass
+* Put subscription forms in sidebar using widgets!

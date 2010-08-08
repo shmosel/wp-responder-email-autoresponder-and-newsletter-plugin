@@ -58,9 +58,14 @@ function wpr_subscriptionforms()
 
 		case 'edit':
 
-		$id = $_GET['fid'];
+                    
+		$id = (int) $_GET['fid'];
+
+
 
 		$form = _wpr_subscriptionform_get($id);
+
+
 
 		if (isset($_POST['fid']))
 
@@ -177,7 +182,8 @@ function _wpr_subscriptionforms_delete($list)
 function _wpr_subscriptionforms_list()
 {
 	global $wpdb;
-	$query = "SELECT * FROM ".$wpdb->prefix."wpr_subscription_form";
+        $tprefix = $wpdb->prefix;
+	$query = "SELECT a.* FROM ".$tprefix."wpr_subscription_form a, ".$tprefix."wpr_newsletters b where a.nid=b.id;";
 	$forms = $wpdb->get_results($query);
 
 	?>
@@ -223,7 +229,7 @@ function selectAllFormsCheckBox(state)
     <td  align="center"width="20"><input type="checkbox" name="forms[]" class="forms_check" value="<?php echo $form->id ?>" /></td>
     <td><?php echo $form->name ?></td>
     <td><a href="admin.php?page=wpresponder/subscribers.php&action=nmanage&nid=<?php echo $form->nid ?>"><?php
-	$newsletter = _wpr_newsletter_get($form->nid);
+	$newsletter = _wpr_newsletter_get($form->nid);       
 	echo $newsletter->name;	
 	?></a></td>    
     <td>
@@ -242,13 +248,9 @@ function selectAllFormsCheckBox(state)
 		break;
 		
 		case 'none':
-		echo "None";
-		
+		echo "None";		
 		break;
-		
 	}
-	
-	
 	?>
     </td>
     <td><?php
@@ -261,7 +263,6 @@ function selectAllFormsCheckBox(state)
 		break;
 		
 		case 'all':
-		
 		echo "All Blog Posts ";
 		break;
 		case 'none':
@@ -325,18 +326,13 @@ function preview()
 
 
 
-function _wpr_subscriptionform_code($form)
-
+function _wpr_subscriptionform_code($form,$enableForm=false)
 {
-
-			
-
-		$url = get_bloginfo('home');			
-
-		ob_start();
-
+	$url = get_bloginfo('home');			
+	ob_start();
 		?>
 <form action="<?php echo $url?>/?wpr-optin=1" method="post">
+  <span class="wpr-subform-hidden-fields">
   <input type="hidden" name="blogsubscription" value="<?php echo $form->blogsubscription_type ?>" />
   <?php if ($form->blogsubscription_type == "cat") { ?>
   <input type="hidden" name="cat" value="<?php echo $form->blogsubscription_id ?>" />
@@ -351,6 +347,7 @@ if (!empty($form->followup_type) && $form->followup_type != "none")
 ?>
   <input type="hidden" name="followup" value="<?php echo $form->followup_type ?>" />
   <input type="hidden" name="responder" value="<?php echo $form->followup_id ?>" />
+  <input type="hidden" name="comment" value="" style="display:none" />
   <?php
 
 } ?>
@@ -358,19 +355,17 @@ if (!empty($form->followup_type) && $form->followup_type != "none")
   <?php if (isset($form->id)) { ?>
     <input type="hidden" name="fid" value="<?php echo $form->id ?>" />
     <?php } ?>
+  </span>
   <table>
     <tr>
-      <td>Name:</td>
-      <td><input type="text" name="name" /></td>
+      <td><span class="wprsfl wprsfl-name">Name:</span></td>
+      <td><span class="wprsftf wpr-subform-textfield-name"><input type="text" name="name" /></td>
     </tr>
     <tr>
-      <td>E-Mail Address:</td>
-      <td><input type="text" name="email" />
+      <td><span class="wprsfl wprsfl-email">E-Mail Address:</span></td>
+      <td><span class="wprsftf wpsftf-email"><input type="text" name="email" /></span>
     </tr>
     <?php
-
-
-
 	if (!empty($form->custom_fields))
 
 	{
@@ -386,7 +381,8 @@ if (!empty($form->followup_type) && $form->followup_type != "none")
 			$theField = _wpr_newsletter_custom_fields_get($field);
 
 			
-
+                       $fieldName = str_replace('"','',$theField->id);
+                       
 			switch ($theField->type)
 
 			{
@@ -397,22 +393,18 @@ if (!empty($form->followup_type) && $form->followup_type != "none")
 
 				   ?>
     <tr>
-      <td><?php echo $theField->label ?></td>
-      <td><select name="cus_<?php echo base64_encode($theField->name) ?>">
+      <td><span class="wprsfl wprsfl-<?php echo $fieldName ?> wprsfl-<?php echo $fieldName ?>-<?php echo $form->id ?>"><?php echo $theField->label ?></span></td>
+      <td><span class="wprsfsf wprsf-<?php echo $fieldName ?>"><select name="cus_<?php echo base64_encode($theField->name) ?>">
           <?php
-
-				   foreach ($choices as $choice)
-
-				   {
-
-					   ?>
+foreach ($choices as $choice)
+{
+?>
           <option><?php echo $choice ?></option>
-          <?php
-
-				   }
+<?php
+}
 
 				   ?>
-        </select></td>
+        </select></span></td>
     </tr>
     <?php
 
@@ -422,8 +414,8 @@ if (!empty($form->followup_type) && $form->followup_type != "none")
 
 				?>
     <tr>
-      <td><?php echo $theField->label ?></td>
-      <td><input type="text" name="cus_<?php echo base64_encode($theField->name) ?>" />
+      <td><span class="wprsfl wprsfl-<?php echo $fieldName ?> wprsfl-<?php echo $fieldName ?>-<?php echo $form->id ?>"><?php echo $theField->label ?></td>
+      <td><span class="wprsftf wprsftf-<?php echo $fieldName ?> wprsftf-<?php echo $fieldName ?>-<?php echo $form->id ?>"><input type="text" name="cus_<?php echo base64_encode($theField->name) ?>" />
     </tr>
     <?php
 
@@ -434,24 +426,24 @@ if (!empty($form->followup_type) && $form->followup_type != "none")
 				case 'hidden':
 
 				?>
-    <input type="hidden" name="cus_<?php echo base64_encode($theField->name); ?>" value="<?php echo $_POST['field_'.$theField->id."_value"] ?>" />
+    <input type="hidden" class="wprsfhf wprsfhf-<?php echo $fieldName ?> wprsfhf-<?php echo $fieldName ?>-<?php echo $form->id ?>">" name="cus_<?php echo base64_encode($theField->name); ?>" value="<?php echo $_POST['field_'.$theField->id."_value"] ?>" />
     <?php
 
 				break;
 
 			}
-
-			
-
 		}
-
 	}
 
 	?>
     <tr>
       <td colspan="2" align="center"><input type="submit" value="Subscribe" /></td>
     </tr>
+    <tr>
+        <td colspan="2" align="center"><?php if ($enableForm) { ?><a style="font-family:Verdana, Geneva, sans-serif;font-size: 9px;;" href="http://www.wpresponder.com"><?php echo base64_decode("UG93ZXJlZCBieSBXUCBSZXNwb25kZXI=");  ?></a><?php } ?></td>
+    </tr>
   </table>
+
 </form>
 <?php
 
@@ -1122,9 +1114,7 @@ foreach ($newsletters as $newsletter)
           <input type="radio" name="blog" <?php 
 
 		  if ($parameters->blogsubscription_type == "all")
-
 		  {
-
 			  echo 'checked="checked"';
 
 		  } ?> id="all" value="all" />
@@ -1243,8 +1233,7 @@ else
 
 }
 
-	?>
-</textarea></td>
+	?></textarea></td>
           </tr>
         </table>
         <h3>Subscription Confirmed E-Mail:</h3>
