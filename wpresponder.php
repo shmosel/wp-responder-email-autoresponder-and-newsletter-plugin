@@ -3,7 +3,7 @@
 Plugin Name: WP Responder
 Plugin URI: http://www.wpresponder.com
 Description: Add a autopresponder to your blog with features like Aweber.
-Version: 4.9.3
+Version: 4.9.4
 Author: Raj Sekharan
 Author URI: http://www.expeditionpost.com/
 */

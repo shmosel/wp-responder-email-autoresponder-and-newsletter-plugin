@@ -97,8 +97,9 @@ foreach ($pssubs as $sub)
 
 if (isset($_POST['confirmed']) && $_POST['confirmed'] == "true")
 {
-	//delete autoresponders 
-	$email = wpr_sanitize($_POST['email']);
+	//delete autoresponders
+    
+	$email = wpr_manage_sanitize($_POST['email']);
 	
 	if (empty($email))
 	{
@@ -166,11 +167,8 @@ function error($error)
 	exit;
 
 }
-
-if (!function_exists("wpr_sanitize"))
+function wpr_manage_sanitize($string)
 {
-	function wpr_sanitize($string)
-	{
 		$string = strip_tags($string);
 		$string = trim($string);
 		if (get_magic_quotes_gpc())
@@ -181,5 +179,4 @@ if (!function_exists("wpr_sanitize"))
 		{
 			return addslashes($string);	
 		}
-	}
 }

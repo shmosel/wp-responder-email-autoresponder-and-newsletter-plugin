@@ -41,7 +41,7 @@ function validateEmail($email)
 
 {
     //test with regular expressions.
-    return true;//eregi('^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.([a-zA-Z]{2,4})$',$email);
+    return eregi('^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.([a-zA-Z]{2,4})$',$email);
 }
 
 if (!function_exists("wpr_sanitize"))
