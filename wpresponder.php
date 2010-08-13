@@ -24,7 +24,7 @@ if (!defined("WPR_DEFS"))
     }
 	
 	$phpVersion = phpversion();
-     if (preg_match("@4\.[0-9\.]*@",$phpVersion))
+     if (preg_match("@^4.*@",$phpVersion))
      {
                 add_action('admin_notice',"wpr_unsupported");
      }
