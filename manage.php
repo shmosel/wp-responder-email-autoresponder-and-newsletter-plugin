@@ -1,5 +1,5 @@
 <?php
-include "wp-config.php";
+
 $request = $_GET['wpr-manage'];
 if (empty($request))
 {

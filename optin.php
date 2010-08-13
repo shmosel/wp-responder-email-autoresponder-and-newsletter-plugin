@@ -1,9 +1,6 @@
 <?php
 
-require "wp-load.php";
-
 global $wpdb;
-date_default_timezone_set("UTC");
 
 if ($_GET['subscribed'] == "true")
 {
