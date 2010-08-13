@@ -2,60 +2,58 @@
 /*
 Plugin Name: WP Responder
 Plugin URI: http://www.wpresponder.com
-Description: Add a autopresponder to your blog with features like Aweber.
-Version: 4.9.4.1
+Description: Add follow-up autoresponder and newsletter features to your wordpress blog. 
+Version: 4.9.4.2
 Author: Raj Sekharan
 Author URI: http://www.expeditionpost.com/
 */
 
 if (!defined("WPR_DEFS"))
 {
-    define("WPR_DEFS",1);
-	
+     define("WPR_DEFS",1);
      function wpr_unsupported()
      {
-	if (current_user_can('level_8'))
-	{
+		if (current_user_can('level_8'))
+		{
 	?>
 <div class="error fade" style="background-color:red; line-height: 20px;">
   <p><strong>Your web server is running PHP 4. WP Responder is not programmed to work with PHP 4.x. To prevent damage to your website please deactivate WP Responder from the <a href="<?php bloginfo("home") ?>/wp-admin/plugins.php">Plugins</a> page. </strong></p>
 </div>
 <?php
-	}
+		}
     }
-       if (preg_match("@4\.[0-9\.]*@",$phpVersion))
-        {
-                add_action('admin_notice',"wpr_unsupported");
-        }
-        else
-	{
 	
-
-	$plugindir =  str_replace(basename(__FILE__),"",__FILE__);
+	$phpVersion = phpversion();
+     if (preg_match("@4\.[0-9\.]*@",$phpVersion))
+     {
+                add_action('admin_notice',"wpr_unsupported");
+     }
+     else
+	 {
+	    $plugindir =  str_replace(basename(__FILE__),"",__FILE__);
         $plugindir = str_replace("\\","/",$plugindir);
         $plugindir = rtrim($plugindir,"/");
 
-	include "wpr_install.php";
-	include "home.php" ;
-	include "newsletter.php";
-	include "autoresponder.php";
-	include "blog_series.php";
-	include "forms.php";
-	include "newmail.php";
-	include "customizeblogemail.php";
-	include "subscribers.php";
-	include "wpr_settings.php";
-	include "wpr_deactivate.php";
-	include "all_mailouts.php";
-        include "actions.php";
-	include "runcronnow.php";
-	include "errors.php";
-	include "thecron.php";
-	include $plugindir."/lib/swift_required.php";
-	include "importexport.php";
-        include "widget.php";
-	
-	define("WPR_VERSION","4.9.3");
+		include "wpr_install.php";
+		include "home.php" ;
+		include "newsletter.php";
+		include "autoresponder.php";
+		include "blog_series.php";
+		include "forms.php";
+		include "newmail.php";
+		include "customizeblogemail.php";
+		include "subscribers.php";
+		include "wpr_settings.php";
+		include "wpr_deactivate.php";
+		include "all_mailouts.php";
+		include "actions.php";
+		include "runcronnow.php";
+		include "errors.php";
+		include "thecron.php";
+		include $plugindir."/lib/swift_required.php";
+		include "importexport.php";
+		include "widget.php";
+		define("WPR_VERSION","4.9.4.1");
 
 	
 	//-------------------------------------------DEBUG----------
