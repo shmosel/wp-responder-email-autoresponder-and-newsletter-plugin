@@ -53,7 +53,7 @@ if (!defined("WPR_DEFS"))
 		include $plugindir."/lib/swift_required.php";
 		include "importexport.php";
 		include "widget.php";
-		define("WPR_VERSION","4.9.4.1");
+		define("WPR_VERSION","4.9.4.2");
 
 	
 	//-------------------------------------------DEBUG----------
