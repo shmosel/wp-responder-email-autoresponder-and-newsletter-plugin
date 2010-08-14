@@ -92,6 +92,7 @@ Bug Fixes:
 * Preview e-mail button wasn't working in the form for add new messages to autoresponder series
 * Sometimes users will not be able to create a newsletter using the create newsletter form
 * Subscriber profile page did not allow editing a subscriber's custom field values if they are subscribed to more than one newsletter.
+
 * If multiple autoresponder messages were scheduled to be delivered on the same day, only one will be delivered.
 * Subscription form allowed the selection of any autoresponder for any newsletter.
 
@@ -101,3 +102,17 @@ New Features:
 * Delete subscribers in mass
 * Delete subscription forms in mass
 * Put subscription forms in sidebar using widgets!
+
+
+**WP Responder 4.9.4.2**
+
+Bug Fixes:
+
+* PHP Syntax error when users try to subscribe to any newsletter. Occurs sometimes. 
+* The fseek function calls in Swift library have been silenced so that they don't throw an error when sending an e-mail that has an image with a source which is a HTTP url. 
+* Subscription forms now do not accept malformed e-mail addresses.
+
+New Features
+
+* Small antispam measure in subscription forms
+* Subscription forms now have a lot of span tags so that they can be easily themed if needed.
