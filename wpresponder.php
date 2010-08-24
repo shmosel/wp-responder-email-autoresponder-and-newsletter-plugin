@@ -3,7 +3,7 @@
 Plugin Name: WP Responder
 Plugin URI: http://www.wpresponder.com
 Description: Add follow-up autoresponder and newsletter features to your wordpress blog. 
-Version: 4.9.5
+Version: 4.9.5.1
 Author: Raj Sekharan
 Author URI: http://www.expeditionpost.com/
 */
@@ -99,7 +99,75 @@ if (!defined("WPR_DEFS"))
 	}
 	
 	add_action("plugins_loaded","whetherToNag");
+	function export_csv($nid)
+	{
+		global $wpdb;
+		$prefix = $wpdb->prefix;
+		//is there a 
+		
+		if ($nid == 0)
+			return;
+		//does the newsletter exist?
+		$query = "SELECT COUNT(*) FROM ".$prefix."wpr_newsletters where id=$nid";
+		$results = $wpdb->get_results($query);
+		if (count($results) == 0)
+		{
+			return;
+		}
+		//if none of these error conditions occur, then start exporting:
+		
+		
+		//fetch all custom fields associates with this newsletter
+		$query = "select * from ".$prefix."wpr_custom_fields where nid=$nid";
+		$results = $wpdb->get_results($query);
+		$fieldHeaders = array();
+		if (count ($results))
+		{
+			$customfields= array();
+			foreach ($results as $field)
+			{
+				$customfields[] = $field->name;
+				
+			}
+		}
+		//add the name and email address fields to the beginning of the field list
+		if (count($customfields))
+		{
+			$SqlQueryColumnList = ",".implode(",",$customfields); //this will be appended to the column list in the  fetchAllSubscriberDataQuery sql query
+		}
+
+		//the query that returns all the custom fields
+		
+		//these two lines create a temporary table that has all the fields of the subscriber table
+		//joined with the values of the custom fields for each of the subscribers in that table.
+		//the custom fields' values for each subscriber are created as a column in the wpr_subscriber_$nid table.
+		wpr_create_temporary_tables($nid);
+		wpr_make_subscriber_temptable($nid);
+		
+		
+		//fetch the subscriber data for all subscribers
+		$fetchAllSubscriberDataQuery = "SELECT name,email $SqlQueryColumnList FROM ".$prefix."wpr_subscribers_$nid";
+		$listOfSubscribersAndTheirInfo = $wpdb->get_results($fetchAllSubscriberDataQuery);
+		//the field headings are first attached		
+		$fieldname = "";
+
+		//now the data for each row is written
+		foreach ($listOfSubscribersAndTheirInfo as $subscriber)
+		{
+			$subsarray = (array) $subscriber;
+			//array walk doesnt work for some reason.
+			foreach ($subsarray as $name=>$value )
+			{
+				$subsarray[$name] = trim($subsarray[$name]);
+			}
+			$row = implode(",",$subsarray);
+			$output .= $row."\n";
+		}	
+		header ("Content-disposition: attachment; filename=export_$nid.csv");
+		echo $output;
+		exit;
 	
+	}
 	function wpr_services_notice()
 	{ //this images is used to announce new versions. DO NOT REMOVE THIS. 
 	?>
