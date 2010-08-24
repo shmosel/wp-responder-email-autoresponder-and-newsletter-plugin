@@ -140,7 +140,7 @@ function CreateNewsletterPostValuesArray($newsletterId)
 
         "attachimages"=>(isset($_POST['attachimages-'.$newsletterId]))?1:0,
 
-        "nocustomization"=>(isset($_POST['diablecustomization-'.$newsletterId]))?1:0,
+        "nocustomization"=>(isset($_POST['disablecustomization-'.$newsletterId]))?1:0,
 
         "nopostseries"=>(isset($_POST['nopostseries-'.$newsletterId]))?1:0
 
@@ -311,7 +311,7 @@ function GetDefaultArguments($newsletter)
 
                 "disable"=>0,
 
-                "nocustomization"=>0,
+                "nocustomization"=>1,
 
                 "htmlenable"=>1,
 
@@ -415,7 +415,7 @@ function getNewsletterCustomizationFormCode($arguments,$mode="new")
 <h2><?php echo $newsletter->name; ?></h2>
 <p>
   <input type="checkbox" <?php if ($arguments['disable']) { echo 'checked="checked"'; } ?> autocomplete="off" onchange="toggleStatus(<?php echo $nid ?>,this.checked);" id="toggleForm-<?php echo $nid; ?>" name="skipnewsletter-<?php echo $nid; ?>" value="1" id="skipnewsletter-<?php echo $nid; ?>">
-  Don't deliver this blog post to subscribers of this newsletter who have subscribed to all the blog posts or one of the blog categories in which this post is categorized.</p>
+  Don't deliver this blog post to blog subscribres or blog category subscribers. But use these settings for post series deliveries. </p>
 <p>
   <input type="checkbox" <?php if ($arguments['nopostseries']==1) { echo 'checked="checked"'; } ?> name="nopostseries-<?php echo $nid ?>" autocomplete="off" id="nopostseries">
   <label for="nopostseries"> Don't use these settings while delivering email to post series subscribers. Use a default layout that uses the blog post's content.</label>
@@ -430,7 +430,7 @@ function getNewsletterCustomizationFormCode($arguments,$mode="new")
   <div id="customizationsform-<?php echo $nid ?>">
     <div id="form-<?php echo $nid ?>">
       <p style="font-size: 17px; font-weight: bold">Subject:
-        <input type="text" name="subject-<?php echo $nid ?>" value="<?php echo $arguments['subject'] ?>" size="50"></p>w
+        <input type="text" name="subject-<?php echo $nid ?>" value="<?php echo $arguments['subject'] ?>" size="50"></p>
       <p style="font-size: 17px; font-weight: bold">Text Body:</p>
       <textarea style="border: 1px solid #c0c0c0;" name="textbody-<?php echo $nid ?>" rows="10" cols="80"><?php echo $arguments['textbody'] ?></textarea>
       <p style="font-size: 17px; font-weight: bold">HTML Body:</p>
@@ -454,16 +454,11 @@ function getNewsletterCustomizationFormCode($arguments,$mode="new")
       </div>
     </div>
     <script>
-
-createEditor(<?php echo $nid; ?>);
-
 toggleStatus(<?php echo $nid ?>,document.getElementById("toggleForm-<?php echo $nid ?>").checked);
-
-toggleCustomization(<?php echo $nid ?>,document.getElementById("disablecustomization-<?php echo $nid ?>").checked);
 
 toggleHtmlBody(<?php echo $nid ?>,document.getElementById("htmlenable-<?php echo $nid ?>").checked);
 
-
+toggleCustomization(<?php echo $nid ?>,document.getElementById("disablecustomization-<?php echo $nid ?>").checked);
 
 </script>
     <p style="font-size: 17px; font-weight: bold">Shortcodes</p>

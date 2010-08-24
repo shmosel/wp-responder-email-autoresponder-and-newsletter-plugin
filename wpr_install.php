@@ -193,7 +193,8 @@ function wpresponder_install()
 	  `attachimages` tinyint(1) NOT NULL,
 	  PRIMARY KEY (`id`)
 	)";
-
+	
+	$queries[] = "ALTER TABLE `".$prefix."wpr_subscription_form` ADD `submit_button` VARCHAR( 45 ) NOT NULL DEFAULT 'Subscribe'";
 	
 	foreach ($queries as $query)
 	{

@@ -96,14 +96,47 @@ function wpr_subscriptionforms()
 				$info['name'] = $_POST['name'];
 
 				$info['return_url'] = $_POST['return_url'];
+				
+				if (preg_match("@autoresponder_[0-9]+@",$_POST['followup']))
+				{
+					$followup = "autoresponder";
+					$followupid = str_replace("autoresponder_","",$_POST['followup']);
+				}
+				else if (preg_match("@postseries_[0-9]+@",$_POST['followup']))
+				{
+					$followup = "postseries";
+					$followupid = str_replace("postseries_","",$_POST['followup']);
+				}
+				else
+				{
+					$followup = "none";
+					$followupid = 0;
+				}
 
-				$info['followup_type'] = $_POST['followup'];
+				$info['followup_type'] = $followup;
 
-				$info['followup_id'] = ($_POST['followup'] == "autoresponder")?$_POST['autoresponder_id']:$_POST['post_series'];
+				$info['followup_id'] = $followupid;
+				
+				switch ($_POST['blogsubscription'])
+				{
+					case 'none':
+					case 'all':
+						$blogSubscription = $_POST['blogsubscription'];
+						break;
+					default:				
+						if (preg_match("@category_[0-9]+@",$_POST['blogsubscription']))
+						{
+							$blogSubscription = "cat";
+							$blogCategory = str_replace("category_","",$_POST['blogsubscription']);
+						}
+					
+				}
 
-				$info['blogsubscription_type'] = $_POST['blog'];
+				$info['blogsubscription_type'] = $blogSubscription;
 
-				$info['blogsubscription_id'] = $_POST['blog_cat'];
+				$info['blogsubscription_id'] = $blogCategory;
+				
+				$info['submit_button'] = $_POST['submit_value'];
 
 				$info['custom_fields'] = (isset($_POST['custom_fields']) && is_array($_POST['custom_fields']))?implode(",",$_POST['custom_fields']):"";
 
@@ -133,8 +166,6 @@ function wpr_subscriptionforms()
 
 		}		
 
-		
-
 		_wpr_subscriptionform_form($form,$errors);		
 
 		break;
@@ -150,23 +181,23 @@ function wpr_subscriptionforms()
 function _wpr_subscriptionform_delete_notfound()
 {
 	?>
-    <div class="wrap">
-            <h2>Invalid Input: No forms were specified.</h2>
-Did you visit this page directly? Click on the button below to go to the subscription forms list.<br />
 
-            <input type="button" onclick="window.location='admin.php?page=wpresponder/subscriptionforms.php';" class="button-primary" value="&laquo; Back To Subscription Forms List">
-     </div>
-            <?php
+<div class="wrap">
+  <h2>Invalid Input: No forms were specified.</h2>
+  Did you visit this page directly? Click on the button below to go to the subscription forms list.<br />
+  <input type="button" onclick="window.location='admin.php?page=wpresponder/subscriptionforms.php';" class="button-primary" value="&laquo; Back To Subscription Forms List">
+</div>
+<?php
 }
 function _wpr_subscriptionform_delete_done()
 {
 	?>
-    <div class="wrap">
-            <h2>The Selected Subscription Forms Have Been Deleted</h2><br />
-<br />
-            <a href="admin.php?page=wpresponder/subscriptionforms.php" class="button-primary">&laquo; Back To Subscription Forms List</a>
-      </div>
-            <?php
+<div class="wrap">
+  <h2>The Selected Subscription Forms Have Been Deleted</h2>
+  <br />
+  <br />
+  <a href="admin.php?page=wpresponder/subscriptionforms.php" class="button-primary">&laquo; Back To Subscription Forms List</a> </div>
+<?php
 }
 
 function _wpr_subscriptionforms_delete($list)
@@ -187,7 +218,6 @@ function _wpr_subscriptionforms_list()
 	$forms = $wpdb->get_results($query);
 
 	?>
-
 <div class="wrap">
   <h2>Subscription Forms</h2>
 </div>
@@ -199,41 +229,42 @@ function selectAllFormsCheckBox(state)
 }
 </script>
 <ul style="list-style:disc; padding:20px;">
-<li>To create a from, click on the Create New Form button below.
-<li>Filling out the form that follows will help you generate the HTML code. 
-<li>To place the sidebar anywhere on your website, you will have to paste the HTML code where you want it. 
-<li>Currently WP Responder doesn't add subscription form widgets to the sidebar. It will do so in a later version.
-<li>To place the subscription form on your sidebar, you must add a Text widget to the sidebar and place the generated HTML code in that widget.
-<li>If you have already placed the HTML code for a form  on a web page, deleting the form here will not disable the form. The form will continue to function according to its configuration.</li> 
+  <li>To create a from, click on the Create New Form button below.
+  <li>Filling out the form that follows will help you generate the HTML code.
+  <li>To place the sidebar anywhere on your website, you will have to paste the HTML code where you want it.
+  <li>Currently WP Responder doesn't add subscription form widgets to the sidebar. It will do so in a later version.
+  <li>To place the subscription form on your sidebar, you must add a Text widget to the sidebar and place the generated HTML code in that widget.
+  <li>If you have already placed the HTML code for a form  on a web page, deleting the form here will not disable the form. The form will continue to function according to its configuration.</li>
 </ul>
 <form name="formslist" action="admin.php?page=wpresponder/subscriptionforms.php&action=delete" method="post">
-<table class="widefat">
-  <tr>
-  <thead>
-  <th><input type="checkbox" name="selectall" value="1" onclick="selectAllFormsCheckBox(this.checked);" /></th>
-  <th scope="col">Name</th>
-    <th>Newsletter</th>
-    <th>Follow-Up</th>
-    <th>Blog Subscription</th>
-    <th scope="col">Actions</th>
-    </thead>
-  </tr>
-  <?php
+  <table class="widefat">
+    <tr>
+    <thead>
+    <th><input type="checkbox" name="selectall" value="1" onclick="selectAllFormsCheckBox(this.checked);" /></th>
+      <th scope="col">Name</th>
+      <th>Newsletter</th>
+      <th>Follow-Up</th>
+      <th>Blog Subscription</th>
+      <th scope="col">Actions</th>
+      </thead>
+    </tr>
+    <?php
 
 	foreach ($forms as $form)
 
 	{
 
 		?>
-  <tr>
-    <td  align="center"width="20"><input type="checkbox" name="forms[]" class="forms_check" value="<?php echo $form->id ?>" /></td>
-    <td><?php echo $form->name ?></td>
-    <td><a href="admin.php?page=wpresponder/subscribers.php&action=nmanage&nid=<?php echo $form->nid ?>"><?php
+    <tr>
+      <td  align="center"width="20"><input type="checkbox" name="forms[]" class="forms_check" value="<?php echo $form->id ?>" /></td>
+      <td><?php echo $form->name ?></td>
+      <td><a href="admin.php?page=wpresponder/subscribers.php&action=nmanage&nid=<?php echo $form->nid ?>">
+        <?php
 	$newsletter = _wpr_newsletter_get($form->nid);       
 	echo $newsletter->name;	
-	?></a></td>    
-    <td>
-    <?php
+	?>
+        </a></td>
+      <td><?php
 	
 	switch ($form->followup_type)
 	{
@@ -251,9 +282,8 @@ function selectAllFormsCheckBox(state)
 		echo "None";		
 		break;
 	}
-	?>
-    </td>
-    <td><?php
+	?></td>
+      <td><?php
 	switch ($form->blogsubscription_type)
 	{
 		case 'cat':
@@ -272,16 +302,16 @@ function selectAllFormsCheckBox(state)
 	}
 	
 	?>
-    <td><a href="admin.php?page=wpresponder/subscriptionforms.php&action=edit&fid=<?php echo $form->id ?>" class="button">Edit</a>&nbsp;<a href="admin.php?page=wpresponder/subscriptionforms.php&action=form&fid=<?php echo $form->id ?>" class="button">Get Form HTML</a></td>
-  </tr>
-  <?php
+      <td><a href="admin.php?page=wpresponder/subscriptionforms.php&action=edit&fid=<?php echo $form->id ?>" class="button">Edit</a>&nbsp;<a href="admin.php?page=wpresponder/subscriptionforms.php&action=form&fid=<?php echo $form->id ?>" class="button">Get Form HTML</a></td>
+    </tr>
+    <?php
 
 	}
 
 ?>
-</table>
-<input type="submit" name="submit" value="Delete Forms" class="button" onclick="return confirm('Are you sure you want to delete the selected subscription forms?');" />
-<input type="button" onclick="window.location='admin.php?page=wpresponder/subscriptionforms.php&action=create';" class="button" value="Create New Form">
+  </table>
+  <input type="submit" name="submit" value="Delete Forms" class="button" onclick="return confirm('Are you sure you want to delete the selected subscription forms?');" />
+  <input type="button" onclick="window.location='admin.php?page=wpresponder/subscriptionforms.php&action=create';" class="button" value="Create New Form">
 </form>
 <?php
 
@@ -359,11 +389,14 @@ if (!empty($form->followup_type) && $form->followup_type != "none")
   <table>
     <tr>
       <td><span class="wprsfl wprsfl-name">Name:</span></td>
-      <td><span class="wprsftf wpr-subform-textfield-name"><input type="text" name="name" /></td>
+      <td><span class="wprsftf wpr-subform-textfield-name">
+        <input type="text" name="name" /></td>
     </tr>
     <tr>
       <td><span class="wprsfl wprsfl-email">E-Mail Address:</span></td>
-      <td><span class="wprsftf wpsftf-email"><input type="text" name="email" /></span>
+      <td><span class="wprsftf wpsftf-email">
+        <input type="text" name="email" />
+        </span>
     </tr>
     <?php
 	if (!empty($form->custom_fields))
@@ -394,17 +427,19 @@ if (!empty($form->followup_type) && $form->followup_type != "none")
 				   ?>
     <tr>
       <td><span class="wprsfl wprsfl-<?php echo $fieldName ?> wprsfl-<?php echo $fieldName ?>-<?php echo $form->id ?>"><?php echo $theField->label ?></span></td>
-      <td><span class="wprsfsf wprsf-<?php echo $fieldName ?>"><select name="cus_<?php echo base64_encode($theField->name) ?>">
+      <td><span class="wprsfsf wprsf-<?php echo $fieldName ?>">
+        <select name="cus_<?php echo base64_encode($theField->name) ?>">
           <?php
 foreach ($choices as $choice)
 {
 ?>
           <option><?php echo $choice ?></option>
-<?php
+          <?php
 }
 
 				   ?>
-        </select></span></td>
+        </select>
+        </span></td>
     </tr>
     <?php
 
@@ -415,7 +450,8 @@ foreach ($choices as $choice)
 				?>
     <tr>
       <td><span class="wprsfl wprsfl-<?php echo $fieldName ?> wprsfl-<?php echo $fieldName ?>-<?php echo $form->id ?>"><?php echo $theField->label ?></td>
-      <td><span class="wprsftf wprsftf-<?php echo $fieldName ?> wprsftf-<?php echo $fieldName ?>-<?php echo $form->id ?>"><input type="text" name="cus_<?php echo base64_encode($theField->name) ?>" />
+      <td><span class="wprsftf wprsftf-<?php echo $fieldName ?> wprsftf-<?php echo $fieldName ?>-<?php echo $form->id ?>">
+        <input type="text" name="cus_<?php echo base64_encode($theField->name) ?>" />
     </tr>
     <?php
 
@@ -426,7 +462,8 @@ foreach ($choices as $choice)
 				case 'hidden':
 
 				?>
-    <input type="hidden" class="wprsfhf wprsfhf-<?php echo $fieldName ?> wprsfhf-<?php echo $fieldName ?>-<?php echo $form->id ?>">" name="cus_<?php echo base64_encode($theField->name); ?>" value="<?php echo $_POST['field_'.$theField->id."_value"] ?>" />
+    <input type="hidden" class="wprsfhf wprsfhf-<?php echo $fieldName ?> wprsfhf-<?php echo $fieldName ?>-<?php echo $form->id ?>">
+    " name="cus_<?php echo base64_encode($theField->name); ?>" value="<?php echo $_POST['field_'.$theField->id."_value"] ?>" />
     <?php
 
 				break;
@@ -437,13 +474,14 @@ foreach ($choices as $choice)
 
 	?>
     <tr>
-      <td colspan="2" align="center"><input type="submit" value="Subscribe" /></td>
+      <td colspan="2" align="center"><input type="submit" value="<?php echo (empty($form->submit_button))?"Subscribe":$form->submit_button; ?>" /></td>
     </tr>
     <tr>
-        <td colspan="2" align="center"><?php if ($enableForm) { ?><a style="font-family:Verdana, Geneva, sans-serif;font-size: 9px;;" href="http://www.wpresponder.com"><?php echo base64_decode("UG93ZXJlZCBieSBXUCBSZXNwb25kZXI=");  ?></a><?php } ?></td>
+      <td colspan="2" align="center"><?php if ($enableForm) { ?>
+        <a style="font-family:Verdana, Geneva, sans-serif;font-size: 9px;;" href="http://www.wpresponder.com"><?php echo base64_decode("UG93ZXJlZCBieSBXUCBSZXNwb25kZXI=");  ?></a>
+        <?php } ?></td>
     </tr>
   </table>
-
 </form>
 <?php
 
@@ -492,14 +530,50 @@ function _wpr_subscriptionforms_create()
 		$info['name'] = $_POST['name'];
 
 			$info['return_url'] = $_POST['return_url'];
+			
+			
+			if (preg_match("@autoresponder_[0-9]+@",$_POST['followup']))
+			{
+				$followup = "autoresponder";
+				$followupid = str_replace("autoresponder_","",$_POST['followup']);
+			}
+			else if (preg_match("@postseries_[0-9]+@",$_POST['followup']))
+			{
+				$followup = "postseries";
+				$followupid = str_replace("postseries_","",$_POST['followup']);
+			}
+			else
+			{
+				$followup = "none";
+				$followupid = 0;
+			}
 
-			$info['followup_type'] = $_POST['followup'];
+			$info['followup_type'] = $followup;
+			$info['followup_id'] = $followupid;
+			
+			
+			switch ($_POST['blogsubscription'])
+			{
+				case 'none':
+				case 'all':
+					$blogSubscription = $_POST['blogsubscription'];
+					break;
+				default:				
+				    if (preg_match("@category_[0-9]+@",$_POST['blogsubscription']))
+					{
+						$blogSubscription = "cat";
+						$blogCategory = str_replace("category_","",$_POST['blogsubscription']);
+					}
+				
+			}
+			
+			$info['submit_button'] = $_POST['submit_value'];
+						   
+			
 
-			$info['followup_id'] = ($_POST['followup'] == "autoresponder")?$_POST['autoresponder_id']:$_POST['post_series'];
+			$info['blogsubscription_type'] = $blogSubscription;
 
-			$info['blogsubscription_type'] = $_POST['blog'];
-
-			$info['blogsubscription_id'] = $_POST['blog_cat'];
+			$info['blogsubscription_id'] = $blogCategory;
 
 			$info['custom_fields'] = (is_array($_POST['custom_fields']))?implode(",",$_POST['custom_fields']):"";
 
@@ -512,6 +586,9 @@ function _wpr_subscriptionforms_create()
 			$info['confirmed_subject'] = $_POST['confirmed_subject'];
 
 			$info['confirmed_body'] = $_POST['confirmed_body'];
+			
+			
+
 
 		if (count($errors) == 0)
 
@@ -608,14 +685,10 @@ AutorespondersOfNewsletters['<?php echo $news->id ?>'].push(new Autoresponder(<?
 ?>
 function autoresponderDropDownBox()
 {
-	return document.getElementById('autoresponder_selector');
+	return document.getElementById('autoresponders_list');
 }
 
-function toggleAutorespondersFields(state)
-{
-	document.getElementById('autoresponder').disabled = !state;
-	autoresponderDropDownBox().disabled = !state;
-}
+
 
 function updateAutorespondersOption(currentNid)
 {
@@ -626,49 +699,125 @@ function updateAutorespondersOption(currentNid)
 
 		 if (listOfResponders.length!=0)
 		 {
-			 toggleAutorespondersFields(true);
-
 			 //remove the options in the autoresponder series drop down box.
 			 emptyAutoresponderFields();
 			 
 			 var countOfOptions=0;
-			 var emptyOption = new Option("","",true,false);
 			 for (var newopt in listOfResponders)
 			 {
 				 var theOpt = document.createElement("option");
-				 theOpt.setAttribute("value",listOfResponders[newopt].id);
+				 theOpt.setAttribute("value","autoresponder_"+listOfResponders[newopt].id);
 				 theOpt.innerHTML = listOfResponders[newopt].name;
 				 autoresponderDropDownBox().appendChild(theOpt);
 			 }
 		 }
 		 else
 		 {
-			 //check if the autoresponder field is selected
-			 if (document.getElementById('autoresponder').checked == true)
-			 {
-				//if it is selected select, change the option to none.
-				document.getElementById('nonea').checked=true;
-			 }
-			 emptyAutoresponderFields();			 
-			 toggleAutorespondersFields(false);
-			 
-			 //then disable the  autoresponder field.
-			 
+			 emptyAutoresponderFields();			 		 
 		 }
 		 
 	 }
 	 else
 	 {
   		 emptyAutoresponderFields();
-		 toggleAutorespondersFields(false);
 		 return false;
 	 }
 }
 
 
+function _wpr_validate_subform_form_fields()
+{
+	var titleField =document.getElementById('formnamefield');	
+	if (titleField.value.length==0)
+	{
+		alert("A name is required for this form. Please enter a name.");
+		titleField.focus();
+		return false;
+	}
+	
+	
+	var newsletterField = document.getElementById('newsletterlist');
+	if (newsletterField.value=="")
+	{
+		alert("You must select a newsletter to which this subscription form will add subscribers.");
+		newsletterField.focus();
+		return false;
+	}
+	
+	var confirmS = document.getElementById('confirms');
+	if (jQuery.trim(confirmS.value).length==0)
+	{
+		alert("You must enter a subject for the confirm subscription e-mail.");
+		confirmS.value='';
+		confirmS.focus();
+		return false;
+	}
+	
+	
+	var confirmB = document.getElementById('confirmb');
+	if (jQuery.trim(confirmB.value).length==0)
+	{
+		alert("You must enter a body for the confirm subscription e-mail.");
+		confirmB.value='';
+		confirmB.focus();
+		return false;
+	}
+	
+	var confirmedS = document.getElementById('confirmeds');
+	if (jQuery.trim(confirmedS.value).length==0)
+	{
+		alert("You must enter a subject for the confirmed subscription e-mail.");
+		confirmedS.value='';
+		confirmedS.focus();
+		return false;
+	}
+	
+	var confirmedB = document.getElementById('confirmedb');
+	if (jQuery.trim(confirmedB.value).length==0)
+	{
+		alert("You must enter a body for the confirmed subscription e-mail.");
+		confirmedB.value='';
+		confirmedB.focus();
+		return false;
+	}
+	
+	var returnurlf = document.getElementById('returnurlfield');
+	returnurl = returnurlf.value;
+	if (jQuery.trim(returnurl).length !=0 && !checkURL(returnurl))
+	{
+		alert("The value in the return URL field should be a HTTP url. Please correct it or leave the field empty.");
+		returnurlf.value='';
+		returnurlf.focus();
+		return false;	
+	}
+	
+	return true;
+	
+	
+	
+	
+}
+
+
+function checkURL(value) 
+{
+  var urlregex = new RegExp(
+        "^(http:\/\/www.|https:\/\/www.|ftp:\/\/www.|www.|http:\/\/){1}([0-9A-Za-z]+\.)");
+  if(urlregex.test(value))
+  {
+    return(true);
+  }
+  return(false);
+}
+
+
 function emptyAutoresponderFields()
 {
-	autoresponderDropDownBox().length=0;
+        jQuery("#autoresponders_list").children().each( function () 
+													{
+				jQuery(this).remove();										
+														
+		});
 }
 
 function Field(id,name,type,label,choices)
@@ -816,10 +965,14 @@ function showFields(elements)
 
 }
 
+var autoresponderToBeSelected = '<?php echo ($parameters->followup_type == "postseries")?"postseries_":"autoresponder_";
+echo $parameters->followup_id; ?>';
 
 
-
-
+function setValueOfAutoresponderField()
+{
+	document.getElementById('followup_field').value=autoresponderToBeSelected;
+}
 function load(id)
 {
 	document.getElementById('customfields').innerHTML="<div align=\"center\">--None--</div>\"";
@@ -855,6 +1008,11 @@ toSelect[<?php echo $num; ?>] = <?php echo $field; ?>;
 
 }
 
+function loadFollowUpAutoresponderList()
+{
+    
+}
+
 ?>jQuery(document).ready(function() {
 
     
@@ -863,6 +1021,7 @@ toSelect[<?php echo $num; ?>] = <?php echo $field; ?>;
 
 	showFields(NewsletterFields[selectedNewsletter]);
 	updateAutorespondersOption(selectedNewsletter);
+	setValueOfAutoresponderField();
 	
 	//if this form is being used to edit, then select the fields that were saved..
 	for (var i in toSelect)
@@ -1004,13 +1163,12 @@ foreach ($newsletters as $newsletter)
     <tr>
       <td><strong>Name:</strong>
         <p><small>This form's settings will be saved. This name will be used to identify the settings.</small></p></td>
-      <td><input type="text" name="name" size="60" value="<?php echo $parameters->name ?>" /></td>
+      <td><input type="text" id="formnamefield" name="name" size="60" value="<?php echo $parameters->name ?>" /></td>
     </tr>
     <tr>
       <td><strong>Newsletter:</strong>
         <p><small>Select the newsletter to which subscribers will be subscribed when filling this form.</small></p></td>
       <td><select name="newsletter" id="newsletterlist" onchange="load(this.options[this.selectedIndex].value);updateAutorespondersOption(this.options[this.selectedIndex].value);">
-
           <?php
 
 		  $query = "SELECT * FROM ".$wpdb->prefix."wpr_newsletters";
@@ -1019,14 +1177,15 @@ foreach ($newsletters as $newsletter)
 		  
 		  if (count($newsletters)>0)
 		  {
-			  ?><option></option>
-              <?php
+			  ?>
+          <option></option>
+          <?php
 			  
 			  foreach ($newsletters as $newsletter)
 			  {
 	
 				  ?>
-			  <option value="<?php echo $newsletter->id; ?>" <?php 
+          <option value="<?php echo $newsletter->id; ?>" <?php 
 	
 				  if ($parameters->nid == $newsletter->id) 
 	
@@ -1035,7 +1194,7 @@ foreach ($newsletters as $newsletter)
 					  echo 'selected="selected"';
 	
 				  } ?>><?php echo $newsletter->name; ?></option>
-			  <?php
+          <?php
 	
 			  }
 		  }
@@ -1046,133 +1205,84 @@ foreach ($newsletters as $newsletter)
     <tr>
       <td width="300"><strong>Return URL:</strong>
         <p><small> The subscriber is sent to this url after entering their name and email address in the subscription form. </small></p></td>
-      <td><input type="text" name="return_url" size="60" value="<?php echo $parameters->return_url ?>" /></td>
+      <td><input type="text" id="returnurlfield" name="return_url" size="60" value="<?php echo $parameters->return_url ?>" /></td>
     </tr>
     <tr>
-      <td colspan="2">Other Fields:</td>
-    </tr>
-    <tr>
-      <td colspan="2"><fieldset style="border: 1px solid #888; padding:20px;">
-          <legend> After subscribing, follow up with:</legend>
+      <td><strong>Blog Subscription</strong>:
+        <p> <small> Specify what kind of blog subscription will those who use this form will have:</small></p></td>
+        
+      <td>
+      
+      <select name="blogsubscription">
+          <option value="none" <?php if ($parameters->blogsubscription_type=="none") { echo 'selected="selected"'; } ?>>None</option>
+          <option value="all">Subscribe to all new posts on
+          <?php bloginfo("name") ?>
+          </option>
+          <optgroup label="Particular Blog Category:">
           <?php
-
-		 $query = "SELECT * FROM ".$wpdb->prefix."wpr_autoresponders";
-
-		 $autoresponders = $wpdb->get_results($query);
-
-		 
-
-		 ?>
-          <input type="radio" name="followup" id="autoresponder" <?php if (count($autoresponders) ==0 ) { echo 'disabled="disabled"';} ?> value="autoresponder" <?php if ($parameters->followup_type == "autoresponder") { echo "checked=\"checked\""; } ?> />
-          <div style="display:inline" onclick="document.getElementById('autoresponder').checked=true"> Follow up with the
-            <select id="autoresponder_selector" <?php if (count($autoresponders) ==0 ) { echo 'disabled="disabled"';} ?>  name="autoresponder_id">
-             <option></option>
-            </select>
-            autoresponder series. <a href="admin.php?page=wpresponder/autoresponder.php&action=create" style="float:right">Create Autoresponder</a></div>
-          <br />
-          <?php 
-
-		 $query = "SELECT * FROM ".$wpdb->prefix."wpr_blog_series";
-
-		 $blogseries = $wpdb->get_results($query);
-
-		 ?>
-          <input type="radio" <?php if (count($blogseries) ==0 ) { echo 'disabled="disabled"'; } ?> name="followup" id="blogseries" value="postseries" <?php if ($parameters->followup_type == "postseries") { echo 'checked="checked"'; } ?> />
-          <label for="blogseries"> Follow up with the
-            <select <?php if (count($blogseries) ==0 ) { echo 'disabled="disabled"';} ?> name="post_series">
-              <?php			  
-
-		 foreach ($blogseries as $bs)
-
-		 {
-
-			 ?>
-              <option value="<?php echo $bs->id ?>" <?php if ($parameters->followup_type == "postseries" && $parameters->followup_id == $bs->id) echo 'selected="selected"'; ?>><?php echo $bs->name ?></option>
-              <?php
-
-		 }
-
-		 ?>
-            </select>
-            post series.</label>
-          <a href="admin.php?page=wpresponder/blogseries.php&action=create" style="float:right">Create Post Series</a> <br />
-          <input type="radio" name="followup" value="none" id="nonea" <?php 
-
-		  if ($parameters->followup_type == 'none' || empty($parameters->followup_type)) 
-
-		  {
-
-			  echo 'checked="checked"';
-
-		   }  ?> />
-          <label for="nonea">None</label>
-        </fieldset></td>
-    </tr>
-    <tr>
-      <td colspan="2"><fieldset style="border: 1px solid #888; padding:20px;">
-          <legend>Subscription to blog content:</legend>
-          <input type="radio" name="blog" <?php 
-
-		  if ($parameters->blogsubscription_type == "all")
-		  {
-			  echo 'checked="checked"';
-
-		  } ?> id="all" value="all" />
-          <label for="all"> Automatically send all blog posts as I publish them</label>
-          <br />
-          <input type="radio" <?php 
-
-		  if ($parameters->blogsubscription_type == "cat")
-
-		  {
-
-			  echo 'checked="checked"';
-
-		  } ?> name="blog" id="cat" value="cat" />
-          <div style="display:inline" onclick="document.getElementById('cat').checked=true;"> Automatically send posts only under the
-            <select name="blog_cat">
-              <?php $args = array(
+                $args = array(
                                             'type'                     => 'post',
                                             'child_of'                 => 0,
                                             'orderby'                  => 'name',
                                             'order'                    => 'ASC',
                                             'hide_empty'               => false,
                                             'hierarchical'             => 0);
-         
+
 		 $categories = get_categories($args);
 
-		 foreach ($categories as $category)
+                 foreach ($categories as $category)
+                 {
+                     ?>
+          <option value="category_<?php echo $category->term_id; ?>" <?php if ($parameters->blogsubscription_type=="cat" && $parameters->blogsubscription_id == $category->term_id) echo 'selected="selected"'; ?>><?php echo $category->name ?></option>
+          <?php
+                 }
+                ?>
+          </optgroup>
+        </select></td>
+    </tr>
+    <tr>
+      <td><strong>Follow Up Subscription:</strong>
+        <p> <small>Select what content should follow-up a successful subscription.</small></p></td>
+      <td><select name="followup" id="followup_field">
+          <option value="none" <?php
 
-		 {
-
-			 ?>
-              <option value="<?php echo $category->term_id ?>" <?php 
-
-			  if ($parameters->blogsubscription_type=="cat" && $parameters->blogsubscription_id == $category->term_id)
-			  {
-
-				  echo 'selected="selected"';
-
-			  } ?>><?php echo $category->cat_name ?></option>
-              <?php
-
-		 }
-
-		 ?>
-            </select>
-            category. </div>
-          <a href="categories.php" style="float:right">Create Categories</a><br />
-          <input type="radio" <?php 
-
-		  if ($parameters->blogsubscription_type == "none" || empty($parameters->blogsubscription_type))
+		  if ($parameters->followup_type == 'none' || empty($parameters->followup_type))
 
 		  {
 
 			  echo 'checked="checked"';
 
-		  } ?> name="blog" value="none" id="noneb" />
-          <label for="noneb">None</label>
-        </fieldset></td>
+		   }  ?> >None</option>
+          <optgroup id="autoresponders_list" label="Autoresponders:"> </optgroup>
+          <?php
+            $query = "SELECT * FROM ".$wpdb->prefix."wpr_blog_series";
+            $blogseries = $wpdb->get_results($query);
+
+            if (count($blogseries))
+            {
+                ?>
+          <optgroup label="Post Series:">
+          <?php
+                foreach ($blogseries as $bseries)
+                {
+                ?>
+          <option value="postseries_<?php echo $bseries->id ?>" <?php if ($parameters->followup_type == "postseries" && $parameters->followup_id == $bs->id) echo 'selected="selected"'; ?>><?php echo $bseries->name ?></option>
+          <?php
+
+                }
+                ?>
+          </optgroup>
+          <?php
+            }
+?>
+        </select></td>
+    </tr>
+    <tr>
+      <td><strong>Submit Button Text:</strong>
+      <p>
+      <small>The label that will be used for the subscription form submit button</small></p>
+      </td>
+      <td><input type="text" size="60" name="submit_value" value="<?php echo ($parameters->submit_button)?$parameters->submit_button:"Subscribe"; ?>" ></td>
     </tr>
     <tr>
       <td colspan="2"><div class="wrap">
@@ -1187,7 +1297,7 @@ foreach ($newsletters as $newsletter)
         <table>
           <tr>
             <td>Subject:</td>
-            <td><input type="text" name="confirm_subject" size="70" value="<?php
+            <td><input type="text" id="confirms" name="confirm_subject" size="70" value="<?php
 
 
 
@@ -1213,7 +1323,7 @@ foreach ($newsletters as $newsletter)
           </tr>
           <tr>
             <td colspan="2"> Message Body:<br />
-              <textarea name="confirm_body" rows="10" cols="60" wrap="hard"><?php 
+              <textarea id="confirmb" name="confirm_body" rows="10" cols="60" wrap="hard"><?php 
 
 if (!$parameters->confirm_body) 
 
@@ -1233,23 +1343,24 @@ else
 
 }
 
-	?></textarea></td>
+	?>
+</textarea></td>
           </tr>
         </table>
         <h3>Subscription Confirmed E-Mail:</h3>
         <table>
           <tr>
             <td>Subject:</td>
-            <td><input type="text" name="confirmed_subject" value="<?php echo ($parameters->confirmed_subject)?$parameters->confirmed_subject:get_option("wpr_confirmed_subject"); ?>" size="60" /></td>
+            <td><input id="confirmeds" type="text" name="confirmed_subject" value="<?php echo ($parameters->confirmed_subject)?$parameters->confirmed_subject:get_option("wpr_confirmed_subject"); ?>" size="60" /></td>
           </tr>
           <tr>
             <td colspan="2"> Message Body:<br />
-              <textarea name="confirmed_body" rows="10" cols="60"><?php echo ($parameters->confirmed_body)?$parameters->confirmed_body:get_option("wpr_confirmed_body"); ?></textarea></td>
+              <textarea id="confirmedb" name="confirmed_body" rows="10" cols="60"><?php echo ($parameters->confirmed_body)?$parameters->confirmed_body:get_option("wpr_confirmed_body"); ?></textarea></td>
           </tr>
         </table></td>
     </tr>
     <tr>
-      <td colspan="2"><input class="button" type="submit" value="Create Form And Get Code" />
+      <td colspan="2"><input class="button" type="submit" onclick="return _wpr_validate_subform_form_fields()" value="Create Form And Get Code" />
         &nbsp;<a class="button" href="admin.php?page=wpresponder/subscriptionforms.php">Cancel</a></td>
     </tr>
   </table>

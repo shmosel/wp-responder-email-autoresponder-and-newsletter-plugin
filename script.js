@@ -60,14 +60,19 @@ function removeEditor(editorId)
 }
 
 
-function toggleStatus(editorId,status) {
-    document.getElementById("editorformitems-"+editorId).style.display=(!status)?"inline":"none";
-
+function toggleStatus(editorId,status)
+{
+    //document.getElementById("editorformitems-"+editorId).style.display=(!status)?"inline":"none";
 }
 
 function toggleCustomization(editorId,status)
 {
-    document.getElementById("customizationsform-"+editorId).style.display=(status)?"none":"inline";
+    jQuery("#customizationsform-"+editorId+" *").attr({ disabled: status });
+
+    if (status)
+        removeEditor(editorId);
+    else
+        createEditor(editorId);
 }
 
 function toggleHtmlBody(editorId,status)

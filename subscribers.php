@@ -154,13 +154,14 @@ function _wpr_subscriber_profile($subscriber)
 
                         foreach ($subscriptions as $theSubscription)
                         {
-                            $deleteBlogSubscriptions = "DELETE FROM ".$wpdb->prefix."wpr_blog_subscription where sid=$theSubscription";
+							$currentSid = $theSubscription->id;
+                            $deleteBlogSubscriptions = "DELETE FROM ".$wpdb->prefix."wpr_blog_subscription where sid=$currentSid";
                             $wpdb->query($deleteBlogSubscriptions);
-                            $deleteFollowupSubscriptions = "DELETE FROM ".$wpdb->prefix."wpr_followup_subscriptions where sid=$theSubscription";
+                            $deleteFollowupSubscriptions = "DELETE FROM ".$wpdb->prefix."wpr_followup_subscriptions where sid=$currentSid";
                             $wpdb->query($deleteFollowupSubscriptions);
-                            $deleteCustomFieldValues = "DELETE FROM ".$wpdb->prefix."wpr_custom_field_values where sid=$theSubscription";
+                            $deleteCustomFieldValues = "DELETE FROM ".$wpdb->prefix."wpr_custom_field_values where sid=$currentSid";
                             $wpdb->query($deleteCustomFieldValues);
-                            $deleteSubscriber = "DELETE FROM ".$wpdb->prefix."wpr_subscribers where id=$theSubscription";
+                            $deleteSubscriber = "DELETE FROM ".$wpdb->prefix."wpr_subscribers where id=$currentSid";
                             $wpdb->query($deleteSubscriber);
                             
                         }
@@ -797,15 +798,15 @@ if ($allNewslettersMode) { ?><input type="hidden" name="delete_all" value="1"/><
                            {
                                 echo "Subscribed";
                            }
-                           else if ($subscriber->active==1 && $subscriber->confirmed==0)
+                           elseif ($subscriber->active==1 && $subscriber->confirmed==0)
                            {
                                echo 'Subscribed & Unconfirmed';
                            }
-                           else if ($subscriber->confirmed==1 && $subscriber->active=0)
+                           elseif ($subscriber->confirmed==1 && $subscriber->active==0)
                           {
                                echo "Unsubscribed";
                           }
-                          else if ($subscriber->confirmed==1 && $subscriber->active=2)
+                          elseif ($subscriber->confirmed==1 && $subscriber->active==2)
                           {
                               echo "Transfered";
                           }

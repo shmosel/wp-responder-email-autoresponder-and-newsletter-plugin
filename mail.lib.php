@@ -554,15 +554,17 @@ function getCurrentUTCTime()
 
 function validateTheForm()
 {
-	
-	currentTime = getCurrentUTCTime();
-	scheduledTime = document.getElementById('actualTime').value;	
-	if (currentTime > scheduledTime)
+	//if the broadcast is scheduled to go out at a later time. 
+	if (document.getElementById('sendattime').checked==true)
 	{
-		alert('You cannot schedule a mailout to go out in the past. Please select a time in the future.');
-		return false;
+		currentTime = getCurrentUTCTime();
+		scheduledTime = document.getElementById('actualTime').value;		
+		if (currentTime > scheduledTime)
+		{
+			alert('You cannot schedule a mailout to go out in the past. Please select a time in the future.');
+			return false;
+		}
 	}
-	
 	
 	if (!validateFieldValues())
 	{

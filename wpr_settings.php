@@ -179,11 +179,11 @@ function wpr_settings()
     </tr>
     <tr>
       <td colspan="2"><hr size="1"  />
-              <h2 style="font-family:Georgia, 'Times New Roman', Times, serif; font-weight:normal;">SMTP Settings</h2>
+              <h2 style="font-family:Georgia, 'Times New Roman', Times, serif; font-weight:normal;">Optional SMTP Settings</h2>
               
  SMTP relay services are provided by websites like <a href="http://www.smtp.com/">SMTP.com</a>. These have a very high limit on the number of emails that can be sent in an hour. <p></p>
   
-        
+        <strong>Note: External SMTP server configuration may not always work. This feature is not thoroughly tested. It is not mandatory to setup a SMTP server. Most web hosting servers com with a mail server . </strong>
         </td>
     <tr>
       <td><input type="checkbox" <?php if (get_option("wpr_smtpenabled") == 1) { echo 'checked="checked"'; } ?> name="enablesmtp" id="enablesmtp" value="1">

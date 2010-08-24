@@ -18,6 +18,14 @@ function _wpr_newsletter_get($id)
 
 }
 
+function _wpr_newsletters_get()
+{
+	global $wpdb;
+	$query = "SELECT * FROM ".$wpdb->prefix."wpr_newsletters";
+	$newslettersResult = $wpdb->get_results($query);
+	return $newslettersResult;
+}
+
 function _wpr_newsletter_update($info)
 
 {

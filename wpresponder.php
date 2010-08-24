@@ -3,7 +3,7 @@
 Plugin Name: WP Responder
 Plugin URI: http://www.wpresponder.com
 Description: Add follow-up autoresponder and newsletter features to your wordpress blog. 
-Version: 4.9.4.2
+Version: 4.9.5
 Author: Raj Sekharan
 Author URI: http://www.expeditionpost.com/
 */
@@ -51,12 +51,39 @@ if (!defined("WPR_DEFS"))
 		include "errors.php";
 		include "thecron.php";
 		include $plugindir."/lib/swift_required.php";
-		include "importexport.php";
 		include "widget.php";
-		define("WPR_VERSION","4.9.4.2");
+		define("WPR_VERSION","4.9.5");
 
+                //include all files in the controller directory.
+                $controllerDir = str_replace(basename(__FILE__),"",__FILE__);
+                $controllerDir = rtrim($controllerDir,"\/");
+                $controllerDir = "$controllerDir/controllers";
+                $controllerDirectoryPtr = opendir($controllerDir);
+                while ($file = readdir($controllerDirectoryPtr))
+                {
+                    if (is_file("$controllerDir/$file") && preg_match("@\.php$@",$file))
+                        include "$controllerDir/$file";
+                    
+                }
+
+                $wpr_globals = array();
+
+                function _wpr_get($name)
+                {
+                    global $wpr_globals;
+                    if (isset($wpr_globals[$name]))
+                          return $wpr_globals[$name];
+                    else
+                    return null;
+                }
+
+
+                function _wpr_set($name,$value)
+                {
+                    global $wpr_globals;
+                    $wpr_globals[$name] = $value;
+                }
 	
-	//-------------------------------------------DEBUG----------
 	
 	$currentDir = str_replace("wpresponder.php","",__FILE__);
 	$plugindir = basename($currentDir);
@@ -192,9 +219,13 @@ if (!defined("WPR_DEFS"))
 		@ini_set( 'max_execution_time', '300' );
 
 
+                /*
+                 * This is needed until all the pages are migrated to the
+                 * MVC format. 
+                 */
                 if (isset($_GET['page']) && preg_match("@^wpresponder/.*@",$_GET['page']))
                 {
-                    _wpr_dispatch_call();
+    	            _wpr_handle_post();
                 }
 			
 			$option = get_option("timezone_string");
@@ -280,11 +311,7 @@ if (!defined("WPR_DEFS"))
 		 add_action('admin_action_edit','wpr_enqueue_post_page_scripts');
 		 add_action('publish_post', "wpr_add_post_save");
 		
-		if (isset($_GET['page']) && $_GET['page'] == "wpresponder/importexport.php" && $_GET['action'] == "download")
-		{
-			export_csv();
-			exit;
-		}
+		
 	
 	}    
 	add_action('widgets_init','wpr_widgets_init');
@@ -315,9 +342,22 @@ if (!defined("WPR_DEFS"))
 		add_submenu_page(__FILE__,'Post Series','Post Series',8,"wpresponder/blogseries.php","wpr_blogseries");
 		add_submenu_page(__FILE__,'Autoresponders','Autoresponders',8,"wpresponder/autoresponder.php","wpr_autoresponder");
 		add_submenu_page(__FILE__,'Subscribers','Subscribers',8,"wpresponder/subscribers.php","wpr_subscribers");
-                add_submenu_page(__FILE__,'Actions','Actions',8,"wpresponder/actions.php","wpr_actions");
+        add_submenu_page(__FILE__,'Actions','Actions',8,"wpresponder/actions.php","wpr_actions");
 		add_submenu_page(__FILE__,'Settings','Settings',8,"wpresponder/settings.php","wpr_settings");
-		add_submenu_page(__FILE__,'Import/Export Subscribers','Import/Export Subscribers',8,"wpresponder/importexport.php","wpr_importexport");
+		
+		
+		
+		if (preg_match("@^wpresponder/importexport/.*@",$_GET['page']))
+		{
+                   add_submenu_page(__FILE__,'Import/Export Subscribers','Import/Export Subscribers',8,'wpresponder/importexport',"_wpr_handle_request");
+				   add_submenu_page(__FILE__,' &raquo; Import',' &raquo; Import',8,$_GET['page'],"_wpr_handle_request");
+		}
+        else
+        {
+                   add_submenu_page(__FILE__,'Import/Export Subscribers','Import/Export Subscribers',8,'wpresponder/importexport',"_wpr_handle_request");
+        }
+												   
+		
 		add_submenu_page(__FILE__,'Run CRON','Run WPR Cron',8,"wpresponder/runcronnow.php","wpr_runcronnow_start");
 	}
 	
@@ -329,6 +369,7 @@ if (!defined("WPR_DEFS"))
 <div style="border: 1px solid #ccc; text-align:center; background-color:#e0e0e0; padding: 10px; margin-left:auto; margin-right:auto; width:500px;">Powered by <a href="http://www.expeditionpost.com/wp-responder/">WP Responder</a></div>
 <?php
 	}
+	
 	
 	function wpr_replace_tags($sid,&$subject,&$body,$additional = array())
 	{
@@ -856,8 +897,18 @@ if (!defined("WPR_DEFS"))
 	
 			$mail = (array) $mail;
 			
-			dispatchEmail($mail);
-	
+			try{
+				
+				dispatchEmail($mail);
+			}
+			catch (Swift_RfcComplianceException $exception) //invalidly formatted email.
+			{
+				//disable all subscribers with that email.
+				$email = $mail['to'];
+				
+				$query = "UPDATE ".$wpdb->prefix."wpr_subscribers set active=3, confirmed=0 where email='$email'";
+				$wpdb->query($query);
+			}
 			$query = "UPDATE ".$wpdb->prefix."wpr_queue set sent=1 where id=".$mail['id'];
 	
 			$wpdb->query($query);
@@ -1109,8 +1160,6 @@ if (!defined("WPR_DEFS"))
 			 $confirmed_body = $form[0]->confirmed_body;
 		}
 
-
-
 		$confirmed_body .= $unsubscriptionInformation;
 
 		$params = array($confirmed_subject,$confirmed_body);
@@ -1133,9 +1182,6 @@ if (!defined("WPR_DEFS"))
 		$emailBody = $params[1];
 		$emailSubject = $params[0];
 
-
-
-
 		$mailToSend = array(
 								'to'=>$email,
 								'fromname'=>  $fromname,
@@ -1146,7 +1192,17 @@ if (!defined("WPR_DEFS"))
 
 
 
-		dispatchEmail($mailToSend);
+			try {
+				dispatchEmail($mailToSend);
+			}
+			catch (Swift_RfcComplianceException $exception) //invalidly formatted email.
+			{
+				//disable all subscribers with that email.
+				$email = $mailToSend['to'];
+				$query = "UPDATE ".$wpdb->prefix."wpr_subscribers set active=3, confirmed=0 where email='$email'";
+				$wpdb->query($query);
+			}
+		
 	}
 
 	function wpr_enable_tutorial()
@@ -1235,7 +1291,16 @@ if (!defined("WPR_DEFS"))
 									 'htmlenabled'=>1,
 									 'attachimages'=>1
 									 );
-					dispatchEmail($mail);
+					
+					try{
+				
+						dispatchEmail($mail);
+					}
+					catch (Swift_RfcComplianceException $exception) //invalidly formatted email.
+					{
+						return;
+					}
+	
 					delete_option('wpr_tutorial_current_index');
 					add_option('wpr_tutorial_current_index',$indexOfPostToSend);
 					return true;
@@ -1339,7 +1404,13 @@ if (!defined("WPR_DEFS"))
 									 'attachimages'=>1
 								);
 					//ob_start();
-					dispatchEmail($mail);
+					try {
+						dispatchEmail($mail);
+					}
+					catch (Swift_RfcComplianceException $exception) //invalidly formatted email.
+					{
+						return false;
+					}
 					delete_option('wpr_updates_lastdate');
 					add_option('wpr_updates_lastdate',$dateOfLatestPost);
 					return true;
@@ -1374,19 +1445,54 @@ if (!defined("WPR_DEFS"))
         }
 
 
-
-        function _wpr_dispatch_call()
+        function _wpr_handle_request()
         {
-
+            //this function calls the function that triggers the
+            _wpr_route_url();
+            
+        }
+        function _wpr_handle_post()
+        {
             if (count($_POST)>0 && isset($_POST['wpr_form']))
             {
                 $formName = $_POST['wpr_form'];
                 $actionName = "_wpr_".$formName."_post";
-                do_action($actionName);
-                
+                do_action($actionName);                
             }
         }
 
+        function _wpr_route_url()
+        {
+            $page = $_GET['page'];
+            $parts = explode("/",$page);
+            $action = $parts[1];
+            $arguments= array_splice($parts,1, count($parts));
+            $actionName = "_wpr_".$action."_handle";
+            _wpr_set("_wpr_view",$action);
+            do_action($actionName,$arguments);
+            _wpr_render_view();
+        }
+
+
+        function _wpr_render_view()
+        {
+            global $wpr_globals;
+            $currentDir = str_replace(basename(__FILE__),"",__FILE__);
+            
+            $currentView = _wpr_get("_wpr_view");
+            foreach ($wpr_globals as $name=>$value)
+            {
+                ${$name} = $value;
+            }
+            $viewfile ="$currentDir/views/".$currentView.".php";
+            if (is_file($viewfile))
+            include $viewfile;
+            foreach ($wpr_globals as $name=>$value)
+            {
+                unset(${$name});
+            }
+
+        }
 
     }
 } 

@@ -1,5 +1,4 @@
 <?php
-
 function wpr_dashboard()
 {
 	global $wpdb;
@@ -36,16 +35,13 @@ function wpr_dashboard()
 	
 }
 </style>
-<div style="display:block"><img src="<?php echo get_option("home"); ?><?php echo "/".PLUGINDIR."/".WPR_PLUGIN_DIR."/images/dash.jpg" ?>" /></div><br />
 <div style="display:block;">
-
-
+<div class="wrap">
 <table width="100%" >
   <tr>
     <td valign="top"><table width="100%">
         <tr>
           <td>
-            <br />
             <div style="display:block;">
             <h2>Subscriber Count</h2>
             <table cellpadding="10" id="statstable" width="100%">
@@ -114,87 +110,87 @@ When you subscribe to the newsletter you get:
 </ul> 
 <div style="padding-top:15px; ">I will not sell or rent your email address. Nor will I overload you with sales pitches. I promise!</div>
    </td>
-   <td style="padding-left:40px; border: 1px solid #ccc; background-color:#FFF; padding:20px;"><form action="http://www.expeditionpost.com/?" method="post">
-  <input type="hidden" name="blogsubscription" value="none" />
-    <input type="hidden" name="newsletter" value="4" />
-      <input type="hidden" name="fid" value="9" />
-      <table>
+   <td style="padding-left:40px; border: 1px solid #ccc; background-color:#FFF; padding:20px;">
+   
+   
+   <form action="http://www.wpresponder.com/?wpr-optin=1" method="post">
+  <span class="wpr-subform-hidden-fields">
+  <input type="hidden" name="blogsubscription" value="all" />
+    <input type="hidden" name="newsletter" value="1" />
+      <input type="hidden" name="fid" value="1" />
+      </span>
+  <table>
     <tr>
-      <td>Name:</td>
-      <td><input type="text" name="name" /></td>
+      <td><span class="wprsfl wprsfl-name">Name:</span></td>
+      <td><span class="wprsftf wpr-subform-textfield-name"><input type="text" name="name" /></td>
     </tr>
     <tr>
-      <td>E-Mail Address:</td>
-      <td><input type="text" name="email" />
+      <td><span class="wprsfl wprsfl-email">E-Mail Address:</span></td>
+      <td><span class="wprsftf wpsftf-email"><input type="text" name="email" /></span>
     </tr>
         <tr>
-      <td colspan="2" align="center"><input class="button-primary" type="submit" value="Subscribe to WP Responder Newsletter" /></td>
+      <td colspan="2" align="center"><input type="submit" value="Subscribe" class="button-primary" /></td>
+    </tr>
+    <tr>
+        <td colspan="2" align="center"></td>
     </tr>
   </table>
+
 </form>
+
 </td>
   </tr>
 </table>
 
 <hr size="1" color="#CCCCCC"/>
-<h2>ExpedtionPost News</h2>
-
-            <div id="news">
+<div id="news">
 <?php 
-$rss = fetch_feed("http://feeds.feedburner.com/ExpeditionPost");
+$rss = fetch_feed("http://feeds.feedburner.com/Moltedlava");
 
-if (!is_wp_error($rss))
+$numberOfFeedItems = $rss->get_item_quantity(10);
+if ($numberOfFeedItems > 5)
 {
-	$rss->handle_content_type();
-?>
-              <ul>
-                <?php
-$count=0;
-foreach ($rss->get_items() as $item)
-{
-  if ($count > 4) 
-  break;
-?>
-                <li><a href="<?php echo $item->get_link(0); ?>">
-                  <?php $title = $item->get_title();
-echo $title;
-?>
-                </a><br />
-                <?php echo $item->get_description(); ?> </li>
-                <br />
-                <?php
-				
-				
-				
-  $count++;
-}
-?>
-              </ul>
+	if (!is_wp_error($rss))
+	{
+		$rss->handle_content_type();
+	?>
+ <ul>
 <?php
-}
-else
-{
-	?><br />
-<br />
-Unable to fetch the feed.<br />
-<br />
-<?php
-}
-     ?>       </div>
 
-            <div id="reportbug"> <a href="#"><img src="<?php echo get_option("home") ?>/<?php echo PLUGINDIR ?>/<?php echo WPR_PLUGIN_DIR ?>/images/bug.jpg" /></a>
+		foreach ($rss->get_items() as $item)
+		{
+		?>
+	<li><a href="<?php echo $item->get_link(0); ?>">
+	<?php $title = $item->get_title();
+	echo $title;
+	?>
+	</a><br />
+	<?php echo $item->get_description(); ?> </li>
+	<br />
+	<?php
+		  $count++;
+  	    }
+?>
+</ul>
+	<?php
+	}
+	
+}
+?>
+</div>
+<div id="reportbug"> <a href="#"><img src="<?php echo get_option("home") ?>/<?php echo PLUGINDIR ?>/<?php echo WPR_PLUGIN_DIR ?>/images/bug.jpg" /></a>
               <form method="post" id="reportform" action="http://www.expeditionpost.com/wpr/sb.php">
                 <table width="100%">
                   <tr>
                     <td>Name:</td>
                     <td><label>
-                        <input type="text" name="name" id="name" />
+                        <input type="text" size="90" name="name" id="name" />
                       </label></td>
                   </tr>
                   <tr>
                     <td>E-Mail Address:</td>
                     <td><label>
-                        <input type="text" name="email" id="email" />
+                        <input type="text" size="90" name="email" id="email" />
                       </label></td>
                   </tr>
                   <tr>
@@ -224,9 +220,9 @@ Unable to fetch the feed.<br />
   </tr>
 </table>
 </div>
+</a>
 <?php
 		break;
 	}
 }
 
-?>

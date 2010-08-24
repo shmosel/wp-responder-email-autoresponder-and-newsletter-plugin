@@ -116,3 +116,31 @@ New Features
 
 * Small antispam measure in subscription forms
 * Subscription forms now have a lot of span tags so that they can be easily themed if needed.
+
+
+**WP Responder 4.9.5**
+
+
+New Features:
+
+* When delivering blog posts as a part of a post series, the plugin was checking if a post has been disabled and skipping it. It doesn't do so anymore. All posts in a post series category will be delivered regardless of the skip settings. 
+
+* The blog email customization features were hidden when the blog e-mail customization was disabled. Now the fields are merely disabled. 
+
+* The blog email customization was enabled by default. Now it is disabled by default. 
+
+* The import/export feature was rebuilt so that the user can now select all the rows and columns in the CSV file themselves. This means all types of CSV files can now be supported. No more confusion about what format the CSV files are to be used. 
+
+* The format in which the plugin exports data is now in a standard easily understandable CSV format.
+
+Bug Fixes:
+
+* The subscribers who unsubscribed were marked as Transfered in the subscribers management page. This has been corrected.
+
+* The new/edit broadcast page was erroneously coded to check if the scheduled time is in the past even if the dispatch time is 'Immediately'.
+
+* Deleting a subscriber threw the error: 'Catchable fatal error: Object of class stdClass could not be
+converted to string in wp_dir/wp-content/plugins/wp-responder-email-autorespond
+er-and-newsletter-plugin/subscribers.php on line 157'. Fixed
+
+* Invalid e-mail addresses in the database prevent all broadcasts from being processed further. This resulted in the plugin not sending any e-mail when a broadcast is scheduled/dispatched.

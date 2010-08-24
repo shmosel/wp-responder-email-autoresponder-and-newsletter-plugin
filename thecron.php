@@ -8,14 +8,13 @@ function wpr_get_mailouts()
 {
 
  	global $wpdb;
-	
 	$zone = date_default_timezone_get();  //whats the point?
+	date_default_timezone_set("UTC");
 	$timeStamp = time();
 	$query = "SELECT * FROM ".$wpdb->prefix."wpr_newsletter_mailouts where status = 0 and time <= $timeStamp;";
 	$mailouts = $wpdb->get_results($query);
 	date_default_timezone_set($zone);
 	return $mailouts;
-
 }
 
 /*
@@ -180,13 +179,7 @@ function get_postseries_posts($catid,$nid="")
                         $option = $results[0]->meta_value;
                         $decodedoptions = base64_decode($option);
                         $options = unserialize($decodedoptions);
-
-                        if ($options[$nid]['disable'] !=1)
-                            {
-
-                            $theRealPosts[] = $post;
-                        }                        
-
+                        $theRealPosts[] = $post;
                     }
         }
 			
@@ -807,6 +800,9 @@ function getBlogContentInDefaultLayout($post_id)
 ";
 
     $content .= '<p style="font-family: Arial; font-size: 10px;">Dated: '.date("d F,Y",strtotime($post->post_date));
+	
+	
+	apply_filters("the_content",$post->post_content);
 
     $content .= "
 </p><p><span style=\"font-family: Arial, Verdana; font-size: 12px\">".wptexturize(wpautop(nl2br($post->post_content)))."</span>
