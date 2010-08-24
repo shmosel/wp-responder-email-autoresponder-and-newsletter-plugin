@@ -14,12 +14,15 @@ This is a email newsletter and autoresponder plugin. With this plugin you can cr
 
 * Create unlimited number of newsletter lists
 * Create followup email responses that can be schedueld to go out after a specific number of days since the subscriber subscribes.
+* Add subcription forms to your sidebar using widgets.
 * Provide email subscriptions to your blog without using third party services like Feedburner
 * Generate subscription forms and then use them on your website anywhere. 
 * Collect more information about your subscribers by generating custom fields for your subscription forms. 
 * Schedule e-mail broadcasts to your email newsletters in text/html. You can even send the broadcast to specific sections of your newsletter by selecting them using the custom fields. 
 * Provide email subscription to specific categories in your blog
 * Import your subscribers from Feedburner and Aweber.
+* Define rules to unsubscribe users from one newsletter if they subscribe to another newsletter. 
+* 
 
 The newsletters work indepedent of the working of the blog. This plugin is aimed as an alternative to Aweber, Mailchimp and other paid services. You DO NOT need a third party service or license to use this plugin
 
