@@ -118,7 +118,7 @@ New Features
 * Subscription forms now have a lot of span tags so that they can be easily themed if needed.
 
 
-**WP Responder 4.9.5**
+**WP Responder 4.9.5.1**
 
 
 New Features:
