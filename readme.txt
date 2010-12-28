@@ -1,5 +1,5 @@
 === WP Responder Email Newsletter and Autoresponder Plugin===  
-Contributors: Raj Sekharan  
+Contributors: rajasekharan
 Donate link: http://wpresponder.com/donate/  
 Tags: email, newsletter, autoresponder, subscribers, mailing list, follow up email autoresponder  
 Requires at least: 2.8.2  
@@ -22,7 +22,6 @@ This is a email newsletter and autoresponder plugin. With this plugin you can cr
 * Provide email subscription to specific categories in your blog
 * Import your subscribers from Feedburner and Aweber.
 * Define rules to unsubscribe users from one newsletter if they subscribe to another newsletter. 
-* 
 
 The newsletters work indepedent of the working of the blog. This plugin is aimed as an alternative to Aweber, Mailchimp and other paid services. You DO NOT need a third party service or license to use this plugin
 
