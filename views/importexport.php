@@ -16,7 +16,7 @@
         <tr>
             <td><?php echo $newsletter->name ?></td>
             <td>
-            <form action="admin.php?page=wpresponder/importexport" method="post">
+            <form action="admin.php?page=_wpr/importexport" method="post">
             <input type="hidden" name="wpr_form" value="wpr_subscriber_export" />
             <input type="hidden" name="newsletter" value="<?php echo $newsletter->id ?>" />
             <input type="submit" value="Download" class="button-primary">
@@ -39,7 +39,7 @@ Import a subscriber to your newsletter. Import from any service or program - Fee
 if (count($newslettersList))
 {
 	?>
-<form action="admin.php?page=wpresponder/importexport/import/step1" method="post">
+<form action="admin.php?page=_wpr/importexport&subact=step1" method="post">
 
 Select a newsletter: <select name="newsletter">
 <?php

@@ -2,9 +2,9 @@
 
 function CreateNewTemplateSwitcherButton($nameOfCKEditorObject,$nameOfTextArea,$number="")
 {
-    $pluginpath = str_replace("htmltemplates.lib.php","",__FILE__);	
+    $pluginpath = str_replace(basename(__FILE__),"",__FILE__);	
 	
-    $templateFilesDirectory = ABSPATH."/".PLUGINDIR."/".WPR_PLUGIN_DIR."/htmltemplates/";
+    $templateFilesDirectory = "$pluginpath/htmltemplates/";
     $dir = opendir($templateFilesDirectory);
     $listOfTemplates = array();
     while ($item = readdir($dir))
@@ -12,7 +12,7 @@ function CreateNewTemplateSwitcherButton($nameOfCKEditorObject,$nameOfTextArea,$
         
         if (preg_match("@(\.html|\.htm)$@",$item))//if the file ends with .html, add to the list.
         {
-             $listOfTemplates[$item] = preg_replace("@(.htm|.html)@","",str_replace("_"," ",$item));
+             $listOfTemplates[$item] = preg_replace("@(.html|.htm)@","",str_replace("_"," ",$item));
         }        
     }
 

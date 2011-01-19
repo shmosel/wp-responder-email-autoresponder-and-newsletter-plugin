@@ -13,9 +13,26 @@ function _wpr_subscriber_get($id)
 	{
 		return false;
 	}
-	
-	
 }
+
+
+
+function _wpr_subscription_status($active, $confirmed)
+{
+    if ($active == 1 && $confirmed== 1)
+        return __("Subscribed");
+    if ($active == 1 && $confirmed== 0)
+        return __("Subscribed and Unconfirmed");
+    if ($active == 0 && $confirmed== 1)
+        return __("Unsubscribed");
+    if ($active == 2 && $confirmed==1)
+        return __("Transfered");
+    if ($active == 3)
+        return __("Disabled Due To Delivery Problems");
+}
+
+
+
 
 /*
 	nid,

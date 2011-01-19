@@ -46,43 +46,54 @@ function _wpr_manage_responder_delete()
 function _wpr_manage_responder_create()
 {
 	global $wpdb;
+	$wpr_autoresponder_messages = $wpdb->prefix."wpr_autoresponder_messages";	
 	$parameters->htmlenabled=1;
 	if (isset($_POST['subject']))
 	{
 		$subject = $_POST['subject'];
 		$textbody = $_POST['body'];
 		$aid = $_GET['aid'];
-		$htmlenabled = ($_POST['htmlenabled'] == "on");
-                $attachimages = ($_POST['attachimages']=="1");
+		$htmlenabled = (isset($_POST['htmlenabled']))?1:0;
+        $attachimages = ($_POST['attachimages']=="1");
 		$htmlbody = $_POST['htmlbody'];
-		$sequence = $_POST['sequence'];
-		if (!($subject && $textbody))
+		$sequence = intval($_POST['sequence']);
+		
+		$whetherAMessageExistsOnSaidDay = $wpdb->prepare("SELECT COUNT(*) num FROM $wpr_autoresponder_messages WHERE `aid`=$aid AND `sequence`=$sequence");
+		$results = $wpdb->get_results($whetherAMessageExistsOnSaidDay);
+		if ($results[0]->num != 0)
 		{
-		  $error = "Subject and Text Body are required";
+			$error = "An autoresponder follow-up message has already been added for that day. Set this e-mail to go out another day.";
 		}
 		else
 		{
-			if ($htmlenabled && !$htmlbody)
+			if (!($subject && $textbody))
 			{
-				$error = "You have enabled HTML E-Mail but not entered any content for the HTML E-mail.";
+			  $error = "Subject and Text Body are required";
 			}
 			else
 			{
-				$sequence = (int) $sequence;
-				$query = "INSERT INTO ".$wpdb->prefix."wpr_autoresponder_messages (aid, subject,htmlenabled,textbody,htmlbody,attachimages,sequence) values ('$aid','$subject','".((int) $htmlenabled)."','$textbody','$htmlbody','$attachimages',$sequence)";
-				$wpdb->query($query);
-				?>
-                <div class="wrap"><h2>Message Added</h2></div>
-                <a href="admin.php?page=wpresponder/autoresponder.php&action=manage&aid=<?php echo $_GET['aid'] ?>" class="button">OK</a>
-                </a>
-                <?php
-				return;
+				if ($htmlenabled && !$htmlbody)
+				{
+					$error = "You have enabled HTML E-Mail but not entered any content for the HTML E-mail.";
+				}
+				else
+				{
+					$sequence = (int) $sequence;
+					$query = "INSERT INTO ".$wpdb->prefix."wpr_autoresponder_messages (aid, subject,htmlenabled,textbody,htmlbody,attachimages,sequence) values ('$aid','$subject','".((int) $htmlenabled)."','$textbody','$htmlbody','$attachimages',$sequence)";
+					$wpdb->query($query);
+					?>
+					<div class="wrap"><h2>Message Added</h2></div>
+					<a href="admin.php?page=wpresponder/autoresponder.php&action=manage&aid=<?php echo $_GET['aid'] ?>" class="button">OK</a>
+					</a>
+					<?php
+					return;
+				}
 			}
 		}
 		
 		$parameters->subject = $subject;
 	$parameters->textbody = $textbody;
-	$parameters->htmlenabled = (!empty($htmlbody))?1:0;
+	$parameters->htmlenabled = ($htmlenabled)?1:0;
 	$parameters->htmlbody = $htmlbody;
 	$parameters->textbody = $textbody;
 	$parameters->sequence = $sequence;
@@ -107,13 +118,14 @@ function _wpr_manage_responder_list()
 <div class="wrap">    <h2>'<?php echo $responder->name ?>' Follow Up Messages</h2></div>
 
 <table class="widefat">
-  <tr>
     <thead>
+      <tr>
+
     	<th>Subject</th>
         <th>Sequence</th>
         <th>Action</th>
+	    </tr>
     </thead>
-    </tr>
     <?php
 	foreach ($messages as $message)
 	{?>

@@ -11,7 +11,7 @@
         ?>
 
   
-    <form action="admin.php?page=wpresponder/importexport/step2" method="post">  Select follow-up subscription:
+    <form action="admin.php?page=_wpr/importexport&subact=step2" method="post">  Select follow-up subscription:
     <select name="followup">
         <option value="none" <?php if ($_SESSION['wpr_import_followup']=="none" || empty($_SESSION['wpr_import_followup'])) {
             echo 'selected="selected"' ;
@@ -57,8 +57,9 @@
         <p><p>
             
         </p>
-        <a href="admin.php?page=wpresponder/importexport" class="button-primary" style="float:left;">&laquo; Prev: Newsletter</a>
+        <a href="admin.php?page=_wpr/importexport" class="button-primary" style="float:left;">&laquo; Prev: Newsletter</a>
         <input style="float:right" type="submit" value="Next: Blog Subscription &raquo;" class="button-primary">
+        <input type="hidden" name="wpr_form" value="wpr_import_followup"/>
     </form>
     <?php
     }
@@ -68,7 +69,7 @@
     <strong>No autoresponders or post series have been created. Create them before
     proceeding or click next to skip configuring follow-up subscription.</strong>
     <p><p></p></p>
-<a href="admin.php?page=wpresponder/importexport" class="button-primary" style="float:left;">&laquo; Prev: Newsletter</a> <a style="float:right" href="admin.php?wpresponder/importexport/import/step3" class="button-primary">Next: Blog Subscription &raquo;</a>
+<a href="admin.php?page=_wpr/importexport" class="button-primary" style="float:left;">&laquo; Prev: Newsletter</a> <a style="float:right" href="admin.php?_wpr/importexport&subact=step3" class="button-primary">Next: Blog Subscription &raquo;</a>
     <?php
     }
     ?>

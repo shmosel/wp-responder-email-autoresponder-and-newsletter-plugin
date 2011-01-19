@@ -221,94 +221,100 @@ function _wpr_subscriptionforms_list()
 <div class="wrap">
   <h2>Subscription Forms</h2>
 </div>
-Use the subscription forms below to gather subscribers for your newsletter.
 <script>
 function selectAllFormsCheckBox(state)
 {
 	jQuery(".forms_check").attr({ checked: state});
 }
 </script>
-<ul style="list-style:disc; padding:20px;">
-  <li>To create a from, click on the Create New Form button below.
-  <li>Filling out the form that follows will help you generate the HTML code.
-  <li>To place the sidebar anywhere on your website, you will have to paste the HTML code where you want it.
-  <li>Currently WP Responder doesn't add subscription form widgets to the sidebar. It will do so in a later version.
-  <li>To place the subscription form on your sidebar, you must add a Text widget to the sidebar and place the generated HTML code in that widget.
-  <li>If you have already placed the HTML code for a form  on a web page, deleting the form here will not disable the form. The form will continue to function according to its configuration.</li>
+<ul style="padding:20px;">
+   <li>Click on <em>Create New Form</em> button below to create a new subscription form.  To place the newly created subscription form in the sidebar of your blog, go to the <a href="widgets.php">Widgets section</a>. To place the subscription form in a separate page or another website, copy the generated HTML code for the form and paste the code it in your own HTML page. 
 </ul>
 <form name="formslist" action="admin.php?page=wpresponder/subscriptionforms.php&action=delete" method="post">
-  <table class="widefat">
-    <tr>
-    <thead>
+  <table class="widefat" style="margin: 10px; margin:10px 0px;;">
+    <thead>    <tr>
     <th><input type="checkbox" name="selectall" value="1" onclick="selectAllFormsCheckBox(this.checked);" /></th>
       <th scope="col">Name</th>
       <th>Newsletter</th>
       <th>Follow-Up</th>
       <th>Blog Subscription</th>
       <th scope="col">Actions</th>
-      </thead>
-    </tr>
+
+    </tr>      </thead>
     <?php
-
-	foreach ($forms as $form)
-
+	
+	if (count($forms) > 0 )
 	{
-
+		foreach ($forms as $form)
+		{
+	
+			?>
+		<tr>
+		  <td  align="center"width="20"><input type="checkbox" name="forms[]" class="forms_check" value="<?php echo $form->id ?>" /></td>
+		  <td><?php echo $form->name ?></td>
+		  <td><a href="admin.php?page=wpresponder/subscribers.php&action=nmanage&nid=<?php echo $form->nid ?>">
+			<?php
+		$newsletter = _wpr_newsletter_get($form->nid);       
+		echo $newsletter->name;	
 		?>
-    <tr>
-      <td  align="center"width="20"><input type="checkbox" name="forms[]" class="forms_check" value="<?php echo $form->id ?>" /></td>
-      <td><?php echo $form->name ?></td>
-      <td><a href="admin.php?page=wpresponder/subscribers.php&action=nmanage&nid=<?php echo $form->nid ?>">
+			</a></td>
+		  <td><?php
+		
+		switch ($form->followup_type)
+		{
+			case 'postseries':
+			$postseries = _wpr_postseries_get($form->followup_id);
+			echo "Subscribe to the '".$postseries->name."' post series";
+			break;
+			
+			case 'autoresponder':
+			$autoresponder = _wpr_autoresponder_get($form->followup_id);
+			echo "Subscribe to the '".$autoresponder->name."' autoresponder.";
+			break;
+			
+			case 'none':
+			echo "None";		
+			break;
+		}
+		?></td>
+		  <td><?php
+		switch ($form->blogsubscription_type)
+		{
+			case 'cat':
+			
+			$category = get_category($form->blogsubscription_id);
+			echo "Posts in the ".$category->name." category";
+			break;
+			
+			case 'all':
+			echo "All Blog Posts ";
+			break;
+			case 'none':
+			echo "No blog subscription";
+			break;
+			
+		}
+		
+		?>
+		  <td><a href="admin.php?page=wpresponder/subscriptionforms.php&action=edit&fid=<?php echo $form->id ?>" class="button">Edit</a>&nbsp;<a href="admin.php?page=wpresponder/subscriptionforms.php&action=form&fid=<?php echo $form->id ?>" class="button">Get Form HTML</a></td>
+		</tr>
+		<?php
+	
+		}
+	}
+	else
+	{
+		?>
+        <tr>
+        <td colspan="10"><div align="center"><big>--No subscription forms defined. <a href="admin.php?page=wpresponder/subscriptionforms.php&action=create">Click here</a> to create one now--</big>
+        </div></td>
+        </tr>
         <?php
-	$newsletter = _wpr_newsletter_get($form->nid);       
-	echo $newsletter->name;	
-	?>
-        </a></td>
-      <td><?php
-	
-	switch ($form->followup_type)
-	{
-		case 'postseries':
-		$postseries = _wpr_postseries_get($form->followup_id);
-		echo "Subscribe to the '".$postseries->name."' post series";
-		break;
 		
-		case 'autoresponder':
-		$autoresponder = _wpr_autoresponder_get($form->followup_id);
-		echo "Subscribe to the '".$autoresponder->name."' autoresponder.";
-		break;
-		
-		case 'none':
-		echo "None";		
-		break;
-	}
-	?></td>
-      <td><?php
-	switch ($form->blogsubscription_type)
-	{
-		case 'cat':
-		
-		$category = get_category($form->blogsubscription_id);
-		echo "Posts in the ".$category->name." category";
-		break;
-		
-		case 'all':
-		echo "All Blog Posts ";
-		break;
-		case 'none':
-		echo "No blog subscription";
-		break;
-		
-	}
-	
-	?>
-      <td><a href="admin.php?page=wpresponder/subscriptionforms.php&action=edit&fid=<?php echo $form->id ?>" class="button">Edit</a>&nbsp;<a href="admin.php?page=wpresponder/subscriptionforms.php&action=form&fid=<?php echo $form->id ?>" class="button">Get Form HTML</a></td>
-    </tr>
-    <?php
-
 	}
 
 ?>
+</td></td>
   </table>
   <input type="submit" name="submit" value="Delete Forms" class="button" onclick="return confirm('Are you sure you want to delete the selected subscription forms?');" />
   <input type="button" onclick="window.location='admin.php?page=wpresponder/subscriptionforms.php&action=create';" class="button" value="Create New Form">
@@ -326,8 +332,19 @@ function _wpr_subscriptionform_getcode($form,$title)
 		?>
 <div class="wrap">
   <h2><?php echo $title ?></h2>
-</div>
-The form has been saved. Copy and paste the code in the box below on the page where you want the subscription form to appear.
+
+The form has been saved. 
+
+<h3>Now place the subscription form in the sidebar to start gathering subscribers.</h3>
+
+<a href="widgets.php"><img src="<?php echo get_bloginfo("url"); ?>/?wpr-file=widget-help.png" title="Click to go to Widgets Section" border="0"/></a>
+
+<h3>Click on image to go to Widgets Section</h3>
+
+<h2>Alternatively...</h2>
+
+Copy and paste the code in the box below on the page where you want the subscription form to appear.
+
 <h3>Form Code:</h3>
 <?php $code = _wpr_subscriptionform_code($form); ?>
 <textarea rows="20" cols="70" id="wpr_code"><?php echo $code ?></textarea>
@@ -351,6 +368,7 @@ function preview()
 <a href="admin.php?page=wpresponder/subscriptionforms.php" class="button">&laquo; Back To Forms</a>&nbsp;
 <input type="button" value="Select All" onclick="document.getElementById('wpr_code').select();" class="button"/>
 <input type="button" onclick="preview();" value="Preview" class="button" />
+</div>
 <?php
 }
 
@@ -477,9 +495,7 @@ foreach ($choices as $choice)
       <td colspan="2" align="center"><input type="submit" value="<?php echo (empty($form->submit_button))?"Subscribe":$form->submit_button; ?>" /></td>
     </tr>
     <tr>
-      <td colspan="2" align="center"><?php if ($enableForm) { ?>
-        <a style="font-family:Verdana, Geneva, sans-serif;font-size: 9px;;" href="http://www.wpresponder.com"><?php echo base64_decode("UG93ZXJlZCBieSBXUCBSZXNwb25kZXI=");  ?></a>
-        <?php } ?></td>
+      <td colspan="2" align="center"><?php if ($enableForm) { echo base64_decode("PGEgc3R5bGU9ImZvbnQtZmFtaWx5OlZlcmRhbmEsIEdlbmV2YSwgc2Fucy1zZXJpZjtmb250LXNpemU6IDlweDsiIGhyZWY9Imh0dHA6Ly93d3cud3ByZXNwb25kZXIuY29tIj5FbWFpbCBNYXJrZXRpbmcgYnkgV1AgQXV0b3Jlc3BvbmRlcjwvYT4="); } ?></td>
     </tr>
   </table>
 </form>
@@ -975,7 +991,7 @@ function setValueOfAutoresponderField()
 }
 function load(id)
 {
-	document.getElementById('customfields').innerHTML="<div align=\"center\">--None--</div>\"";
+	document.getElementById('customfields').innerHTML="<div align=\"center\">--None--</div>";
 	showFields(NewsletterFields[id]);
 }
 
@@ -1215,7 +1231,7 @@ foreach ($newsletters as $newsletter)
       
       <select name="blogsubscription">
           <option value="none" <?php if ($parameters->blogsubscription_type=="none") { echo 'selected="selected"'; } ?>>None</option>
-          <option value="all">Subscribe to all new posts on
+          <option value="all" <?php if ($parameters->blogsubscription_type=="all") { echo 'selected="selected"'; } ?>>Subscribe to all new posts on
           <?php bloginfo("name") ?>
           </option>
           <optgroup label="Particular Blog Category:">

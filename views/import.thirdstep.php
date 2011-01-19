@@ -2,7 +2,7 @@
 <h2>Import Subscribers: Blog Subscription</h2>
 
 <p>Select whether and how these subscribers will be subscribed to the blog.</p>
-<form action="admin.php?page=wpresponder/importexport/step3" method="post">
+<form action="admin.php?page=_wpr/importexport&subact=step3" method="post">
 <select name="blogsubscription">
     <option  <?php if ($_SESSION['_wpr_import_blogsub'] == "none" || empty($_SESSION['_wpr_import_blogsub'])) echo 'selected="selected"'; ?>  value="none">None</option>
     <option <?php if ($_SESSION['_wpr_import_blogsub'] == "all") echo 'selected="selected"'; ?>  value="all">All Posts Published On This Blog</option>
@@ -24,7 +24,7 @@
 </select>
     <input type="hidden" name="wpr_form" value="wpr_import_blogsub">
     <p></p>
-    <a href="admin.php?page=wpresponder/importexport/step2" class="button-primary">&laquo; Previous: Follow Up</a> <input class="button-primary" type="submit" value="Next: Upload CSV File(s) &raquo;">
+    <a href="admin.php?page=_wpr/importexport&subact=step2" class="button-primary">&laquo; Previous: Follow Up</a> <input class="button-primary" type="submit" value="Next: Upload CSV File(s) &raquo;">
 </form>
 </div>
 

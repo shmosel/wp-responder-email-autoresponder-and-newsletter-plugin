@@ -349,7 +349,7 @@ if (count($newsletters) > 0)
 else
 {
 ?>
-You must first <a href="admin.php?page=wpresponder/newsletter.php&act=add">create a newsletter</a> before adding a rule.<?php
+You must first <a href="admin.php?page=_wpr/newsletter&act=add">create a newsletter</a> before adding a rule.<?php
 }?>
 
 </div>

@@ -217,7 +217,6 @@ function previewEmail()
 
 
 </script>
-<div style="float:right; background-color: #9F0; padding: 10px; display:block;"><strong>Time Now Is:</strong> <?php echo date("H:iA d F Y"); ?></div>
 <div style="clear:both"></div>
 <blockquote>
   <div class="wrap">
@@ -587,7 +586,7 @@ window.setInterval('setActualTime()',1);
 jQuery(document).ready(function()
 {
 
-	jQuery("#date").datepicker({ minDate: 0});
+	//jQuery("#date").datepicker({ minDate: 0});
 
 });
 
@@ -697,7 +696,7 @@ jQuery(document).ready(function()
 
 {
 
-	jQuery("#date").datepicker({ minDate: 0});
+	//jQuery("#date").datepicker({ minDate: 0});
 
 });
 
@@ -950,7 +949,7 @@ jQuery(document).ready(function()
 
 {
 
-	jQuery("#date").datepicker({ minDate: 0});
+	//jQuery("#date").datepicker({ minDate: 0});
 
 });
 

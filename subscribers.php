@@ -516,15 +516,15 @@ function _wpr_subscriber_nmanage_home()
    <?php 
     _wpr_subscriber_search_form($nid); 
 ?><br />
-<div style="float:left;"><a href="admin.php?page=wpresponder/subscribers.php"> &laquo; Back To Subscribers' Home</a></div><div align="right"><div style="display:block; margin:10px;">	    <a href="admin.php?page=wpresponder/importexport.php" class="button-primary">Import/Export Subscribers</a></div></div>
+<div style="float:left;"><a href="admin.php?page=wpresponder/subscribers.php"> &laquo; Back To Subscribers' Home</a></div><div align="right"><div style="display:block; margin:10px;">	    <a href="admin.php?page=_wpr/importexport" class="button-primary">Import/Export Subscribers</a></div></div>
 <?php
     $backUrl = "page=wpresponder/subscribers.php";
-	_wpr_subscriber_list($subscribers,true,$backUrl);
+	_wpr_subscriber_list($subscribers,false,$backUrl);
 	$query = "SELECT count(*) num from ".$wpdb->prefix."wpr_subscribers where nid=$nid;";
 	$subscriberCountRetriever= $wpdb->get_results($query);
 
 	$subscriberCount = $subscriberCountRetriever[0]->num;
-		?>
+?>
         
       <br />
 <br />
@@ -630,13 +630,13 @@ function _wpr_subscriber_home()
     </div>
     
     <div class="wrap"><h2>Manage Newsletter Subscribers</h2></div>
-    <table class="widefat">
-    <tr>
-      <thead>
-        <th>Name</th>
-        <th>Manage</th>
-        </thead>
-     </tr>
+    <table class="widefat" style="width:auto;">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Manage</th>
+        </tr>
+     </thead>
     <?php
 	if (count($newsletters))
 	{
@@ -730,18 +730,23 @@ function _wpr_subscriber_list($subscribers,$allNewslettersMode=true,$backUrl="")
 if ($allNewslettersMode) { ?><input type="hidden" name="delete_all" value="1"/><?php } ?>
     <input type="hidden" name="back" value="<?php echo $_SERVER['PHP_SELF']."?".$_SERVER['QUERY_STRING'] ?>">
     <table class="widefat">
-     <tr>
-       <thead>
+      <thead><tr>
+      
            <th align="left"><input onclick="checkAllElements(this.checked);" type="checkbox" value="1" ></th>
          <th>Name(s)</th>
          <th>E-Mail</th>
-         <th>All Active Subscription(s)</th>
-         <th>Date Of First Subscription</th>
-         <th>View Subscriptions</th>
+         <?php if ($allNewslettersMode) { ?><th>Newsletter Subscription(s)</th>          <?php }
+         else
+         {
+         ?>
+         <th>Date Of Subscription</th>
+         <?php
+         }
+         ?>
          <th>Edit</th>
-       </thead>
       
-      </tr>
+      
+      </tr> </thead>
       <?php
 	  if (count($subscribers))
 	  {
@@ -753,7 +758,7 @@ if ($allNewslettersMode) { ?><input type="hidden" name="delete_all" value="1"/><
 				$prefix = $wpdb->prefix;
 				?>
 				<tr>
-                                    <td><input type="checkbox" name="sub[]" " class="subselect" value="<?php echo $subscriber->id ?>"/></td>
+                                    <td><input type="checkbox" name="sub[]" class="subselect" value="<?php echo $subscriber->id ?>"/></td>
 				   <td><?php 
 				   $query = "select DISTINCT name from ".$wpdb->prefix."wpr_subscribers where email='".$subscriber->email."'";
 				   $results = $wpdb->get_results($query);
@@ -768,49 +773,72 @@ if ($allNewslettersMode) { ?><input type="hidden" name="delete_all" value="1"/><
 				   ?></td>
 				   <td><?php echo $subscriber->email ?></td>
 			  <?php if ($allNewslettersMode) 
-					{
-						?>     <td><?php
-						   
-						   $query = "select distinct a.name from ".$prefix."wpr_newsletters a, ".$prefix."wpr_subscribers b where a.id=b.nid and b.email='".$subscriber->email."' and b.active in(1,2);";
-						   $subscribedNewsletters = $wpdb->get_results($query);
-						   $list = array();
-						   if (count($subscribedNewsletters))
-						   {
-							   foreach ($subscribedNewsletters as $newsletter)
-							   {
-								   array_push($list,$newsletter->name);
-							   }
-						   }
-						   else
-						   {
-							   echo "--None--";
-						   }
-						   $newsletters = implode(", ",$list);
-						   echo $newsletters;
-						   ?>
-						   </td><?php
+				{
+                                    ?><td><?php
+                                       $query = "select a.name newsletter_name, b.active active, b.confirmed confirmed, b.date date from ".$prefix."wpr_newsletters a, ".$prefix."wpr_subscribers b where a.id=b.nid and b.email='".$subscriber->email."';";
+                                       $subscribedNewsletters = $wpdb->get_results($query);
+                                       $list = array();
+                                       if (count($subscribedNewsletters))
+                                       {
+                                           foreach ($subscribedNewsletters as $newsletter_subscription)
+                                           {
+                                               $subscription = array();
+                                               $subscription_status = _wpr_subscription_status($newsletter_subscription->active, $newsletter_subscription->confirmed);
+                                               $subscription['newsletter'] = $newsletter_subscription->newsletter_name;
+                                               $subscription['status'] = $subscription_status;
+                                               $subscription['date'] = date("g:ia dS F Y",$newsletter_subscription->date);
+                                               $subscription = (object) $subscription;
+                                               array_push($list,$subscription);
+                                           }
+                                           ?>
+                                        <table class="widefat">
+                                            <thead>
+                                                <tr>
+                                                    <th>Newsletter Name</th>
+                                                    <th>Subscription Status</th>
+                                                    <th>Date Of Subscription</th>
+                                                </tr>
+                                            </thead>
+                                            <?php
+                                            foreach ($list as $sub)
+                                            {
+                                                ?>
+                                            <tr>
+                                                <td>
+                                                     <?php echo $sub->newsletter; ?>
+                                                </td>
+                                                <td>
+                                                     <?php echo $sub->status; ?>
+                                                </td>
+                                                 <td>
+                                                     <?php echo $sub->date; ?>
+                                                </td>
+                                            </tr>
+                                            <?php
+
+                                            }
+                                            ?>
+                                        </table>
+                                        <?php
+                                           
+                                           
+                                       }
+                                       else
+                                       {
+                                           _e("Associated Newsletter Deleted");
+                                       }
+                                       
+                                       ?>
+                                       </td><?php
 				   }
+                                   else
+                                   {
+                                       ?>
+                                       <td><?php echo date("g:ia dS F Y",$subscriber->date); ?></td>
+                                       <?php
+                                       
+                                   }
 				   ?>
-                   <td><?php
-				   echo date('H:ia d F Y',$subscriber->date);
-				   ?>
-                   <td><?php if ($subscriber->active==1 && $subscriber->confirmed==1)
-                           {
-                                echo "Subscribed";
-                           }
-                           elseif ($subscriber->active==1 && $subscriber->confirmed==0)
-                           {
-                               echo 'Subscribed & Unconfirmed';
-                           }
-                           elseif ($subscriber->confirmed==1 && $subscriber->active==0)
-                          {
-                               echo "Unsubscribed";
-                          }
-                          elseif ($subscriber->confirmed==1 && $subscriber->active==2)
-                          {
-                              echo "Transfered";
-                          }
-                          ?></td>
                    <td>
 				   <a href="admin.php?page=wpresponder/subscribers.php&action=profile&sid=<?php echo $subscriber->id ?>" class="button">Edit</a>&nbsp;
 				   </td>

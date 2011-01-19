@@ -92,27 +92,15 @@ function wpr_dashboard()
             </table>
             </div>
             <hr size="1" color="#CCCCCC"/>
-<div align="center"><div style="clear:both;display:block"><a href="http://www.krusible.com"><img src="http://www.wpresponder.com/dashboard.png" width="800" height="120" /></a></div></div>
+<div align="center"><div style="clear:both;display:block"><a href="http://www.krusible.com"><img src="http://www.wpresponder.com/dashboard.png" /></a></div></div>
 
 <hr size="1" color="#CCCCCC"/>
 <h2>Subscribe to the WP Responder Email Newsletter</h2>
 
 Enter your name and email address below to subscribe to the  WP Responder newsletter. <br />
-
-When you subscribe to the newsletter you get:
 <table>
   <tr>
-    <td style="padding-right:20px;">
-<ul style="list-style:disc; padding-left: 40px; padding-top:20px;">
-    <li>Get Notified Of New Releases Including Critical Security Updates</li>
-    <li>Get Video Tutorials On Using WP Responder.</li>
-    <li>Strategies and Tactics on E-mail Marketing</li>
-</ul> 
-<div style="padding-top:15px; ">I will not sell or rent your email address. Nor will I overload you with sales pitches. I promise!</div>
-   </td>
    <td style="padding-left:40px; border: 1px solid #ccc; background-color:#FFF; padding:20px;">
-   
-   
    <form action="http://www.wpresponder.com/?wpr-optin=1" method="post">
   <span class="wpr-subform-hidden-fields">
   <input type="hidden" name="blogsubscription" value="all" />
@@ -135,51 +123,12 @@ When you subscribe to the newsletter you get:
         <td colspan="2" align="center"></td>
     </tr>
   </table>
-
 </form>
-
 </td>
   </tr>
 </table>
-
-<hr size="1" color="#CCCCCC"/>
-<div id="news">
-<?php 
-$rss = fetch_feed("http://feeds.feedburner.com/Moltedlava");
-
-$numberOfFeedItems = $rss->get_item_quantity(10);
-if ($numberOfFeedItems > 5)
-{
-	if (!is_wp_error($rss))
-	{
-		$rss->handle_content_type();
-	?>
- <ul>
-<?php
-
-		foreach ($rss->get_items() as $item)
-		{
-		?>
-	<li><a href="<?php echo $item->get_link(0); ?>">
-	<?php $title = $item->get_title();
-	echo $title;
-	?>
-	</a><br />
-	<?php echo $item->get_description(); ?> </li>
-	<br />
-	<?php
-		  $count++;
-  	    }
-?>
-</ul>
-	<?php
-	}
-	
-}
-?>
-</div>
-<div id="reportbug"> <a href="#"><img src="<?php echo get_option("home") ?>/<?php echo PLUGINDIR ?>/<?php echo WPR_PLUGIN_DIR ?>/images/bug.jpg" /></a>
-              <form method="post" id="reportform" action="http://www.expeditionpost.com/wpr/sb.php">
+<h2>Report A Bug</h2>
+<div id="reportbug"><form method="post" id="reportform" action="http://www.expeditionpost.com/wpr/sb.php">
                 <table width="100%">
                   <tr>
                     <td>Name:</td>

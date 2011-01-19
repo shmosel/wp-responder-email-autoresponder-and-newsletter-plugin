@@ -12,40 +12,30 @@ TODO:
 */
 
 
-add_action("_wpr_importexport_handle","_wpr_importexport_handler");
-
-function _wpr_importexport_handler($parameters)
+function _wpr_importexport_handler()
 {
-	switch ($parameters[1])
+	session_start();	
+	$subact = @$_GET['subact'];
+	switch ($subact)
 	{
-		case 'import':
-   		switch ($parameters[2])
-		{
-			case 'step2':
-			_wpr_import_second_step();
-			break;
-                        case 'step3':
-                        _wpr_import_third_step();
-                        break;
-                        case 'step4':
-                            _wpr_import_fourth_step();
-                        break;
-                        case 'step5':
-
-                            _wpr_import_fifth_step();
-
-                            break;
-						case 'finished':
-						_wpr_import_finished();
-						
-						break;
-		}
-		
+		case 'step1':
+		_wpr_import_second_step();
 		break;
-		
+		case 'step2':
+		_wpr_import_third_step();
+		break;
+		case 'step3':
+			_wpr_import_fourth_step();
+		break;
+		case 'step4':
+                    _wpr_import_fifth_step();
+                    break;
+              
+		case 'finished':
+		_wpr_import_finished();
+		break;
 		default:
-		_wpr_import_export_home();
-		
+		_wpr_import_export_home();		
 	}
     //get a list of newsletter   
 }
@@ -66,39 +56,103 @@ function _wpr_import_finished()
 	_wpr_set("newsletter",$newsletter);
 	_wpr_set("_wpr_view","import.finished");
 }
+function export_csv($nid)
+{
+        global $wpdb;
+        $prefix = $wpdb->prefix;
+        //is there a
 
+        if ($nid == 0)
+                return;
+        //does the newsletter exist?
+        $query = "SELECT COUNT(*) FROM ".$prefix."wpr_newsletters where id=$nid";
+        $results = $wpdb->get_results($query);
+        if (count($results) == 0)
+        {
+                return;
+        }
+        //if none of these error conditions occur, then start exporting:
+
+
+        //fetch all custom fields associates with this newsletter
+        $query = "select * from ".$prefix."wpr_custom_fields where nid=$nid";
+        $results = $wpdb->get_results($query);
+        $fieldHeaders = array();
+        if (count ($results))
+        {
+                $customfields= array();
+                foreach ($results as $field)
+                {
+                        $customfields[] = $field->name;
+
+                }
+        }
+        //add the name and email address fields to the beginning of the field list
+        if (count($customfields))
+        {
+                $SqlQueryColumnList = ",".implode(",",$customfields); //this will be appended to the column list in the  fetchAllSubscriberDataQuery sql query
+        }
+
+        //the query that returns all the custom fields
+
+        //these two lines create a temporary table that has all the fields of the subscriber table
+        //joined with the values of the custom fields for each of the subscribers in that table.
+        //the custom fields' values for each subscriber are created as a column in the wpr_subscriber_$nid table.
+        wpr_create_temporary_tables($nid);
+        wpr_make_subscriber_temptable($nid);
+
+
+        //fetch the subscriber data for all subscribers
+        $fetchAllSubscriberDataQuery = "SELECT name,email $SqlQueryColumnList FROM ".$prefix."wpr_subscribers_$nid";
+        $listOfSubscribersAndTheirInfo = $wpdb->get_results($fetchAllSubscriberDataQuery);
+        //the field headings are first attached
+        $fieldname = "";
+
+        //now the data for each row is written
+        foreach ($listOfSubscribersAndTheirInfo as $subscriber)
+        {
+                $subsarray = (array) $subscriber;
+                //array walk doesnt work for some reason.
+                foreach ($subsarray as $name=>$value )
+                {
+                        $subsarray[$name] = trim($subsarray[$name]);
+                }
+                $row = implode(",",$subsarray);
+                $output .= $row."\n";
+        }
+        header ("Content-disposition: attachment; filename=export_$nid.csv");
+        echo $output;
+        exit;
+}
 
 function _wpr_import_second_step()
 {
+
 	if (isset($_SESSION['wpr_import_newsletter']))
 	{
-                $nid = $_SESSION['wpr_import_newsletter'];
-                
+        $nid = $_SESSION['wpr_import_newsletter'];
 		$autoresponders = _wpr_autoresponders_get($nid);
-                
 		_wpr_set("autoresponderList",$autoresponders);
-                $postSeries = _wpr_postseries_get_all();
-
-                _wpr_set("postseriesList",$postSeries);
+        $postSeries = _wpr_postseries_get_all();
+        _wpr_set("postseriesList",$postSeries);
 		_wpr_set("_wpr_view","import.secondstep");
 
 	}
 	else
 	{
-            echo "here!fa";
-		wp_redirect("admin.php?page=wpresponder/importexport");
+		wp_redirect("admin.php?page=_wpr/importexport");
 	}
 }
 
 function _wpr_import_third_step()
 {
       $args = array(
-                                            'type'                     => 'post',
-                                            'child_of'                 => 0,
-                                            'orderby'                  => 'name',
-                                            'order'                    => 'ASC',
-                                            'hide_empty'               => false,
-                                            'hierarchical'             => 0);
+					'type'                     => 'post',
+					'child_of'                 => 0,
+					'orderby'                  => 'name',
+					'order'                    => 'ASC',
+					'hide_empty'               => false,
+					'hierarchical'             => 0);
 
     $categories = get_categories($args);
 
@@ -108,6 +162,7 @@ function _wpr_import_third_step()
 
 function _wpr_import_export_home()
 {
+
     $newsletters = _wpr_newsletters_get();
     _wpr_set("newslettersList",$newsletters);
 }
@@ -116,27 +171,30 @@ add_action("_wpr_wpr_import_first_post","_wpr_import_first_post");
 add_action("_wpr_wpr_import_followup_post","_wpr_import_followup_post");
 function _wpr_import_first_post()
 {
-	@session_start();		
+    session_start();
 	$newsletter= trim($_POST['newsletter']);
 	$_SESSION['wpr_import_newsletter']=$newsletter;
-	wp_redirect("admin.php?page=wpresponder/importexport/import/step2");
+	wp_redirect("admin.php?page=_wpr/importexport&subact=step1");
+        exit;
 }
 
 function _wpr_import_followup_post()
 {
-    @session_start();
+    session_start();
     $_SESSION['wpr_import_followup'] = $_POST['followup'];
-    wp_redirect("admin.php?page=wpresponder/importexport/import/step3");
+    wp_redirect("admin.php?page=_wpr/importexport&subact=step2");
+    exit;
 }
 add_action("_wpr_wpr_import_blogsub_post","_wpr_import_blogsub_post");
 add_action("_wpr_wpr_import_upload_post","_wpr_import_upload");
+
 function _wpr_import_blogsub_post()
 {
-    @session_start();
+    session_start();
     $_SESSION['_wpr_import_blogsub'] = $_POST['blogsubscription'];
-    wp_redirect("admin.php?page=wpresponder/importexport/import/step4");
+    wp_redirect("admin.php?page=_wpr/importexport&subact=step3");
+    exit;
 }
-
 
 
 function _wpr_import_fourth_step()
@@ -148,11 +206,13 @@ function _wpr_import_fourth_step()
 
 function _wpr_import_upload()
 {
-    @session_start();
+    session_start();
     if ($_FILES['csv']['error']==UPLOAD_ERR_OK)
     {
+		
         $_SESSION['_wpr_csv_file'] = file($_FILES['csv']['tmp_name']);
-        wp_redirect('admin.php?page=wpresponder/importexport/import/step5');
+        wp_redirect('admin.php?page=_wpr/importexport&subact=step4');
+        exit;
     }
     else
     {        
@@ -163,7 +223,7 @@ function _wpr_import_upload()
 
 function _wpr_import_fifth_step()
 {
-
+    session_start();
     $csv = $_SESSION['_wpr_csv_file'];
 
     $count=0;
@@ -193,8 +253,6 @@ function _wpr_import_fifth_step()
 function splitToArray($data)
 {
 	$csvcontent = implode("\n",$data);
-	
-
 	$fp = tmpfile();
 	fwrite($fp,$csvcontent);
 	rewind($fp);
@@ -218,6 +276,7 @@ function splitToArray($data)
 function _wpr_wpr_import_finish_post()
 {
 	//start importing.
+        session_start();
 	global $wpdb;
 	$prefix = $wpdb->prefix;
 	$arrayIndexes = array();
@@ -242,7 +301,8 @@ function _wpr_wpr_import_finish_post()
 	
 		$name = addslashes(trim($subscriber[$arrayIndexes['name']]));
 		$email = trim($subscriber[$arrayIndexes['email']]);
-		
+                if (!validateEmail($email))
+                    continue;		
 		$currentSid = _wpr_subsciber_add_confirmed(array('nid'=>$nid,'name'=>$name,'email'=>$email));
 		$subscribers[$index][$indexOfId]= $currentSid;		
 		//add all of the subscriber's followup subscriptions														 
@@ -275,7 +335,6 @@ function _wpr_wpr_import_finish_post()
 		
 	}
 	
-	
 	if ($_SESSION['_wpr_import_blogsub']!="none")
 	{
 		$subtype = $_SESSION['_wpr_import_blogsub'];
@@ -288,8 +347,8 @@ function _wpr_wpr_import_finish_post()
 		}
 		else
 		{
-					$subtype="all";
-					$cat=0;
+			$subtype="all";
+			$cat=0;
 		}
 		
 		foreach ($subscribers as $subscriber)
@@ -307,9 +366,7 @@ function _wpr_wpr_import_finish_post()
 	$query = "SELECT id,name from ".$prefix."wpr_custom_fields where nid=$nid";
 	$customFieldsOfNewsletter = $wpdb->get_results($query);
 	
-	
-	
-	
+		
 	//create an array that we can use easily.
 	foreach ($customFieldsOfNewsletter as $cust)
 	{
@@ -361,7 +418,8 @@ function _wpr_wpr_import_finish_post()
 			unset($_SESSION[$name]);
 	}
 	
-	wp_redirect("admin.php?page=wpresponder/importexport/import/finished");
+	wp_redirect("admin.php?page=_wpr/importexport&subact=finished");
+        exit;
 	//fetch the ids of the custom fields we are going to insert.
 }
 

@@ -1,12 +1,12 @@
-=== WP Responder Email Newsletter and Autoresponder Plugin===  
+=== WP Autoresponder And Newsletter Plugin ===  
 Contributors: rajasekharan
 Donate link: http://wpresponder.com/donate/  
 Tags: email, newsletter, autoresponder, subscribers, mailing list, follow up email autoresponder  
 Requires at least: 2.8.2  
-Tested up to: 3  
-Stable tag: 4.9.5.1
+Tested up to: 3.0.4  
+Stable tag: 5.0
 
-With WP Responder you can create email newsletters, follow up autoresponders and provide subscription to blog via e-mail.  
+With WP Autoresponder you can create email newsletters, follow up autoresponders and provide subscription to blog via e-mail.  
 
 == Description ==  
 
@@ -46,20 +46,20 @@ If you are running version 4.7 or below, please upgrade it to 4.8 or above. This
 
 **I see a Fatal Error when running the installation.Why is this?**  
 
-This is because WP Responder is designed to work only with PHP5. You are most likely using PHP4. 
+This is because WP Autoresponder is designed to work only with PHP5. You are most likely using PHP4. 
 
 **My email broadcasts take forever to go out.Why does this happen?**
   
 There may be two causes for this:  
 
-* This happens because WP Responder relies on wordpress's cron system. Wordpress's cron system relies on your webstie traffic to trigger the various scheduled activities. If your website has low traffic then this will not work. The solution is to **create a cron job on wp-cron.php found in the wordpress root to solve this probelm**.  
+* This happens because WP Autoresponder relies on wordpress's cron system. Wordpress's cron system relies on your webstie traffic to trigger the various scheduled activities. If your website has low traffic then this will not work. The solution is to **create a cron job on wp-cron.php found in the wordpress root to solve this probelm**.  
 * Further the hourly limit on the number of emails to go out in a single hour is set to 100 by default. Increase it or set it to 0 if you want to remove the limit on the number of emails that go out in an hour. The hourly limit can be set at Wordpress Dashboard > Newsletters > Settings
 
 **I need your help  to integrate WP Responder wwith some application/customize it/etc**
 
 Please visit the plugin website:   
   
-http://www.expeditionpost.com/
+http://www.wpresponder.com
   
 And get in touch with me. 
 

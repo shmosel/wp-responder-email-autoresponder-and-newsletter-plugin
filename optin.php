@@ -34,31 +34,6 @@ function error($error)
 
  */
 
-function validateEmail($email)
-
-{
-    //test with regular expressions.
-    return eregi('^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.([a-zA-Z]{2,4})$',$email);
-}
-
-if (!function_exists("wpr_sanitize"))
-{
-					
-	function wpr_sanitize($string)
-	{
-		$string = strip_tags($string);
-		$string = trim($string);
-		if (get_magic_quotes_gpc())
-		{
-			return $string;	
-		}
-		else
-		{
-			return addslashes($string);	
-		}
-	}
-}
-
 if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email']))
 {
 	$name = wpr_sanitize($_POST['name']);
@@ -442,7 +417,7 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 
 	$theqstring = $subscriber->id."%%".$subscriber->hash."%%".$fid;
 
-	$p = base64_encode($theqstring);
+	$p = trim(base64_encode($theqstring),"=");
 
 	$link = get_bloginfo("siteurl")."/?wpr-confirm=".$p;
 	
@@ -465,16 +440,9 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 	$address = get_option('wpr_address');
 
 	$confirm_subject = str_replace("[!ipaddress!]",$ip,$confirm_subject);
-
 	$confirm_body = str_replace("[!ipaddress!]",$ip,$confirm_body);
-
-
-
 	$confirm_subject = str_replace("[!date!]",$date,$confirm_subject);
-
 	$confirm_body = str_replace("[!date!]",$date,$confirm_body);
-
-
 
 	$confirm_subject = str_replace("[!url!]",$url,$confirm_subject);
 
@@ -524,7 +492,16 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 									'fromname'=>$from_name,
 									'from'=>$from_email
 								);
-    dispatchEmail($verificationEmail);
+	//try {
+		//ob_start();
+    	@dispatchEmail($verificationEmail);
+//		ob_get_clean();
+	//}
+//	catch (Exception $exc)
+	{
+		//STFU!
+		
+	}
 	 
 	if (empty($return_url))
 	{

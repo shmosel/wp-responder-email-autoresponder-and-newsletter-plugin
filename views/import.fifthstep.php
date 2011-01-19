@@ -3,7 +3,7 @@
     <h2>Import Subscribers: Identify Columns</h2>
 
     Identify the columns in the csv file. Shown below are the first 100 rows. 
-    <form action="admin.php?page=wpresponder/importexport/import/step5" method="post">
+    <form action="admin.php?page=_wpr/importexport&subact=step5" method="post">
 
 <?php
 
@@ -79,12 +79,9 @@ else
         var name=false;
         var email=false;
         jQuery(".colfield").each(function() {
-										  alert(this.name);
-										  alert(this.value);
 
             if (this.value=="name")
                 {
-					alert("this is the name field");
                     if (name==true)
                         {
                             alert("You have selected more than one field as the name field. Please select just one.");
