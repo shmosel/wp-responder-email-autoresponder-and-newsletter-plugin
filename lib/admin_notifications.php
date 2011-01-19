@@ -52,7 +52,7 @@ function _wpr_admin_notices_set($array_of_notices)
 function _wpr_admin_notices_show()
 {
 	$notices = _wpr_admin_notices_get();
-	if (count($notices) > 0)
+	if (is_array($notices) && count($notices) > 0)
 	{
 	?>
 	<div class="error fade">
