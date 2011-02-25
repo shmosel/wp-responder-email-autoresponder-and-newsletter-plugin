@@ -1,6 +1,6 @@
 <?php
-
 $id = $_GET['id'];
+$id = intval($id);
 $query = "select * from ".$wpdb->prefix."wpr_newsletter_mailouts where id=$id";
 $mailout = $wpdb->get_results($query);
 $mailout = $mailout[0];
@@ -34,17 +34,9 @@ $output["Recipients"] = (!$mailout->recipients)?"All Subscribers":$mailout->reci
   </tr>
   <tr>
     <td colspan="2"> <h2>HTML Body:</h2>      
-      <iframe width="100%" height="400" scrolling="yes" frameborder="0" border="0" id="htmlbodyframe">
+      <iframe width="100%" height="400" scrolling="yes" frameborder="0" border="0" src="<?php echo get_bloginfo("url"); ?>/?wpr-vb=<?php echo $id ?>" id="htmlbodyframe">
       </iframe>
-      <script>
-
-function base64Decode(data){data=data.replace(/[^a-z0-9\+\/=]/ig,'');if(typeof(atob)=='function')return atob(data);var b64_map='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';var byte1,byte2,byte3;var ch1,ch2,ch3,ch4;var result=new Array();var j=0;while((data.length%4)!=0){data+='=';}
-for(var i=0;i<data.length;i+=4){ch1=b64_map.indexOf(data.charAt(i));ch2=b64_map.indexOf(data.charAt(i+1));ch3=b64_map.indexOf(data.charAt(i+2));ch4=b64_map.indexOf(data.charAt(i+3));byte1=(ch1<<2)|(ch2>>4);byte2=((ch2&15)<<4)|(ch3>>2);byte3=((ch3&3)<<6)|ch4;result[j++]=String.fromCharCode(byte1);if(ch3!=64)result[j++]=String.fromCharCode(byte2);if(ch4!=64)result[j++]=String.fromCharCode(byte3);}
-return result.join('');}
-	  var theFrame = document.getElementById('htmlbodyframe');
-	  var thecontent = '<?php echo base64_encode($output['HTML Body']) ?>';
-	  theFrame.contentDocument.write(base64Decode(thecontent));
-	  </script></td>
+     </td>
   </tr>
   <tr >
     <td >Recipients:</td>
