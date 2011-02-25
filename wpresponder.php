@@ -3,7 +3,7 @@
 Plugin Name: WP Autoresponder
 Plugin URI: http://www.wpresponder.com
 Description: Create unlimited newsletters and follow-up autoresponders. Schedule HTML/Text e-mail broadcast to subscribers. Provide e-mail subscription to your blog posts and blog categories. Use blog categories as follow-up autoresponders and much more.
-Version: 5.1
+Version: 5.1.1
 Author: Raj Sekharan
 Author URI: http://www.krusible.com/
 */
@@ -19,7 +19,7 @@ if (!defined("WPR_DEFS"))
 	$plugindir = rtrim($plugindir,"/");
     $controllerDir = "$plugindir/controllers";
 
-    define("WPR_VERSION","5.0");
+    define("WPR_VERSION","5.1.1");
 	define("WPR_PLUGIN_DIR","$plugindir");
 
     $GLOBALS['WPR_PLUGIN_DIR'] = $plugindir;
