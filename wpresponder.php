@@ -174,6 +174,34 @@ if (!defined("WPR_DEFS"))
 		global $current_user;
 		global $db_checker;
 		
+		if (isset($_GET['wpr-optin']) && $_GET['wpr-optin'] == 1)
+		{
+			require "optin.php";			
+			exit;
+		}
+		
+		if (isset($_GET['wpr-optin']) && $_GET['wpr-optin'] == 2)
+		{
+			require "verify.php";	
+			exit;
+		}
+		
+		//a subscriber is trying to confirm their subscription. 
+		if (isset($_GET['wpr-confirm']) && $_GET['wpr-confirm']!=2)
+		{
+			include "confirm.php";			
+			exit;
+		}
+		
+		
+		$vb = intval($_GET['wpr-vb']);
+		if (isset($_GET['wpr-vb']) && $vb > 0)
+		{
+			require "broadcast_html_frame.php";
+			exit;
+		}
+        
+		
 		require WPR_PLUGIN_DIR."/proxy.php";
 		
 		//first run?
@@ -212,25 +240,7 @@ if (!defined("WPR_DEFS"))
 
 		
 		//a visitor is trying to subscribe.
-		if (isset($_GET['wpr-optin']) && $_GET['wpr-optin'] == 1)
-		{
-			require "optin.php";			
-			exit;
-		}
-		
-		if (isset($_GET['wpr-optin']) && $_GET['wpr-optin'] == 2)
-		{
-			require "verify.php";	
-			exit;
-		}
-		
-		//a subscriber is trying to confirm their subscription. 
-		if (isset($_GET['wpr-confirm']) && $_GET['wpr-confirm']!=2)
-		{
-			include "confirm.php";			
-			exit;
-		}
-                
+		        
 		$directory = str_replace(basename(__FILE__),"",__FILE__);
 		$containingdirectory = basename($directory);
 		$url = get_bloginfo("url");
@@ -299,9 +309,9 @@ if (!defined("WPR_DEFS"))
 	}    
 	
 	add_action('widgets_init','wpr_widgets_init');
-	add_action('init', "wpresponder_init_method");
+	add_action('init', "wpresponder_init_method",1);
 	register_activation_hook(__FILE__,"wpresponder_install");
-	register_deactivation_hook(__FILE__,"wpresponder_deactivate");   
+	register_deactivation_hook(__FILE__,"wpresponder_deactivate");
 	$url = $_SERVER['REQUEST_URI'];	
 	
 	function wpr_admin_menu()
@@ -328,7 +338,8 @@ if (!defined("WPR_DEFS"))
 		return register_widget("WP_Subscription_Form_Widget");
 	}
 
-    add_filter('cron_schedules','wpr_cronschedules');      
+    add_filter('cron_schedules','wpr_cronschedules');
+	
 	
 
 }
