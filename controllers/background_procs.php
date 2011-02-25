@@ -34,7 +34,7 @@ function _wpr_background_procs_manual_run()
 				}
 			break;
 				case 'newsletter_process':
-				//if (check_admin_referer("_wpr_newsletter_process_run"))
+				if (check_admin_referer("_wpr_newsletter_process_run"))
 				{
 					do_action("_wpr_process_broadcasts");
 					wp_redirect($background_procs_url);
@@ -52,7 +52,7 @@ function _wpr_background_procs_manual_run()
 				case 'delivery_queue':
 				if (check_admin_referer("_wpr_delivery_queue_run"))
 				{
-					do_action("_wpr_process_queue");                                    
+					do_action("_wpr_process_queue");                                    					
 					wp_redirect($background_procs_url);
 				}
 			break;

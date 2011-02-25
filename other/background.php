@@ -88,6 +88,8 @@ function _wpr_process_queue()
 	foreach ($results as $mail)  
 	{
 		$mail = (array) $mail;	
+		
+		
 		try {
 			dispatchEmail($mail);
 		}
@@ -168,7 +170,7 @@ function _wpr_autoresponder_process($id=0)
 
 
 
-	$getActiveFollowupSubscriptionsQuery = $wpdb->prepare("SELECT a.*, b.id sid, FLOOR(($currentTime - a.doc)/86400) daysSinceSubscribing FROM `".$prefix."wpr_followup_subscriptions` a, `".$prefix."wpr_subscribers` b  WHERE a.type='autoresponder' AND  a.sequence < FLOOR(($currentTime - a.doc)/86400) AND a.sequence <> -2 AND a.sid=b.id $subscriberClause AND b.active=1 AND b.confirmed=1 LIMIT 1000;");
+	$getActiveFollowupSubscriptionsQuery = "SELECT a.*, b.id sid, FLOOR(($currentTime - a.doc)/86400) daysSinceSubscribing FROM `".$prefix."wpr_followup_subscriptions` a, `".$prefix."wpr_subscribers` b  WHERE a.type='autoresponder' AND  a.sequence < FLOOR(($currentTime - a.doc)/86400) AND a.sequence <> -2 AND a.sid=b.id $subscriberClause AND b.active=1 AND b.confirmed=1 LIMIT 1000;";
 	$autoresponderSubscriptions = $wpdb->get_results($getActiveFollowupSubscriptionsQuery);
 	
 	foreach ($autoresponderSubscriptions as $asubscription)
@@ -328,7 +330,7 @@ function wpr_get_mailouts()
  	global $wpdb;
 	$prefix = $wpdb->prefx;
 	$timeStamp = time();
-	$query = $wpdb->prepare("SELECT * FROM `".$wpdb->prefix."wpr_newsletter_mailouts` WHERE `status` = 0 AND `time` <= $timeStamp;");
+	$query = "SELECT * FROM `".$wpdb->prefix."wpr_newsletter_mailouts` WHERE `status` = 0 AND `time` <= $timeStamp;";
 	$mailouts = $wpdb->get_results($query);
 	return $mailouts;
 }
@@ -385,8 +387,7 @@ function _wpr_process_blog_subscriptions()
 function _wpr_process_broadcasts()
 {
 	global $wpdb;
-	$prefix = $wpdb->prefix;
-	
+	$prefix = $wpdb->prefix;	
 	$last_cron_status = get_option("_wpr_newsletter_process_status");
 	/*
 	When the cron is running the _wpr_newsletter_process_status
@@ -451,6 +452,8 @@ function _wpr_process_broadcasts()
 							  );
 				wpr_place_tags($sid,$emailParameters);
 				$emailParameters["to"] = $subscriber->email;
+				
+				
 				sendmail($sid,$emailParameters);
 			}
 		}
@@ -464,8 +467,7 @@ function _wpr_process_broadcasts()
 	}
 	
 	delete_option("_wpr_newsletter_process_status");
-	add_option("_wpr_newsletter_process_status","stopped");
-	
+	add_option("_wpr_newsletter_process_status","stopped");	
 }
 function wpr_filter_query($nid, $thestring)
 {	

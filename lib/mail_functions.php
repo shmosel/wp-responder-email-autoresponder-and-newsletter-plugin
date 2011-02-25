@@ -35,11 +35,11 @@ function _wpr_non_wpr_email_sent($params)
  */
 function sendmail($sid,$params,$footerMessage="")
 {
-	global $wpdb;
-	$parameters = _wpr_process_sendmail_parameters($sid,$params,$footerMessage);
+	global $wpdb;	
+	$parameters = _wpr_process_sendmail_parameters($sid,$params,$footerMessage);	
 	extract($parameters);
 	$tableName = $wpdb->prefix."wpr_queue";
-	$query = $wpdb->prepare("INSERT INTO $tableName (`from`,`fromname`, `to`, `reply_to`, `subject`, `htmlbody`, `textbody`, `headers`,`attachimages`,`htmlenabled`,`email_type`,`delivery_type`) values ('$from','$fromname','$to','$reply_to','$subject','$htmlbody','$textbody','$headers','$attachImages','$htmlenabled','$email_type','$delivery_type');");
+	$query = "INSERT INTO $tableName (`from`,`fromname`, `to`, `reply_to`, `subject`, `htmlbody`, `textbody`, `headers`,`attachimages`,`htmlenabled`,`email_type`,`delivery_type`) values ('$from','$fromname','$to','$reply_to','$subject','$htmlbody','$textbody','$headers','$attachImages','$htmlenabled','$email_type','$delivery_type');";
 	$wpdb->query($query);
 
 }
@@ -186,12 +186,12 @@ function wpr_processqueue()
 	$hourlyLimit = getNumberOfEmailsToDeliver();
 	$hourlyLimit = (int) $hourlyLimit;
 	$limitClause = ($hourlyLimit ==0)?"":" limit ".$hourlyLimit;
-	$query = "SELECT * FROM ".$wpdb->prefix."wpr_queue where sent=0 $limitClause ";
+	$query = $wpdb->escape("SELECT * FROM ".$wpdb->prefix."wpr_queue where sent=0 $limitClause ");
 	$results = $wpdb->get_results($query);
 	foreach ($results as $mail)  
 	{
 		$mail = (array) $mail;	
-		try{
+		try {
 			dispatchEmail($mail);
 		}
 		catch (Swift_RfcComplianceException $exception) //invalidly formatted email.
