@@ -80,13 +80,27 @@ $database_structure["wpr_queue"] = array (
 
 															  'delivery_type' =>"tinyint(1) NOT NULL DEFAULT '0'",
 															  'email_type' => "enum('user_verify_email','user_confirmed_email','user_followup_autoresponder_email','user_followup_postseries_email','user_blogsubscription_email','user_blogcategorysubscription_email','user_unsubscribed_notification_email','critical_queue_limit_approaching_email','system_subscription_errors_email','system_analytics_email','misc') COLLATE utf8_bin NOT NULL DEFAULT 'misc'",
+															  'hash'=> 'VARCHAR(32)  NOT NULL',
+															  'meta_key'=> 'VARCHAR(30)  NOT NULL',
                                                               'htmlenabled' => "TINYINT NOT NULL",
                                                               'attachimages' => "TINYINT NOT NULL"
                                                      ),
                                             'auto_increment'=> 'id',
                                             'primary_key'=> "id",
-                                            'unique'=>array()
+                                            'unique'=>array(
+															"hash_is_unique" => array('hash'),
+															"meta_key_is_unique" => array('meta_key')
+														)
                               );
+
+
+/*	$queries[] = "ALTER TABLE `".$prefix."wpr_queue` ADD `sid` INT NOT NULL;";
+	$queries[] = "ALTER TABLE `".$prefix."wpr_queue` ADD `hash` VARCHAR(32)  NOT NULL";
+	$queries[] = "ALTER TABLE `".$prefix."wpr_queue` ADD UNIQUE KEY `hash_1` (`hash`);";
+	$queries[] = "ALTER TABLE `".$prefix."wpr_queue` ADD `meta_key` VARCHAR(30) NOT NULL";
+	$queries[] = "ALTER TABLE `".$prefix."wpr_queue` ADD UNIQUE KEY `meta_key_1` (`meta_key`);";
+	
+*/
 
 $database_structure["wpr_newsletter_mailouts"] = array ( 'columns'=> array(
                                                                               'id' => "INT NOT NULL",

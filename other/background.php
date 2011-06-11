@@ -200,8 +200,13 @@ function _wpr_autoresponder_process($id=0)
                 /*
                  * End strange bunch of code.
                  */
-                
-		$emailParameters = array("subject" => $message->subject, "textbody" => $message->textbody , "htmlbody" => $message->htmlbody, "htmlenabled"=> $message->htmlenabled,"attachimages"=> $message->attachimages, "email_type" => "user_followup_autoresponder_email");
+		$message_id = $message->id;
+		$subscriber_id = $asubscription->sid;
+		$autoresponder_id = $asubscription->eid;
+		
+		$meta_key = sprintf("AR-%s-%s-%s-%s",$autoresponder_id, $subscriber_id, $message_id, $daysSinceSubscribing);
+		
+		$emailParameters = array("subject" => $message->subject, "textbody" => $message->textbody , "htmlbody" => $message->htmlbody, "htmlenabled"=> $message->htmlenabled,"attachimages"=> $message->attachimages, "email_type" => "user_followup_autoresponder_email", 'meta_key'=>$meta_key);
 		wpr_place_tags($asubscription->sid,$emailParameters);
 		
 		try {
@@ -279,13 +284,13 @@ function _wpr_postseries_process()
                 //get the post series as an object
 		$postseries = _wpr_postseries_get($psubscription->eid);
                 //get the posts in the post series
-                $posts = get_postseries_posts($postseries->catid,$nid);
+        $posts = get_postseries_posts($postseries->catid,$nid);
 		$numberOfPosts = count($posts);
-                if ($numberOfPosts == 0)
-                {
-                    _wpr_expire_followup($psubscription->id);
-                    continue;
-                }
+		if ($numberOfPosts == 0)
+		{
+			_wpr_expire_followup($psubscription->id);
+			continue;
+		}
 		$timeBetweenPosts = $postseries->frequency;
 		$last_post = $psubscription->sequence;
 		$currentIndex = floor($daysSinceSubscribing/$timeBetweenPosts);
@@ -302,16 +307,21 @@ function _wpr_postseries_process()
 		$indexToDeliver = $last_post+1;
 		$category = $psubscription->eid;
 		$postToSend = $posts[$indexToDeliver];
-		
 		$sitename = get_bloginfo("name");
-                deliverBlogPost($sid,$postToSend->ID,"You are receiving this blog post as a part of a post series at $name.",true,true);
+		
+		
+		$meta_key = sprintf("PS-%s-%s-%s",$psubscription->eid,$psubscription->sid,$postToSend->ID);
+		$additionalParams = array('meta_key'=>$meta_key);
+		
+        deliverBlogPost($sid,$postToSend->ID,"You are receiving this blog post as a part of a post series at $name.",true,true,$additionalParams);
+		
 		$query = "UPDATE ".$prefix."wpr_followup_subscriptions set sequence=$indexToDeliver , last_date='".time()."' where id='".$psubscription->id."';";
 		$wpdb->query($query);
 		
 		$timeThisInstant = time();
-                $timeSinceStart = $timeThisInstant-$timeOfStart;
-                if ($timeSinceStart > WPR_MAX_POSTSERIES_PROCESS_EXECUTION_TIME)
-                    return;
+		$timeSinceStart = $timeThisInstant-$timeOfStart;
+		if ($timeSinceStart > WPR_MAX_POSTSERIES_PROCESS_EXECUTION_TIME)
+			return;
 	}
 	update_option("_wpr_postseries_process_status","stopped");
 	
@@ -368,7 +378,7 @@ function _wpr_process_blog_subscriptions()
 							deliverBlogPost($subscriber->id,$post->ID,$footerMessage);
 				}
 			}
-			
+
 			delete_option("wpr_last_post_date");
 			add_option("wpr_last_post_date",$post->post_date_gmt);
 			
@@ -376,7 +386,6 @@ function _wpr_process_blog_subscriptions()
 			$sentPostsList = explode(",",$sentPosts);
 			$sentPostsList[] = $post->ID;
 			$sentPosts = implode(",",$sentPostsList);
-	
 			delete_option('wpr_sent_posts');
 			add_option("wpr_sent_posts",$sentPosts);	
 		}
@@ -389,7 +398,13 @@ function _wpr_process_broadcasts()
 	global $wpdb;
 	$prefix = $wpdb->prefix;	
 	$last_cron_status = get_option("_wpr_newsletter_process_status");
+	
+	
+	
+	
 	/*
+	
+
 	When the cron is running the _wpr_newsletter_process_status
 	is set to the timestamp at which the cron processing was started.
 	
@@ -411,11 +426,13 @@ function _wpr_process_broadcasts()
 		}
 	}
 	
+
 	delete_option("_wpr_newsletter_process_status");
 	add_option("_wpr_newsletter_process_status",$timeOfStart);
-
+	
 	
 	$email_mailouts= wpr_get_mailouts();
+	
 	foreach ($email_mailouts as $broadcast)
 	{
 		$nid = $broadcast->nid;
@@ -436,24 +453,31 @@ function _wpr_process_broadcasts()
 		$fromname = $results[0]->fromname;
 		$fromemail = $results[0]->fromemail;
 		
+		
 		if (count($subscribersList))
 		{
+			$broadcastId=$broadcast->id;
+			$newsletterId= $broadcast->nid;
+			
+			
+			
+
 			foreach ($subscribersList as $subscriber)
 			{
 				$sid = $subscriber->id;
 				$email = $subscriber->email;
+				$meta_key = sprintf("BR-%s-%s-%s",$sid,$broadcastId,$newsletterId);
 				$emailParameters = array( "subject" => $subject,
 							  "from"=> $fromname,
 							  "fromemail"=>$fromemail,
 							  "textbody" => $text_body,
 							  "htmlbody" => $html_body,
 							  "htmlenabled"=> (empty($html_body))?0:1,
-							  "attachimages"=> $whetherToAttachImages
+							  "attachimages"=> $whetherToAttachImages,
+							  "meta_key"=> $meta_key
 							  );
 				wpr_place_tags($sid,$emailParameters);
-				$emailParameters["to"] = $subscriber->email;
-				
-				
+				$emailParameters["to"] = $subscriber->email;	
 				sendmail($sid,$emailParameters);
 			}
 		}
@@ -681,21 +705,14 @@ function getBlogContentInDefaultLayout($post_id)
  *
  *
  */
-function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$whetherPostSeries=false)
+function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$whetherPostSeries=false,$additionalParams=array())
 {
     global $wpdb;
-
     //get the post meta
-
     $sid = (int) $sid;
-
     $post_id = (int) $post_id;
-
     if ($sid == 0 || $post_id==0) // neither of these can be zero or empty.
         return;
-
-    
-
     $post = get_post($post_id);
     //if plugin was activated after some posts were created
 
@@ -741,6 +758,15 @@ function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$
        {
        $deliverFlag = true;
    }
+   
+	   if (isset($additionalParams['meta_key']))
+	   {
+			$meta_key =  $additionalParams['meta_key'];
+	   }
+	   else
+	   {
+			$meta_key = sprintf("BP-%s-%s",$sid,$post_id);
+	   }
 
    //deliver the email.
    if ($deliverFlag)
@@ -758,6 +784,8 @@ function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$
         * there is no customization information - the post was created when
         * wp responder was not installed/deactivated.
         */
+		
+
        if ($options[$nid]['nocustomization']==1 || !isValidOptionsArray($options) || ($whetherPostSeries == true && $options[$nid]['nopostseries']==1))
            {
             $htmlbody = getBlogContentInDefaultLayout($post_id);
@@ -767,7 +795,9 @@ function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$
                             "htmlbody"=>$htmlbody,
                             "textbody"=>"",
                             "htmlenabled"=>1,
-                            "attachimages"=>true);
+                            "attachimages"=>true,
+							'meta_key'=> $meta_key,
+							);
        }
        else
        {
@@ -781,7 +811,8 @@ function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$
                             "htmlbody"=>$htmlBody,
                             "textbody"=>$options[$nid]['textbody'].strip_tags("$footerMessage"),
                             "attachimages"=>($options[$nid]['attachimages'])?1:0,
-                            "htmlenabled"=> $htmlEnabled
+                            "htmlenabled"=> $htmlEnabled,
+							'meta_key'=> $meta_key
                  );
 
        }

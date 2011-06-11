@@ -1,4 +1,5 @@
 <?php
+
 function _wpr_increment_hourly_email_sent_count()
 {
 	$email_sent_this_hour = get_option("_wpr_dq_emails_sent_this_hour");
@@ -6,13 +7,12 @@ function _wpr_increment_hourly_email_sent_count()
 	update_option("_wpr_dq_emails_sent_this_hour",$email_sent_this_hour);
 }
 
+
 function _wpr_non_wpr_email_sent($params)
 {
 	_wpr_increment_hourly_email_sent_count();
 	return $params;
 }
-
-
 
 /*
  *
@@ -38,8 +38,10 @@ function sendmail($sid,$params,$footerMessage="")
 	global $wpdb;	
 	$parameters = _wpr_process_sendmail_parameters($sid,$params,$footerMessage);	
 	extract($parameters);
+	
 	$tableName = $wpdb->prefix."wpr_queue";
-	$query = "INSERT INTO $tableName (`from`,`fromname`, `to`, `reply_to`, `subject`, `htmlbody`, `textbody`, `headers`,`attachimages`,`htmlenabled`,`email_type`,`delivery_type`) values ('$from','$fromname','$to','$reply_to','$subject','$htmlbody','$textbody','$headers','$attachImages','$htmlenabled','$email_type','$delivery_type');";
+	$query = "INSERT INTO $tableName (`from`,`fromname`, `to`, `reply_to`, `subject`, `htmlbody`, `textbody`, `headers`,`attachimages`,`htmlenabled`,`email_type`,`delivery_type`,`meta_key`,`hash`) values ('$from','$fromname','$to','$reply_to','$subject','$htmlbody','$textbody','$headers','$attachImages','$htmlenabled','$email_type','$delivery_type','$meta_key','$hash');";
+	
 	$wpdb->query($query);
 
 }
@@ -88,11 +90,13 @@ function _wpr_process_sendmail_parameters($sid, $params,$footerMessage="")
 	$textbody = addslashes($textbody);
 	$htmlbody = addslashes($htmlbody);
 	$subject = addslashes($subject);
+	$time = time();
 
 	$delivery_type = (!empty($params['delivery_type']))?$params['delivery_type']:0;
 	$email_type = (!empty($params['email_type']))?$params['email_type']:'misc';
     $attachImages = ($params['attachimages'])?1:0;
-
+	$meta_key = (!empty($params['meta_key']))?$params['meta_key']:"Misc-$sid-$time";
+	$hash = make_hash(array_merge(array('sid'=>$sid),$params));
 	$from = (!empty($params['fromemail']))?$params['fromemail']:(!empty($newsletter->fromemail))?$newsletter->fromemail:get_bloginfo('admin_email');
 	
 	$parameters = array(
@@ -107,9 +111,18 @@ function _wpr_process_sendmail_parameters($sid, $params,$footerMessage="")
 					'attachimages'=>$attachImages,
 					'htmlenabled'=>$htmlenabled,
 					'delivery_type' => $delivery_type,
-					'email_type'=>$email_type
-					);
+					'email_type'=>$email_type,
+					'meta_key' =>$meta_key,
+					'hash'=> $hash
+		);
+
 	return $parameters;
+}
+
+function make_hash($params)
+{
+	extract($params);
+	return md5($sid.$htmlbody.$textbody.$subject);
 }
 
 function _wpr_send_and_save($sid, $params, $footerMessage="")
@@ -123,9 +136,9 @@ function _wpr_send_and_save($sid, $params, $footerMessage="")
 	dispatchEmail($parameters);	
 	
 	$queue_table_name = $wpdb->prefix."wpr_queue";
-	$emailQuery = $wpdb->prepare("INSERT INTO $queue_table_name (`from`, `fromname`, `to`, `subject`, `htmlbody`, `textbody`, `headers`, `sent`, `delivery_type`, `email_type`, `htmlenabled`, `attachimages`)
+	$emailQuery = $wpdb->prepare("INSERT INTO $queue_table_name (`from`, `fromname`, `to`, `subject`, `htmlbody`, `textbody`, `headers`, `sent`, `delivery_type`, `email_type`, `htmlenabled`, `attachimages`,`meta_key`)
 																VALUES
-																('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s');",
+																('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s');",
 									$parameters['from'],
 									$parameters['fromname'],
 									$parameters['to'],
@@ -137,7 +150,8 @@ function _wpr_send_and_save($sid, $params, $footerMessage="")
 									'1',
 									$parameters['email_type'],
 									$parameters['htmlenabled'],
-									$parameters['attachimages']
+									$parameters['attachimages'],
+									$parameters['meta_key']
 								);
 
 	$wpdb->query($emailQuery);
@@ -212,9 +226,6 @@ function wpr_processqueue()
 	update_option("_wpr_queue_delivery_status","stopped");
 }
 
-
-
-
 /*
  * This is the function that sends the email out.
  * Arguments : $mail = array(
@@ -231,8 +242,6 @@ function wpr_processqueue()
  *                                           0 = No,  don't attach the images
  *
  */
-
-
 function dispatchEmail($mail)
 {
 	try {
@@ -272,7 +281,7 @@ function dispatchEmail($mail)
 	}
 	catch (Exception $exp)
 	{
-		
+		//do something here..
 	}
 }
 	
@@ -523,7 +532,6 @@ function sendConfirmedEmail($id)
 	$email = $sub->email;
 	$emailBody = $params[1];
 	$emailSubject = $params[0];
-
 	$mailToSend = array(
 							'to'=>$email,
 							'fromname'=>  $fromname,
@@ -531,9 +539,6 @@ function sendConfirmedEmail($id)
 							'textbody' => $emailBody,
 							'subject'=> $emailSubject,
 						);
-
-
-
 		try {
 			dispatchEmail($mailToSend);
 		}
