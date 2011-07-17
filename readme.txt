@@ -64,6 +64,13 @@ http://www.wpresponder.com
 And get in touch with me. 
 
 
+== GitHub ==
+
+The latest version fo WP Autoresponder can be downloaded from GitHub:
+
+https://github.com/rajasekharan/WP-Autoresponder
+
+
 == ChangeLog ==
 
 **WP Responder 4.9.2**
