@@ -6,6 +6,23 @@ function validateEmail($email)
     return eregi('^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.([a-zA-Z]{2,4})$',$email);
 }
 
+function _wpr_option_get($name)
+{
+    if (!$GLOBALS['_wpr_options'] )
+    {
+        $GLOBALS['_wpr_options'] = get_option("_wpr_options");
+    }
+    $options = $GLOBALS['_wpr_options'];
+    return $options[$name];
+}
+
+function _wpr_option_set($name,$value)
+{
+    $options = get_option("_wpr_options");
+    $options[$name] = $value;
+    update_option("_wpr_options",$options);
+}
+
 function wpr_sanitize($string,$html=true)
 {
 	if ($html)
@@ -28,18 +45,14 @@ function wpr_replace_tags($sid,&$subject,&$body,$additional = array())
 	$subscriber = $wpdb->get_results($query);
 	$subscriber = $subscriber[0];
 	$nid = $subscriber->nid;
-
-	$query = "SELECT * FROM ".$wpdb->prefix."wpr_newsletters wehre id='$nid'";
-
-	$newsletter = $wpdb->get_results($query);
-
-	$newsletter = $newsletter[0];
+	
+	$newsletter = new Newsletter($nid);
 
 	$parameters = array();
 
 	//newsletter name
 
-	$newsletterName = $newsletter->name;
+	$newsletterName = $newsletter->getNewsletterName();
 
 	$parameters['newslettername'] = $newsletterName;
 
@@ -86,13 +99,9 @@ function wpr_replace_tags($sid,&$subject,&$body,$additional = array())
 	//custom fields defined by the administrator
 
 	foreach ($custom_fields as $custom_field)
-
 	{
-
 		$name = $custom_field->name;
-
 		$parameters[$custom_field->name] = $subscriber->{$name};
-
 	}
 
 	

@@ -52,8 +52,8 @@ function wpr_newmail ()
 			else
 			{
 				$sections = explode("/",$date);
-				$timeToSend =mktime($hour,$min,0,$sections[0],$sections[1],$sections[2]); 
-				$timeToSend = $timeToSend+$timezoneOffset;
+				$timeToSend = mktime($hour,$min,0,$sections[0],$sections[1],$sections[2]); 
+				$timeToSend = $timeToSend-$timezoneOffset;
 			}
 
 		}
@@ -91,11 +91,7 @@ function wpr_newmail ()
 
 			$wpdb->query($query);
 
-			//schedule the cron to run right now.
-			wp_schedule_single_event( time(), "wpr_cronjob");			
-			//make the cron start.
-			spawn_cron(); 
-			
+				
 			_wpr_mail_sending();
 			return;
 

@@ -9,7 +9,6 @@ if ($_GET['subscribed'] == "true")
 }
 
 function error($error)
-
 {
 
 	?>
@@ -34,7 +33,9 @@ function error($error)
 
  */
 
-if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email']))
+$success = (boolean) (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email']));
+
+if ($success)
 {
 	$name = wpr_sanitize($_POST['name']);
 	$email = strtolower(wpr_sanitize($_POST['email']));
@@ -53,6 +54,9 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 		//stupid spambot spamming my subscription forms. damn the bot!
 		exit;
 	}
+	
+	do_action("_wpr_subscriptionform_prevalidate");
+	
 	
 	$skiplist = array("name","email","followup","blogsubscription","cat","return_url","responder");
 	
@@ -88,6 +92,16 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 		error('<center><div style="font-size: 20px;">Invalid Email Address</div></center> The e-mail address you mentioned is not a valid e-mail address. Please <a href="javascript:window.history.go(-1);">go back</a> and re-enter the e-mail in the correct format.');
 
 	}
+        
+        $errors = array();
+        
+        $errors = apply_filters("_wpr_subscriptionform_validate",$errors);
+        
+        if (count($errors) !=0)
+        {
+            $errorString = implode("<li>",$errors);
+            error("<ol>$errorString</ol>");
+        }
 
 
 	if (!empty($followup) && !empty($responder))
@@ -166,32 +180,8 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 	
 
 	$nid = $newsletter->id;
-
-	//the hash...
-
-    //gnerate a small string
-	/*
 	
-	between 48 and 57
-	between 97 and 123 
-	and between 65 and 90
-	*/
-	for ($i=0;$i<6;$i++)
-	{
-		$a[] = rand(65,90);
-		$a[] = rand(97,123);
-		$a[] = rand(48,57);
-		
-		$whichone = rand(0,2);
-		$currentCharacter = chr($a[$whichone]);
-		
-		$hash .= $currentCharacter;
-		unset($a);
-		
-	}
-     $hash .= time();
-	//insert into subscribers list
-
+	$hash = _wpr_subscriber_hash_generate();
 
 	$query = "SELECT * FROM ".$wpdb->prefix."wpr_subscribers where email='$email' and nid='$nid';";
 	$subscribeList = $wpdb->get_results($query);
@@ -230,14 +220,13 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
    			 $wpdb->get_results($query);
 		 }
 	}
-	$id = $subscriber->id;
+	$id = intval($subscriber->id);
 	
 	
 	//insert the subscriber's custom field values
 	foreach ($_POST as $field_name=>$value)
 	{
 		if (ereg('cus_.*',$field_name))
-
 		{
 
 			$name = base64_decode(str_replace("cus_","",$field_name));
@@ -256,7 +245,7 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 
 			$wpdb->query($query);
 
-			$query = "insert into ".$wpdb->prefix."wpr_custom_fields_values (nid,sid,cid,value)  values ('$nid','$id','$cid','$value');";
+			$query = "INSERT INTO ".$wpdb->prefix."wpr_custom_fields_values (nid,sid,cid,value)  values ('$nid','$id','$cid','$value');";
 
 			$wpdb->query($query);
 
@@ -354,23 +343,12 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 
 	//if blog subscription is mentioned in the form
 	if (!empty($bsubscription))
-	{
-		$suffix = ($bsubscription == "cat")?" and a.catid='$bcategory'":"";
-
-		$query = "SELECT * FROM ".$wpdb->prefix."wpr_blog_subscription a,".$wpdb->prefix."wpr_subscribers b where a.sid=b.id and b.id=$id and a.type='$bsubscription' $suffix ;";
-
-		$blogSubscriptions = $wpdb->get_results($query);
-
-		//subscribe to blog or blog category only if they are not already subscribed.
-		if (count($blogSubscriptions) == 0)
-		{	
-
-			$query = "INSERT INTO ".$wpdb->prefix."wpr_blog_subscription (sid,type,catid) values ('$id','$bsubscription','$bcategory');";
-
-			$wpdb->query($query);
-
-		}
-
+	{	
+                $deleteExistingSubscriptionQuery = sprintf("DELETE FROM %swpr_blog_subscripition WHERE sid=%d, type='%s',catid=%d",$wpdb->prefix,$id,$bsubscription,$bcategory);
+                $wpdb->query($deleteExistingSubscriptionQuery);
+                $timeNow = time();
+                $query = "INSERT INTO ".$wpdb->prefix."wpr_blog_subscription (sid,type,catid, last_published_post_date) values ('$id','$bsubscription','$bcategory','$timeNow');";
+                $wpdb->query($query);
 	}
 
 	
@@ -400,20 +378,7 @@ if (isset($_POST['newsletter']) && isset($_POST['name']) && isset($_POST['email'
 	}
 	
 	
-	
-	
-
-	
-	
-	if (empty($confirm_subject) && empty($confirm_body))
-
-	{
-
-		$confirm_subject = $newsletter->confirm_subject;
-
-		$confirm_body = $newsletter->confirm_body;
-
-	}	
+	do_action("_wpr_subscriber_added",$id);
 
 	$theqstring = $subscriber->id."%%".$subscriber->hash."%%".$fid;
 

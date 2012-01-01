@@ -1,5 +1,4 @@
 <?php
-
 function getNumberOfEmailsToDeliver()
 {
 	$currentTime = time();	
@@ -56,7 +55,7 @@ function _wpr_process_queue()
 	global $wpdb;
 
 	/*ENSURING THERE IS ONLY ONE INSTANCE THAT RUNS FOR A MAXIMUM OF ONE HOUR START HERE*/
-	
+ 	set_time_limit(3600);
 	$last_cron_status = get_option("_wpr_queue_delivery_status");
 
         /*
@@ -82,37 +81,61 @@ function _wpr_process_queue()
 	update_option("_wpr_queue_delivery_status",$timeOfStart);
 	
 	$numberOfEmailsToDeliver = getNumberOfEmailsToDeliver();
-	$limitClause = " LIMIT $numberOfEmailsToDeliver";
-	$query = "SELECT * FROM ".$wpdb->prefix."wpr_queue where sent=0 $limitClause ";
-	$results = $wpdb->get_results($query);
-	foreach ($results as $mail)  
-	{
-		$mail = (array) $mail;	
-		
-		
-		try {
-			dispatchEmail($mail);
-		}
-		catch (Swift_RfcComplianceException $exception) //invalidly formatted email.
-		{
-			//disable all subscribers with that email.
-			$email = $mail['to'];			
-			$query = "UPDATE ".$wpdb->prefix."wpr_subscribers set active=3, confirmed=0 where email='$email'";
-			$wpdb->query($query);
-		}
-		$query = "UPDATE ".$wpdb->prefix."wpr_queue set sent=1 where id=".$mail['id'];
-		$wpdb->query($query);
-
-                $timeThisInstant = time();
-
-                $timeSinceStart = $timeThisInstant-$timeOfStart;
-                if ($timeSinceStart > WPR_MAX_QUEUE_DELIVERY_EXECUTION_TIME)
-                    return;
-
-	}
+	$queueBatchSize = WPR_MAX_QUEUE_EMAILS_SENT_PER_ITERATION;
 	
+	$numberOfIterations = ceil($numberOfEmailsToDeliver/$queueBatchSize);
+	
+	//queue batch size of number of emails to deliver whichever is lesser should be fetched from db.
+	if ($numberOfEmailsToDeliver < $queueBatchSize)
+	  $queueBatchSize = $numberOfEmailsToDeliver;
+	
+	for ($iter=0;$iter<$numberOfIterations;$iter++)
+	{
+		$limitClause = sprintf(" LIMIT %d",$queueBatchSize);
+		$query = sprintf("SELECT * FROM `%swpr_queue` q, %swpr_subscribers s WHERE s.id=q.sid AND q.`sent`=0 AND s.confirmed=1 AND s.active=1 %s ",$wpdb->prefix,$limitClause);
+		$results = $wpdb->get_results($query);
+		foreach ($results as $mail)  
+		{
+			$mail = (array) $mail;	
+			try {
+				dispatchEmail($mail);
+			}
+			catch (Swift_RfcComplianceException $exception) //invalidly formatted email.
+			{
+				//disable all subscribers with that email.
+				//TODO: Move this to a separate function.
+				$email = $mail['to'];
+				$setTheEmailAsFailedQuery = $wpdb->prepare("UPDATE `{$wpdb->prefix}wpr_subscribers` SET `active`=3, `confirmed`=0 WHERE `email`=%s",$email);
+				$wpdb->query($setTheEmailAsFailedQuery);
+				
+				//set aall other emails in queue which have this email to 3.
+				//TODO: #DevDoc sent=3 means invalid email.
+				$markAllEmailsOfThisEmailUnprocessable = $wpdb->prepare("UPDATE `{$wpdb->prefix}wpr_queue` SET `sent`=3 WHERE `sent`=0 AND `email`=%s",$email);
+				$wpdb->query($markAllEmailsOfThisEmailUnprocessable);
+			}
+			$setEmailAsSentQuery = sprintf("UPDATE `%swpr_queue` SET `sent`=1 WHERE `id`=%d",$wpdb->prefix,$mail['id']);
+			$wpdb->query($setEmailAsSentQuery);
+		        $timeThisInstant = time();
+		        $timeSinceStart = $timeThisInstant-$timeOfStart;
+		        if ($timeSinceStart > WPR_MAX_QUEUE_DELIVERY_EXECUTION_TIME)
+		        {
+		            update_option("_wpr_queue_delivery_status","stopped");
+		            return;
+		        }
+
+		}
+	}
 	//WE JUST FINISHED
 	update_option("_wpr_queue_delivery_status","stopped");
+}
+
+function whetherTimedOut($startTime,$maxTime) 
+{
+	$currentTime = time();
+	if (($currentTime-$startTime) > $maxTime){
+	  return true;
+	}	
+	return false;
 }
 
 /*
@@ -123,21 +146,27 @@ function _wpr_process_queue()
 function _wpr_autoresponder_process($id=0)
 {
 	global $wpdb;
-
-
-        $id = intval($id);
-        if ($id ==0)
-            $send_immediately=false;
-        else
-        {
-            $send_immediately = true;
-            $subscriberClause = "AND b.id=$id";
-        }
-
-
-
-
+	
+	$id = intval($id);
+	if ($id ==0)
+		$send_immediately=false;
+	else
+	{
+		$send_immediately = true;
+		$subscriberClause = "AND b.id=$id";
+	}
+	$startTime = time();
+	
+	/*
+	Condition:
+	if (whetherTimedOut($startTime, $maximumExecutionTime)) {
+		do_action('');
+		return;
+	}
+	
+	*/
 	$last_cron_status = get_option("_wpr_autoresponder_process_status");
+	
 	/*
 	When the cron is running the _wpr_autoresponder_process_status
 	is set to the timestamp at which the cron processing was started.
@@ -150,6 +179,7 @@ function _wpr_autoresponder_process($id=0)
 	*/
 	
 	$timeOfStart = time();
+	$maximumExecutionTime = WPR_MAX_AUTORESPONDER_PROCESS_EXECUTION_TIME;
 	$timeMaximumExecutionTimeAgo = $timeOfStart - WPR_MAX_AUTORESPONDER_PROCESS_EXECUTION_TIME;
 	if (!empty($last_cron_status) && $last_cron_status != "stopped")
 	{
@@ -158,83 +188,127 @@ function _wpr_autoresponder_process($id=0)
 		{
 			return;
 		}
+	}	
+	set_time_limit($maximumExecutionTime);
+
+	if (whetherTimedOut($startTime, $maximumExecutionTime)) {
+		do_action('_wpr_autoresponder_process_end');
+		return;
 	}
 	
 	delete_option("_wpr_autoresponder_process_status");
 	add_option("_wpr_autoresponder_process_status",$timeOfStart);
 	
 	$currentTime = time();
-        $prefix = $wpdb->prefix;
+	$timeTodayAt12AM = mktime(0,0,0,date("n",$currentTime),date("j",$currentTime),date("Y",$currentTime));
+    $prefix = $wpdb->prefix;
+	do_action("_wpr_autoresponder_process_start");
 
-
-
-
-
-	$getActiveFollowupSubscriptionsQuery = "SELECT a.*, b.id sid, FLOOR(($currentTime - a.doc)/86400) daysSinceSubscribing FROM `".$prefix."wpr_followup_subscriptions` a, `".$prefix."wpr_subscribers` b  WHERE a.type='autoresponder' AND  a.sequence < FLOOR(($currentTime - a.doc)/86400) AND a.sequence <> -2 AND a.sid=b.id $subscriberClause AND b.active=1 AND b.confirmed=1 LIMIT 1000;";
-	$autoresponderSubscriptions = $wpdb->get_results($getActiveFollowupSubscriptionsQuery);
+	$getNumberOfActiveFollowupSubscriptionsQuery = "SELECT COUNT(*) number
+											FROM `".$prefix."wpr_followup_subscriptions` a,
+											`".$prefix."wpr_subscribers` b
+											WHERE a.type='autoresponder' AND  
+											FLOOR(($timeTodayAt12AM - a.doc)/86400) > a.sequence OR
+											FLOOR(($timeTodayAt12AM - a.doc)/86400) = -1 AND
+											a.sid=b.id $subscriberClause AND
+											b.active=1 AND b.confirmed=1;";
 	
-	foreach ($autoresponderSubscriptions as $asubscription)
-	{
-		$aid = $asubscription->eid;
-		$daysSinceSubscribing = $asubscription->daysSinceSubscribing;
-                /*Below is a strange bunch of code that:
-                 *
-                 * 1.  fetches the email
-                 * 2.  expires subscriptions if there are no more messages to deliver
-                 * 
-                 */
-		$query = "SELECT * FROM ".$prefix."wpr_autoresponder_messages where aid=$aid and sequence>=$daysSinceSubscribing LIMIT 1;";
-		$listOfMessages = get_rows($query);
+	$numberOfActivesResult = $wpdb->get_results($getNumberOfActiveFollowupSubscriptionsQuery);
+	$number = $numberOfActivesResult[0]->number;
+	
+	$numberOfIterations = ceil($number/1000);
+	
+	for ($iterator=0;$iterator<$numberOfIterations;$iterator++)
+	{	
+		$start = $iterator*WPR_AUTORESPONDER_BATCH_SIZE;
+		$getActiveFollowupSubscriptionsQuery = "SELECT FROM `".$prefix."wpr_followup_subscriptions` a,
+												`".$prefix."wpr_subscribers` b
+												WHERE a.type='autoresponder' AND  
+												FLOOR(($timeTodayAt12AM - a.doc)/86400) > a.sequence OR
+												FLOOR(($timeTodayAt12AM - a.doc)/86400) = -1 AND
+												a.sid=b.id $subscriberClause AND
+												b.active=1 AND b.confirmed=1 LIMIT $start,".WPR_AUTORESPONDER_BATCH_SIZE.";";
 		
-		if (0 == count($listOfMessages))
+		$autoresponderSubscriptions = $wpdb->get_results($getActiveFollowupSubscriptionsQuery);
+		
+		$autoresponderSubscriptions = apply_filters("_wpr_autoresponder_subscriptions_iteration",$autoresponderSubscriptions);
+		
+		foreach ($autoresponderSubscriptions as $asubscription)
 		{
-			_wpr_expire_followup($asubscription->id);	
-			continue;
-		}
-		
-		$message = $listOfMessages[0];
-		
-                //in case this is a message of a later day.
-                if ($message->sequence != $daysSinceSubscribing)
-                        continue;
-                /*
-                 * End strange bunch of code.
-                 */
-		$message_id = $message->id;
-		$subscriber_id = $asubscription->sid;
-		$autoresponder_id = $asubscription->eid;
-		
-		$meta_key = sprintf("AR-%s-%s-%s-%s",$autoresponder_id, $subscriber_id, $message_id, $daysSinceSubscribing);
-		
-		$emailParameters = array("subject" => $message->subject, "textbody" => $message->textbody , "htmlbody" => $message->htmlbody, "htmlenabled"=> $message->htmlenabled,"attachimages"=> $message->attachimages, "email_type" => "user_followup_autoresponder_email", 'meta_key'=>$meta_key);
-		wpr_place_tags($asubscription->sid,$emailParameters);
-		
-		try {
-		
-			if ($send_immediately == false)
-				sendmail($asubscription->sid,$emailParameters);
-			else
+
+			$aid = $asubscription->eid;
+			$daysSinceSubscribing = $asubscription->daysSinceSubscribing;
+			/*Below is a strange bunch of code that:
+					 *
+					 * 1.  fetches the email
+					 * 2.  expires subscriptions if there are no more messages to deliver
+					 * 
+					 */
+			$query = "SELECT * FROM ".$prefix."wpr_autoresponder_messages where aid=$aid and sequence>=$daysSinceSubscribing LIMIT 1;";
+			$listOfMessages = get_rows($query);
+			if (0 == count($listOfMessages))
 			{
-				$emailParameters['delivery_type'] = 1;
-				_wpr_send_and_save($asubscription->sid,$emailParameters);
+				_wpr_expire_followup($asubscription->id);	
+				continue;
+			}
+			
+			$message = $listOfMessages[0];
+		
+			//in case this is a message of a later day.
+			if ($message->sequence != $daysSinceSubscribing)
+					continue;
+					/*
+					 * End strange bunch of code.
+					 */
+			$message_id = $message->id;
+			$subscriber_id = $asubscription->sid;
+			$autoresponder_id = $asubscription->eid;
+			
+			$meta_key = sprintf("AR-%s-%s-%s-%s",$autoresponder_id, $subscriber_id, $message_id, $daysSinceSubscribing);
+			
+			$emailParameters = array("subject" => $message->subject, "textbody" => $message->textbody , "htmlbody" => $message->htmlbody, "htmlenabled"=> $message->htmlenabled,"attachimages"=> $message->attachimages, "email_type" => "user_followup_autoresponder_email", 'meta_key'=>$meta_key);
+			wpr_place_tags($asubscription->sid,$emailParameters);
+			$emailParameters = apply_filters("_wpr_autoresponder_email_delivery",$emailParameters);
+			
+			try {
+			
+				if ($send_immediately == false)
+					sendmail($asubscription->sid,$emailParameters);
+				else
+				{
+					$emailParameters['delivery_type'] = 1;
+					_wpr_send_and_save($asubscription->sid,$emailParameters);
+				}
+			}
+			catch (Exception $exp)
+			{
+				//just in case.
+			}
+			
+			$updateSubscriptionStatusQuery = "UPDATE ".$prefix."wpr_followup_subscriptions set last_date='".time()."', sequence='$message->sequence' WHERE sid=$asubscription->sid";
+			$wpdb->query($updateSubscriptionStatusQuery);
+			
+			//if another cron has started, then this cron should be terminated.
+			$timeThisInstant = time();
+			$timeSinceStart = $timeThisInstant-$timeOfStart;
+			if (whetherTimedOut($startTime, $maximumExecutionTime)) 
+			{
+				do_action('_wpr_autoresponder_process_end');
+				return;
 			}
 		}
-		catch (Exception $exp)
+		
+		if (whetherTimedOut($startTime, $maximumExecutionTime)) 
 		{
-			//just in case.
+			do_action('_wpr_autoresponder_process_end');
+			return;
 		}
-		
-		$updateSubscriptionStatusQuery = "UPDATE ".$prefix."wpr_followup_subscriptions set last_date='".time()."', sequence='$message->sequence' WHERE sid=$asubscription->sid";
-		$wpdb->query($updateSubscriptionStatusQuery);
-		
-		//if another cron has started, then this cron should be terminated.
-		$timeThisInstant = time();
-                $timeSinceStart = $timeThisInstant-$timeOfStart;
-                if ($timeSinceStart > WPR_MAX_AUTORESPONDER_PROCESS_EXECUTION_TIME)
-                    return;
 	}
+	do_action('_wpr_autoresponder_process_end');
 	update_option("_wpr_autoresponder_process_status","stopped");
 }
+
+
 function _wpr_postseries_process()
 {
 	global $wpdb;
@@ -242,6 +316,7 @@ function _wpr_postseries_process()
 	$last_cron_status = get_option("_wpr_postseries_process_status");
         $currentTime = time();
         //return;
+	set_time_limit(3600);
 	/*
 	When the cron is running the _wpr_postseries_process_status
 	is set to the timestamp at which the cron processing was started.
@@ -263,8 +338,7 @@ function _wpr_postseries_process()
 		}
 	}
 	
-	update_option("_wpr_postseries_process_status",$timeOfStart);
-	
+	update_option("_wpr_postseries_process_status",$timeOfStart);	
 	
 	$prefix = $wpdb->prefix;	
 	$getActiveFollowupSubscriptionsQuery = "SELECT a.*, b.id sid, FLOOR(($currentTime - a.doc)/86400) daysSinceSubscribing FROM `".$prefix."wpr_followup_subscriptions` a, `".$prefix."wpr_subscribers` b  WHERE a.type='postseries' AND  a.sequence < FLOOR(($currentTime - a.doc)/86400) AND a.sequence <> -2 AND  a.sid=b.id AND b.active=1 AND b.confirmed=1 LIMIT 1000;";
@@ -284,7 +358,7 @@ function _wpr_postseries_process()
                 //get the post series as an object
 		$postseries = _wpr_postseries_get($psubscription->eid);
                 //get the posts in the post series
-        $posts = get_postseries_posts($postseries->catid,$nid);
+                $posts = get_postseries_posts($postseries->catid,$nid);
 		$numberOfPosts = count($posts);
 		if ($numberOfPosts == 0)
 		{
@@ -345,61 +419,13 @@ function wpr_get_mailouts()
 	return $mailouts;
 }
 
-function _wpr_process_blog_subscriptions()
-{
-	global $wpdb;
-	$prefix = $wpdb->prefix;
-	//now process the people who subscribe to the blog
-	$lastPostDate = get_option("wpr_last_post_date");
-	$timeNow = date("Y-m-d H:i:s",time());
-	$query = "SELECT * FROM ".$prefix."posts where post_type='post' and  post_status='publish' and post_date_gmt > '$lastPostDate' and post_date_gmt < '$timeNow';";
-	$posts = $wpdb->get_results($query);
-	if (count($posts) > 0 ) // are there posts being delivered? 
-	{
-		foreach ($posts as $post)
-		{
-			$query = "SELECT a.* FROM ".$prefix."wpr_subscribers a, ".$prefix."wpr_blog_subscription b where b.type='all' and a.id=b.sid and a.active=1 and a.confirmed=1;";
-			$subscribers = $wpdb->get_results($query);
-			//deliver this post to all subscribers of the categories of
-			// this post.
-			$categories = wp_get_post_categories($post->ID);
-			foreach ($categories as $category)
-			{
-				deliver_category_subscription($category,$post);
-			}
-	
-			if (count($subscribers) > 0)
-			{
-				$blogName = get_bloginfo("name");
-				$blogURL = get_bloginfo("home");
-				$footerMessage = "You are receiving this email because you are subscribed to the latest articles on <a href=\"$blogURL\">$blogName</a>";
-				foreach ($subscribers as $subscriber)
-				{
-							deliverBlogPost($subscriber->id,$post->ID,$footerMessage);
-				}
-			}
-
-			delete_option("wpr_last_post_date");
-			add_option("wpr_last_post_date",$post->post_date_gmt);
-			
-			$sentPosts = get_option("wpr_sent_posts");
-			$sentPostsList = explode(",",$sentPosts);
-			$sentPostsList[] = $post->ID;
-			$sentPosts = implode(",",$sentPostsList);
-			delete_option('wpr_sent_posts');
-			add_option("wpr_sent_posts",$sentPosts);	
-		}
-	}
-	
-}
-
 function _wpr_process_broadcasts()
 {
 	global $wpdb;
 	$prefix = $wpdb->prefix;	
 	$last_cron_status = get_option("_wpr_newsletter_process_status");
 	
-	
+	set_time_limit(3600);
 	
 	
 	/*
@@ -646,214 +672,7 @@ function isValidOptionsArray($options)
     else
          return false;
 }
-/*
- * This function checks if the post $pid is to be skipped from being delivered to
- * subscribers of newsletter $nid.
- */
 
-function whetherToSkipThisPost($nid,$pid)
-{
-    $theoptions = get_post_meta($pid,'wpr-options',true);
-    $options = unserialize($theoptions);
-    if (!isset($options))
-        return 0;
-    //by default, the skip is disabled.
-    if ($options[$nid]['disable']==1)
-        {
-           return 1;
-    }
-    else
-        return 0;
-}
-
-/*
- * This function is used to generate a body for the blog post sent via email
- * when the user doesn't customize it or chooses to use the default layout
- *
- * This function is also used when the post doesn't have any WP Responder options
- * associated with it.
- * Returns string with the HTML to be used for the email
- *
- */
-
-function getBlogContentInDefaultLayout($post_id)
-{
-    $post = get_post($post_id);
-    $content = '<div style="background-color:  #dfdfdf;padding: 5px;"><span style="font-size: 9px; font-family: Arial; text-align:center;\">You are receiving this email because you are subscribed to new posts at ';
-    $content .= "<a href=\"".get_bloginfo("home")."\">".get_bloginfo("name")."</a></span></div>";
-
-    $content .= "<h1><a href=\"".get_permalink($post_id)."\" style=\"font-size:22px; font-family: Arial, Verdana; text-decoration: none; color: #333399\">";
-  $content .= $post->post_title;
-  $content .= "</a></h1>";
-    $content .= '<p style="font-family: Arial; font-size: 10px;">Dated: '.date("d F,Y",strtotime($post->post_date));
-	$post->content = apply_filters("the_content",$post->post_content);
-    $content .= "</p><p><span style=\"font-family: Arial, Verdana; font-size: 12px\">".wptexturize(wpautop(nl2br($post->post_content)))."</span>";
-
-    $content .= "<br><br><span style=\"font-size: 12px; font-family: Arial\"><a href=\"".get_permalink($post_id)."\">Click here</a> to read this post at <a href=\"".get_bloginfo("home")."\">".get_bloginfo("name")."</a></div>.";
-    return $content;
-}
-
-/*
- * This function is used to see if the subscriber with sid $sid
- * is currently receiving any follow up emails from autoresponders
- * or post series subscriptions.
- 
- * This function sends the blog post with post id $post_id via email to subscriber with subscriber id $sid
- * if the the subscriber doesnt belong to a newsletter with newsletter id
- * that is in the list of newsletters that are configured to not receive this blog post.
- *
- *
- *
- */
-function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$whetherPostSeries=false,$additionalParams=array())
-{
-    global $wpdb;
-    //get the post meta
-    $sid = (int) $sid;
-    $post_id = (int) $post_id;
-    if ($sid == 0 || $post_id==0) // neither of these can be zero or empty.
-        return;
-    $post = get_post($post_id);
-    //if plugin was activated after some posts were created
-
-    //the options array will not exist. in that case, we just
-
-    //deliver the blog post
-
-    $optionsList = get_post_meta($post_id,"wpr-options",true);    
-    if (!empty($optionsList))
-    {
-            $decoded = base64_decode($optionsList);
-            $options = unserialize($decoded);
-            $checkCondition = true; //if we have a valid options array, then we should
-            //check the conditions of delivery.
-    }
-    else
-    {
-            $checkCondition=false;
-    }
-    
-    $query = "SELECT nid from ".$wpdb->prefix."wpr_subscribers where id=".$sid;
-    $results = $wpdb->get_results($query);
-    $nid = $results[0]->nid;
-    if (count($results) == 0) //if there is no subscriber by that sid
-        return;
-
-    
-    $deliverFlag = true; // this flag is used to trigger the delivery
-    if ($checkCondition == true)
-    {
-       //get the subscriber's newsletter id
-        if (isset($options[$nid]))
-        {
-            if ($options[$nid]['disable']==1)
-                {
-                    $deliverFlag = false;
-                }
-        }
-        else
-            $deliverFlag=true;
-   }
-   else
-       {
-       $deliverFlag = true;
-   }
-   
-	   if (isset($additionalParams['meta_key']))
-	   {
-			$meta_key =  $additionalParams['meta_key'];
-	   }
-	   else
-	   {
-			$meta_key = sprintf("BP-%s-%s",$sid,$post_id);
-	   }
-
-   //deliver the email.
-   if ($deliverFlag)
-       {
-        //are customizations disabled? then get the html body for the blog post
-        //from the default layout format.
-       //check if the subscriber is currently receiving any follow up series emails
-       if (isset($options) && $options[$nid]['skipactivesubscribers']==1 && isReceivingFollowupPosts($sid))
-           return;
-
-       /*
-        * The conditions where the default layout is used are:
-        * the customization has been disabled,
-        * the customization has been disabled for post series
-        * there is no customization information - the post was created when
-        * wp responder was not installed/deactivated.
-        */
-		
-
-       if ($options[$nid]['nocustomization']==1 || !isValidOptionsArray($options) || ($whetherPostSeries == true && $options[$nid]['nopostseries']==1))
-           {
-            $htmlbody = getBlogContentInDefaultLayout($post_id);
-            $post = get_post($post_id);
-            $subject = $post->post_title;
-            $params = array("subject"=>$subject,
-                            "htmlbody"=>$htmlbody,
-                            "textbody"=>"",
-                            "htmlenabled"=>1,
-                            "attachimages"=>true,
-							'meta_key'=> $meta_key,
-							);
-       }
-       else
-       {
-		     $htmlBody = $options[$nid]['htmlbody'].nl2br($footerMessage);
-			 
-			 $htmlEnabled = ($options[$nid]['htmlenable']==1)?1:0;
-			 if (!$htmlEnabled)
-			 	$htmlBody="";
-				
-             $params = array("subject"=>$options[$nid]['subject'],
-                            "htmlbody"=>$htmlBody,
-                            "textbody"=>$options[$nid]['textbody'].strip_tags("$footerMessage"),
-                            "attachimages"=>($options[$nid]['attachimages'])?1:0,
-                            "htmlenabled"=> $htmlEnabled,
-							'meta_key'=> $meta_key
-                 );
-
-       }
-
-       $params['subject'] = substitutePostRelatedShortcodes($params['subject'],$post_id);
-       $params['htmlbody'] = substitutePostRelatedShortcodes($params['htmlbody'],$post_id);
-       $params['textbody'] = substitutePostRelatedShortcodes($params['textbody'],$post_id);
-	   
-	   //substitute newsletter related parameters.
-	   
-	   wpr_place_tags($sid,$params);
-       sendmail($sid,$params);
-   }
-
-}
-
-function substitutePostRelatedShortcodes($text,$post_id)
-{
-
-    //the post's url
-	
-	
-    $postUrl = get_permalink($post_id);
-    $text = str_replace("[!post_url!]",$postUrl,$text);
-	
-    //teh post's delivery date
-    //which is time right now.
-    $time = date("g:iA d F Y ",time());
-    $time .= date_default_timezone_get();
-    $text = str_replace("[!delivery_date!]",$time,$text);
-	
-    //post publishing date
-    $post = get_post($post_id);
-    $postDate = $post->post_date;
-    $postEpoch = strtotime($postDate);
-    $postDate = date("dS, F Y",$postEpoch);
-    $text = str_replace("[!post_date!] ",$postDate,$text);
-   
-    return $text;
-    
-}
 
 function deliver_category_subscription($catid,$post)
 {

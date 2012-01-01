@@ -3,8 +3,8 @@ Contributors: rajasekharan
 Donate link: http://wpresponder.com/donate/  
 Tags: email, newsletter, autoresponder, subscribers, mailing list, follow up email autoresponder, email marketing  
 Requires at least: 2.8.2  
-Tested up to: 3.1  
-Stable tag: 5.1.1
+Tested up to: 3.3
+Stable tag: 5.2
 
 With WP Autoresponder you can create email newsletters, follow up autoresponders and provide subscription to blog via e-mail.  
 
@@ -62,13 +62,6 @@ Please visit the plugin website:
 http://www.wpresponder.com
   
 And get in touch with me. 
-
-
-== Development Version==
-
-The latest version of WP Autoresponder can be downloaded from GitHub:
-
-https://github.com/rajasekharan/WP-Autoresponder
 
 
 == ChangeLog ==

@@ -1,5 +1,26 @@
 <?php
 
+function _wpr_subscriber_hash_generate() {
+
+	$hash = "";
+	for ($i=0;$i<6;$i++)
+	{
+		$a[] = rand(65,90);
+		$a[] = rand(97,123);
+		$a[] = rand(48,57);
+		
+		$whichone = rand(0,2);
+		$currentCharacter = chr($a[$whichone]);
+		
+		$hash .= $currentCharacter;
+		unset($a);
+		
+	}
+     $hash .= time();
+	//insert into subscribers list
+	return $hash;
+}
+
 function _wpr_increment_hourly_email_sent_count()
 {
 	$email_sent_this_hour = get_option("_wpr_dq_emails_sent_this_hour");
@@ -40,7 +61,7 @@ function sendmail($sid,$params,$footerMessage="")
 	extract($parameters);
 	
 	$tableName = $wpdb->prefix."wpr_queue";
-	$query = "INSERT INTO $tableName (`from`,`fromname`, `to`, `reply_to`, `subject`, `htmlbody`, `textbody`, `headers`,`attachimages`,`htmlenabled`,`email_type`,`delivery_type`,`meta_key`,`hash`) values ('$from','$fromname','$to','$reply_to','$subject','$htmlbody','$textbody','$headers','$attachImages','$htmlenabled','$email_type','$delivery_type','$meta_key','$hash');";
+	$query = "INSERT INTO $tableName (`from`,`fromname`, `to`, `reply_to`, `subject`, `htmlbody`, `textbody`, `headers`,`attachimages`,`htmlenabled`,`email_type`,`delivery_type`,`meta_key`,`hash`,`sid`) values ('$from','$fromname','$to','$reply_to','$subject','$htmlbody','$textbody','$headers','$attachImages','$htmlenabled','$email_type','$delivery_type','$meta_key','$hash','$sid');";
 	
 	$wpdb->query($query);
 
