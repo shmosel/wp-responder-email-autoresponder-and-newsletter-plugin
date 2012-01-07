@@ -81,8 +81,7 @@ function _wpr_process_queue()
 	update_option("_wpr_queue_delivery_status",$timeOfStart);
 	
 	$numberOfEmailsToDeliver = getNumberOfEmailsToDeliver();
-	$queueBatchSize = WPR_MAX_QUEUE_EMAILS_SENT_PER_ITERATION;
-	
+	$queueBatchSize = WPR_MAX_QUEUE_EMAILS_SENT_PER_ITERATION;	
 	$numberOfIterations = ceil($numberOfEmailsToDeliver/$queueBatchSize);
 	
 	//queue batch size of number of emails to deliver whichever is lesser should be fetched from db.
@@ -92,11 +91,12 @@ function _wpr_process_queue()
 	for ($iter=0;$iter<$numberOfIterations;$iter++)
 	{
 		$limitClause = sprintf(" LIMIT %d",$queueBatchSize);
-		$query = sprintf("SELECT * FROM `%swpr_queue` q, %swpr_subscribers s WHERE s.id=q.sid AND q.`sent`=0 AND s.confirmed=1 AND s.active=1 %s ",$wpdb->prefix,$limitClause);
+		$query = sprintf("SELECT q.* FROM `%swpr_queue` q, %swpr_subscribers s WHERE s.id=q.sid AND q.`sent`=0 AND s.confirmed=1 AND s.active=1 %s ",$wpdb->prefix,$wpdb->prefix,$limitClause);
 		$results = $wpdb->get_results($query);
 		foreach ($results as $mail)  
 		{
 			$mail = (array) $mail;	
+
 			try {
 				dispatchEmail($mail);
 			}
@@ -105,6 +105,7 @@ function _wpr_process_queue()
 				//disable all subscribers with that email.
 				//TODO: Move this to a separate function.
 				$email = $mail['to'];
+
 				$setTheEmailAsFailedQuery = $wpdb->prepare("UPDATE `{$wpdb->prefix}wpr_subscribers` SET `active`=3, `confirmed`=0 WHERE `email`=%s",$email);
 				$wpdb->query($setTheEmailAsFailedQuery);
 				
@@ -212,7 +213,7 @@ function _wpr_autoresponder_process($id=0)
 											FLOOR(($timeTodayAt12AM - a.doc)/86400) = -1 AND
 											a.sid=b.id $subscriberClause AND
 											b.active=1 AND b.confirmed=1;";
-	
+																						
 	$numberOfActivesResult = $wpdb->get_results($getNumberOfActiveFollowupSubscriptionsQuery);
 	$number = $numberOfActivesResult[0]->number;
 	
@@ -221,14 +222,14 @@ function _wpr_autoresponder_process($id=0)
 	for ($iterator=0;$iterator<$numberOfIterations;$iterator++)
 	{	
 		$start = $iterator*WPR_AUTORESPONDER_BATCH_SIZE;
-		$getActiveFollowupSubscriptionsQuery = "SELECT FROM `".$prefix."wpr_followup_subscriptions` a,
+		$getActiveFollowupSubscriptionsQuery = "SELECT a.*, FLOOR(($timeTodayAt12AM - a.doc)/86400) `daysSinceSubscribing`  FROM `".$prefix."wpr_followup_subscriptions` a,
 												`".$prefix."wpr_subscribers` b
 												WHERE a.type='autoresponder' AND  
 												FLOOR(($timeTodayAt12AM - a.doc)/86400) > a.sequence OR
 												FLOOR(($timeTodayAt12AM - a.doc)/86400) = -1 AND
 												a.sid=b.id $subscriberClause AND
 												b.active=1 AND b.confirmed=1 LIMIT $start,".WPR_AUTORESPONDER_BATCH_SIZE.";";
-		
+
 		$autoresponderSubscriptions = $wpdb->get_results($getActiveFollowupSubscriptionsQuery);
 		
 		$autoresponderSubscriptions = apply_filters("_wpr_autoresponder_subscriptions_iteration",$autoresponderSubscriptions);
@@ -238,14 +239,9 @@ function _wpr_autoresponder_process($id=0)
 
 			$aid = $asubscription->eid;
 			$daysSinceSubscribing = $asubscription->daysSinceSubscribing;
-			/*Below is a strange bunch of code that:
-					 *
-					 * 1.  fetches the email
-					 * 2.  expires subscriptions if there are no more messages to deliver
-					 * 
-					 */
-			$query = "SELECT * FROM ".$prefix."wpr_autoresponder_messages where aid=$aid and sequence>=$daysSinceSubscribing LIMIT 1;";
-			$listOfMessages = get_rows($query);
+			$daysSinceSubscribing = ($daysSinceSubscribing == -1)?0:$daysSinceSubscribing;
+			$query = sprintf("SELECT * FROM {$wpdb->prefix}wpr_autoresponder_messages WHERE `aid`=%d AND `sequence`>=%d LIMIT 1;",$aid,$daysSinceSubscribing);
+			$listOfMessages = $wpdb->get_results($query);
 			if (0 == count($listOfMessages))
 			{
 				_wpr_expire_followup($asubscription->id);	
@@ -254,12 +250,9 @@ function _wpr_autoresponder_process($id=0)
 			
 			$message = $listOfMessages[0];
 		
-			//in case this is a message of a later day.
 			if ($message->sequence != $daysSinceSubscribing)
-					continue;
-					/*
-					 * End strange bunch of code.
-					 */
+				continue;
+				
 			$message_id = $message->id;
 			$subscriber_id = $asubscription->sid;
 			$autoresponder_id = $asubscription->eid;

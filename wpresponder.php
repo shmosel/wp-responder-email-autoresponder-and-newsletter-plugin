@@ -3,7 +3,7 @@
 Plugin Name: WP Autoresponder
 Plugin URI: http://www.wpresponder.com
 Description: Gather subscribers in newsletters, follow up with automated e-mails, provide subscription to all posts in your blog or individual categories.
-Version: 5.2.5
+Version: 5.2.6
 Author: Raj Sekharan
 Author URI: http://www.krusible.com/
 */
@@ -20,7 +20,7 @@ if (!defined("WPR_DEFS"))
     $modelsDir = "$plugindir/models";
     $helpersDir = "$plugindir/helpers";
 
-    define("WPR_VERSION","5.2.5");
+    define("WPR_VERSION","5.2.6");
     define("WPR_PLUGIN_DIR","$plugindir");
 
     $GLOBALS['WPR_PLUGIN_DIR'] = $plugindir;
@@ -66,7 +66,7 @@ if (!defined("WPR_DEFS"))
     require_once "$helpersDir/routing.php";
 
     $GLOBALS['db_checker'] = new DatabaseChecker();
-	$GLOBALS['wpr_globals'] = array();
+    $GLOBALS['wpr_globals'] = array();
 
 	function _wpr_nag()
 	{
@@ -82,6 +82,7 @@ if (!defined("WPR_DEFS"))
 	}
 	
 	add_action("plugins_loaded","_wpr_nag");
+        add_action("admin_init","_wpr_admin_init");
 	
 	function no_address_error()
 	{
@@ -171,6 +172,20 @@ if (!defined("WPR_DEFS"))
 
 	}	
         
+        
+        
+        function _wpr_admin_init()
+        {
+            
+            //first run?
+            $first_run = get_option("_wpr_firstrunv526");
+            if ($first_run != "done")
+            {
+                    _wpr_firstrunv526();
+                    add_option("_wpr_firstrun526","done");
+            }
+        }
+        
 	
 	function wpresponder_init_method() 
 	{
@@ -226,12 +241,7 @@ if (!defined("WPR_DEFS"))
 		
 		require WPR_PLUGIN_DIR."/proxy.php";
 		
-		//first run?
-		$first_run = get_option("_wpr_firstrunv525");
-		if ($first_run != "done")
-		{
-			_wpr_firstrunv525();
-		}
+
 		
 		do_action("_wpr_init");
                 
