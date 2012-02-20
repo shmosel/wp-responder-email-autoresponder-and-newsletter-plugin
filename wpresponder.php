@@ -3,10 +3,11 @@
 Plugin Name: WP Autoresponder
 Plugin URI: http://www.wpresponder.com
 Description: Gather subscribers in newsletters, follow up with automated e-mails, provide subscription to all posts in your blog or individual categories.
-Version: 5.2.6
+Version: 5.2.7
 Author: Raj Sekharan
 Author URI: http://www.krusible.com/
 */
+
 
 //protect from multiple copies of the plugin. this can happen sometimes.
 
@@ -14,13 +15,13 @@ if (!defined("WPR_DEFS"))
 {
     define("WPR_DEFS",1);
     $plugindir =  str_replace(basename(__FILE__),"",__FILE__);
-    $plugindir = str_replace("\\","/",$plugindir);
+    $plugindir = str_replace('\\','/',$plugindir);
     $plugindir = rtrim($plugindir,"/");
     $controllerDir = "$plugindir/controllers";
     $modelsDir = "$plugindir/models";
     $helpersDir = "$plugindir/helpers";
 
-    define("WPR_VERSION","5.2.6");
+    define("WPR_VERSION","5.2.7");
     define("WPR_PLUGIN_DIR","$plugindir");
 
     $GLOBALS['WPR_PLUGIN_DIR'] = $plugindir;
@@ -182,7 +183,7 @@ if (!defined("WPR_DEFS"))
             if ($first_run != "done")
             {
                     _wpr_firstrunv526();
-                    add_option("_wpr_firstrun526","done");
+                    add_option("_wpr_firstrunv526","done");
             }
         }
         
@@ -230,13 +231,16 @@ if (!defined("WPR_DEFS"))
 			exit;
 		}
 		
-		
-		$vb = intval($_GET['wpr-vb']);
-		if (isset($_GET['wpr-vb']) && $vb > 0)
-		{
-			require "broadcast_html_frame.php";
-			exit;
-		}
+		if (isset($_GET['wpr-vb']))
+ 		{
+		    $vb = intval($_GET['wpr-vb']);
+		    if (isset($_GET['wpr-vb']) && $vb > 0)
+		    {
+		       require "broadcast_html_frame.php";
+		       exit;
+		    }
+                }
+   		
         
 		
 		require WPR_PLUGIN_DIR."/proxy.php";

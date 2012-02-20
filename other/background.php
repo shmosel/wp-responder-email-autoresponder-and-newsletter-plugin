@@ -143,6 +143,8 @@ function whetherTimedOut($startTime,$maxTime)
  *
  * This is the function that performs the autoresponder subscription processing
  */
+ 
+ //TODO: Wish this looped autoresponder message wise and not autoresponder subscription wise.
 
 function _wpr_autoresponder_process($id=0)
 {
@@ -202,36 +204,36 @@ function _wpr_autoresponder_process($id=0)
 	
 	$currentTime = time();
 	$timeTodayAt12AM = mktime(0,0,0,date("n",$currentTime),date("j",$currentTime),date("Y",$currentTime));
-    $prefix = $wpdb->prefix;
+        $prefix = $wpdb->prefix;
 	do_action("_wpr_autoresponder_process_start");
 
-	$getNumberOfActiveFollowupSubscriptionsQuery = "SELECT COUNT(*) number
-											FROM `".$prefix."wpr_followup_subscriptions` a,
-											`".$prefix."wpr_subscribers` b
+	$getNumberOfActiveFollowupSubscriptionsQuery = "SELECT COUNT(*) number FROM `{$prefix}wpr_followup_subscriptions` a,
+											`{$prefix}wpr_subscribers` b
 											WHERE a.type='autoresponder' AND  
-											FLOOR(($timeTodayAt12AM - a.doc)/86400) > a.sequence OR
-											FLOOR(($timeTodayAt12AM - a.doc)/86400) = -1 AND
+											FLOOR(($timeTodayAt12AM-a.last_processed)/86400) > 0 AND 
+											(FLOOR(($timeTodayAt12AM - a.doc)/86400) > a.sequence OR
+											FLOOR(($timeTodayAt12AM - a.doc)/86400) = -1) AND
 											a.sid=b.id $subscriberClause AND
 											b.active=1 AND b.confirmed=1;";
-																						
+					
 	$numberOfActivesResult = $wpdb->get_results($getNumberOfActiveFollowupSubscriptionsQuery);
 	$number = $numberOfActivesResult[0]->number;
-	
 	$numberOfIterations = ceil($number/1000);
-	
 	for ($iterator=0;$iterator<$numberOfIterations;$iterator++)
-	{	
+	{
 		$start = $iterator*WPR_AUTORESPONDER_BATCH_SIZE;
 		$getActiveFollowupSubscriptionsQuery = "SELECT a.*, FLOOR(($timeTodayAt12AM - a.doc)/86400) `daysSinceSubscribing`  FROM `".$prefix."wpr_followup_subscriptions` a,
 												`".$prefix."wpr_subscribers` b
-												WHERE a.type='autoresponder' AND  
-												FLOOR(($timeTodayAt12AM - a.doc)/86400) > a.sequence OR
-												FLOOR(($timeTodayAt12AM - a.doc)/86400) = -1 AND
+												WHERE a.type='autoresponder' AND
+												FLOOR(($timeTodayAt12AM-a.last_processed)/86400) > 0 AND 
+												(FLOOR(($timeTodayAt12AM - a.doc)/86400) > a.sequence OR
+												FLOOR(($timeTodayAt12AM - a.doc)/86400) = -1) AND
 												a.sid=b.id $subscriberClause AND
 												b.active=1 AND b.confirmed=1 LIMIT $start,".WPR_AUTORESPONDER_BATCH_SIZE.";";
+												
+												
 
 		$autoresponderSubscriptions = $wpdb->get_results($getActiveFollowupSubscriptionsQuery);
-		
 		$autoresponderSubscriptions = apply_filters("_wpr_autoresponder_subscriptions_iteration",$autoresponderSubscriptions);
 		
 		foreach ($autoresponderSubscriptions as $asubscription)
@@ -240,6 +242,13 @@ function _wpr_autoresponder_process($id=0)
 			$aid = $asubscription->eid;
 			$daysSinceSubscribing = $asubscription->daysSinceSubscribing;
 			$daysSinceSubscribing = ($daysSinceSubscribing == -1)?0:$daysSinceSubscribing;
+			
+			
+			//UPDATE LAST PROCESSING DATE
+			$updateLastProcessedTimeQuery = sprintf("UPDATE {$wpdb->prefix}wpr_followup_subscriptions SET last_processed=UNIX_TIMESTAMP() WHERE id=%d",$asubscription->id);
+			$wpdb->query($updateLastProcessedTimeQuery);
+			
+			
 			$query = sprintf("SELECT * FROM {$wpdb->prefix}wpr_autoresponder_messages WHERE `aid`=%d AND `sequence`>=%d LIMIT 1;",$aid,$daysSinceSubscribing);
 			$listOfMessages = $wpdb->get_results($query);
 			if (0 == count($listOfMessages))
@@ -276,9 +285,11 @@ function _wpr_autoresponder_process($id=0)
 			catch (Exception $exp)
 			{
 				//just in case.
+				//TODO: Do something here.
+				continue;
 			}
 			
-			$updateSubscriptionStatusQuery = "UPDATE ".$prefix."wpr_followup_subscriptions set last_date='".time()."', sequence='$message->sequence' WHERE sid=$asubscription->sid";
+			$updateSubscriptionStatusQuery = sprintf("UPDATE `{$prefix}wpr_followup_subscriptions` SET `last_date`='%s', `sequence`=%d WHERE `sid`=%d",time(), $message->sequence, $asubscription->sid);
 			$wpdb->query($updateSubscriptionStatusQuery);
 			
 			//if another cron has started, then this cron should be terminated.
@@ -380,7 +391,7 @@ function _wpr_postseries_process()
 		$meta_key = sprintf("PS-%s-%s-%s",$psubscription->eid,$psubscription->sid,$postToSend->ID);
 		$additionalParams = array('meta_key'=>$meta_key);
 		
-        deliverBlogPost($sid,$postToSend->ID,"You are receiving this blog post as a part of a post series at $name.",true,true,$additionalParams);
+                deliverBlogPost($sid,$postToSend->ID,"You are receiving this blog post as a part of a post series at $name.",true,true,$additionalParams);
 		
 		$query = "UPDATE ".$prefix."wpr_followup_subscriptions set sequence=$indexToDeliver , last_date='".time()."' where id='".$psubscription->id."';";
 		$wpdb->query($query);
