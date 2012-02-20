@@ -21,7 +21,9 @@ class DatabaseChecker
                 if (!$this->table_exists($table_name))
                     $this->create_table($table_name);
                 else
+                {   
                     $this->modify_table_to_structure($table_name);
+                }
             }
 
 	}
@@ -204,6 +206,9 @@ class DatabaseChecker
 
             $getTableColumnsQuery = "SHOW COLUMNS FROM $table_name;";
             $columnsExisting = $this->db->get_col($getTableColumnsQuery,0);
+            //get the full definitions
+	    $extraInTableDefinitionExisting = $this->db->get_col($getTableColumnsQuery,5);
+	    $whetherHasAutoIncrementColumn = in_array("auto_increment",$extraInTableDefinitionExisting);
 
             $non_existing_columns = array_diff($columns,$columnsExisting);
 
@@ -244,8 +249,9 @@ class DatabaseChecker
             }
             
             //adding primary key
-            if (isset($table['primary_key']))
+            if (isset($table['primary_key']) && false == $whetherHasAutoIncrementColumn)
             {
+	    
                 $primary_key = $table['primary_key'];
                 
                 if (is_string($primary_key))
@@ -273,8 +279,7 @@ class DatabaseChecker
                     $array_of_column_defs[] = $modification_clause;
                 }
 
-
-                if (count($primary_key_columns_to_be_added))
+                if (isset($primary_key_columns_to_be_added) && 0 != count($primary_key_columns_to_be_added))
                 foreach ($primary_key_columns_to_be_added as $new_column)
                 {
                     $column_def_clause = "ADD `$new_column` ".$table['columns'][$new_column];
@@ -297,29 +302,6 @@ class DatabaseChecker
                 $this->db->query($primarykeyAdditionQuery);
             }
 
-            //unique key
-            if (isset($table['unique']))
-            {
-                foreach ($table['unique'] as $unique_key_name=>$unique_key)
-                {
-                    if (is_array($unique_key))
-                    {
-                        $unique_identifier = implode("`,`",$unique_key);
-                    }
-                    else if (is_string($unique_key))
-                    {
-                        $unique_identifier = "`$unique_key`";
-                    }
-                    else
-                        continue;
-
-                    $addUniqueKeyQuery = "ALTER TABLE `$table_name` ADD UNIQUE KEY `$unique_key_name` (`$unique_identifier`);";
-                    $this->db->query($addUniqueKeyQuery);
-                }
-            }
-
-            //drop other indexes.
-
             $unique_indexes = (array) $table['unique'];
             $unique_indexes = array_keys($unique_indexes);
             $existingIndexes = $this->db->get_results("SHOW INDEX FROM `$table_name`;");
@@ -331,19 +313,55 @@ class DatabaseChecker
                 
                 if ($index->Non_unique == 1)
                      continue;
+
+		if ($index->Key_name == "PRIMARY")
+		   continue;
                 
                 array_push($existingUniques,$index->Key_name);
             }
-            
             $existingUniques = array_unique($existingUniques);
-
-            $uniquesToDrop = array_diff($existingUniques, $unique_indexes);
-
+            $uniquesToDrop = $existingUniques;
             foreach ($uniquesToDrop as $index)
             {
                 $dropIndexQuery = "DROP INDEX `$index` ON `$table_name`;";
                 $this->db->query($dropIndexQuery);
             }
+
+            //unique key
+            if (isset($table['unique']))
+            {
+                foreach ($table['unique'] as $unique_key_name=>$unique_key)
+                {
+                    $whetherSingleColumnUnique=false;
+                    if (is_string($unique_key) || 1 == count($unique_key))
+                        $whetherSingleColumnUnique=true;
+                    if (is_array($unique_key))
+                    {
+                        $unique_identifier = implode("`,`",$unique_key);
+                    }
+                    else if (is_string($unique_key))
+                    {
+                        $unique_identifier = "`$unique_key`";
+                        
+                    }
+                    else
+                        continue;
+
+		    //HACK ALERT!!
+		    if ($unique_key_name == "meta_key_is_unique")
+		    {
+		        $setMetaKeyColumnToMd5OfIdQuery=sprintf("UPDATE %swpr_queue SET meta_key=MD5(id) WHERE meta_key='';",$this->db->prefix);
+			$this->db->query($setMetaKeyColumnToMd5OfIdQuery);  
+		    }
+		    
+
+                    $addUniqueKeyQuery = "ALTER TABLE `$table_name` ADD UNIQUE KEY `$unique_key_name` (`$unique_identifier`);";
+                    $this->db->query($addUniqueKeyQuery);
+                }
+            }
+
+            //drop other indexes.
+
 
 	}
 	

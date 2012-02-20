@@ -11,14 +11,14 @@ $database_structure["wpr_subscribers"] = array ('columns' => array(
                                                                     'nid'=> "INT NOT NULL",
                                                                     'id'=> "INT NOT NULL",
                                                                     'name'=> "VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL",
-                                                                    'email'=> "VARCHAR(258) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL",
+                                                                    'email'=> "VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL",
                                                                     'date'=> "VARCHAR(12) NOT NULL",
                                                                     'active'=> "TINYINT(1) NOT NULL DEFAULT '0'",
                                                                     'confirmed'=> "TINYINT(1) NOT NULL DEFAULT '0'",
                                                                     'fid'=> "TINYINT(1) NOT NULL DEFAULT '1'",
                                                                     'hash'=> "VARCHAR(50) NOT NULL"
                                                             ),
-                                                'primary_key'=>array('id'),
+                                                'primary_key'=>'id',
                                                 'auto_increment'=>'id',
                                                 'unique' => array(                                                                     
                                                                      "unique_email_for_newsletter"    => array("nid","email")
@@ -185,7 +185,8 @@ $database_structure["wpr_blog_subscription"] = array ( 'columns'=> array(
                                                                            'catid' => "INT NOT NULL",
                                                                            'last_processed_date'=>'INT NOT NULL',
                                                                            'last_published_postid'=>'INT NOT NULL',
-                                                                           'last_published_post_date'=>'BIGINT NOT NULL DEFAULT 0'
+                                                                           'last_published_post_date'=>'BIGINT NOT NULL DEFAULT 0',
+									   'pending_reprocess' => 'TINYINT NOT NULL DEFAULT 0',
                                                                           ),
                                                        'primary_key' => "id",
                                                        'auto_increment'=>'id',
@@ -203,7 +204,7 @@ $database_structure["wpr_blog_series"] = array ( 'columns'=> array(
                                                  'primary_key' => "id",
                                                 'auto_increment'=>'id',
                                                  'unique' => array(
-                                                                    "unique_names_for_blog_series" => array("name")
+                                                                    "unique_names_for_blog_series" => "name"
                                                                )
                                                 );
 $database_structure["wpr_autoresponder_messages"] = array ( 'columns'=> array(
@@ -241,6 +242,7 @@ $database_structure["wpr_followup_subscriptions"] = array ( 'columns'=> array(
 											  'eid' => "INT NOT NULL",
 											  'sequence' => "SMALLINT NOT NULL",
 											  'last_date' => "INT NOT NULL",
+											  'last_processed' => "BIGINT NOT NULL DEFAULT 0",
 											  'doc' => "VARCHAR(20) NOT NULL"
 											  ),
 											'primary_key' => "id",
@@ -368,8 +370,10 @@ $GLOBALS['admin_pages_definitions'] = array(
 $GLOBALS['wpr_defaults'] = array(
 );
 
-
-
+//TODO: Get rid of two arrays for list of crons, modify all code that uses this code to work with the single structure.
+/*
+Important Note: The same action CANNOT be scheduled in different schedules. Create a different action with a different name
+*/
 $GLOBALS['wpr_cron_schedules'] = array(
 											array(
 												  	'action'=> '_wpr_queue_management_cron',
