@@ -431,8 +431,7 @@ function _wpr_process_broadcasts()
 	
 	set_time_limit(3600);
 	
-	//this is one massive cf.
-        //i so wish this wasn't built on temporary tables. 
+	
 	/*
 	
 
@@ -469,22 +468,16 @@ function _wpr_process_broadcasts()
 		$nid = $broadcast->nid;
 		$subject = $broadcast->subject;
 		$body = $broadcast->body;
-                
-                //get the number of subscribers 
 		wpr_create_temporary_tables($nid);	  //this creates the tables based on which a bigger table will be created
 		wpr_make_subscriber_temptable($nid);  //this table will be used for getting the user list.
 		$customFieldsConditions = trim(wpr_filter_query($nid,$broadcast->recipients));
 		$customFields = ($customFieldsConditions)?" AND ".$customFieldsConditions:"";
-		$query = "SELECT COUNT(*) number FROM ".$prefix."wpr_subscribers_".$nid." where active=1 and confirmed=1 $customFields;";
+		$query = "SELECT * FROM ".$prefix."wpr_subscribers_".$nid." where active=1 and confirmed=1 $customFields;";
 		$subscribersList = $wpdb->get_results($query);
-                
-                
-                
 		$subject = $broadcast->subject;
 		$text_body = $broadcast->textbody;
 		$html_body = $broadcast->htmlbody;
-		$whetherToAttachImages = $broadcast->attachimages;                
-
+		$whetherToAttachImages = $broadcast->attachimages;
 		$query = "SELECT fromname, fromemail from ".$wpdb->prefix."wpr_newsletters where id=".$nid;
 		$results = $wpdb->get_results($query);
 		$fromname = $results[0]->fromname;
@@ -495,6 +488,9 @@ function _wpr_process_broadcasts()
 		{
 			$broadcastId=$broadcast->id;
 			$newsletterId= $broadcast->nid;
+			
+			
+			
 
 			foreach ($subscribersList as $subscriber)
 			{

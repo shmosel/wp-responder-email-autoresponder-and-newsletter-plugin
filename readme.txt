@@ -23,7 +23,7 @@ This is a email newsletter and autoresponder plugin. With this plugin you can cr
 * Import your subscribers from Feedburner and Aweber.
 * Define rules to unsubscribe users from one newsletter if they subscribe to another newsletter. 
 
-The newsletters work indepedent of the working of the blog. You DO NOT need a third party service or license to use this plugin
+The newsletters work indepedent of the working of the blog. This plugin is aimed as an alternative to Aweber, Mailchimp and other paid services. You DO NOT need a third party service or license to use this plugin
 
 == Installation ==
 
