@@ -217,6 +217,8 @@ function previewEmail()
 
 
 </script>
+<div class="postbox">
+    <h3 class="hndle">New Broadcast</h3>
 <div style="clear:both"></div>
 <blockquote>
   <div class="wrap">
@@ -934,6 +936,7 @@ function rtrim(stringToTrim) {
   </script>
     </table>
   </form>
+  </div>
 </blockquote>
 <?php
 
