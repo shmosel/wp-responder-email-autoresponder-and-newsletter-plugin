@@ -1,5 +1,4 @@
 <?php
-include "wp-load.php";
 
 if (!current_user_can("manage_newsletters"))
 {
@@ -196,7 +195,7 @@ Fill out the form below to send a test email to see how your email will
 look to your subscribers. Fields marked * are mandatory.
 
 
-<p>You are previewing an email to be sent to a subscriber of the <strong>'<?php echo $newsletter->name ?>'</strong> newseltter.</p>
+<p>You are previewing an email to be sent to a subscribers of the <strong>'<?php echo $newsletter->name ?>'</strong> newsletter.</p>
 <form name="previewform" action="<?php echo $_SERVER['PHP_SELF'] ?>?<?php echo $_SERVER['QUERY_STRING'] ?>" method="post">
 <table>
 <r>

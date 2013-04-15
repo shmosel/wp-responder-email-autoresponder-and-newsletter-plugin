@@ -9,13 +9,13 @@ function wpr_subscriptionforms()
 	switch ($_GET['action'])
 	{
 		case 'create':
-		_wpr_subscriptionforms_create();
+            _wpr_subscriptionforms_create();
 		break;
 		case 'form':
-		$id = $_GET['fid'];
-		$form = _wpr_subscriptionform_get($id);
-		_wpr_subscriptionform_getcode($form,"'".$form->name."' Form HTML Code");
-		return;
+            $id = $_GET['fid'];
+            $form = _wpr_subscriptionform_get($id);
+            _wpr_subscriptionform_getcode($form,"'".$form->name."' Form HTML Code");
+            return;
 		break;
 		
 		
@@ -47,7 +47,13 @@ function wpr_subscriptionforms()
 		$id = (int) $_GET['fid'];
 		do_action("_wpr_subscriptionform_edit_form_controller",$id);
 		$form = _wpr_subscriptionform_get($id);
-		
+
+
+        $form->confirm_subject = stripslashes($form->confirm_subject);
+        $form->confirm_body = stripslashes($form->confirm_body);
+        $form->confirmed_subject = stripslashes($form->confirmed_subject);
+        $form->confirmed_body = stripslashes($form->confirmed_body);
+
 		if (isset($_POST['fid']))
 		{
 			$checkList = array("name"=>"Name field is required","confirm_subject"=>"E-Mail Confirmation Subject Field is required","confirm_body"=>"E-Mail Confirmation Body field","confirmed_subject"=>"Confirmed Subscription subject field is required","confirmed_body"=>"Confirmed subscription body field is required");
@@ -243,8 +249,8 @@ function selectAllFormsCheckBox(state)
 			break;
 			
 			case 'autoresponder':
-			$autoresponder = _wpr_autoresponder_get($form->followup_id);
-			echo "Subscribe to the '".$autoresponder->name."' autoresponder.";
+			$autoresponder = Autoresponder::getAutoresponder((int) $form->followup_id);
+			echo sprintf("Subscribe to the '%s' autoresponder.", $autoresponder->getName());
 			break;
 			
 			case 'none':
@@ -350,7 +356,7 @@ function preview()
 
 function _wpr_subscriptionform_code($form,$enableForm=false)
 {
-	$url = get_bloginfo('home');			
+	$url = home_url();			
 	ob_start();
 		?>
 <form action="<?php echo $url?>/?wpr-optin=1" method="post">
@@ -381,12 +387,12 @@ if (!empty($form->followup_type) && $form->followup_type != "none")
   </span>
   <table>
     <tr>
-      <td><span class="wprsfl wprsfl-name">Name:</span></td>
+      <td><span class="wprsfl wprsfl-name"><?php _e('Name','wpr_autoresponder'); ?>:</span></td>
       <td><span class="wprsftf wpr-subform-textfield-name">
         <input type="text" name="name" /></td>
     </tr>
     <tr>
-      <td><span class="wprsfl wprsfl-email">E-Mail Address:</span></td>
+      <td><span class="wprsfl wprsfl-email"><?php _e('E-Mail','wpr_autoresponder'); ?>:</span></td>
       <td><span class="wprsftf wpsftf-email">
         <input type="text" name="email" />
         </span>
@@ -468,11 +474,11 @@ foreach ($choices as $choice)
 	?>
     <?php do_action("_wpr_subscriptionform_code",$form->id); ?>
     <tr>
-      <td colspan="2" align="center"><input type="submit" value="<?php echo (empty($form->submit_button))?"Subscribe":$form->submit_button; ?>" /></td>
+      <td colspan="2" align="center"><input type="submit" value="<?php echo (empty($form->submit_button))?__("Subscribe",'wpr_autoresponder'):$form->submit_button; ?>" /></td>
     </tr>
     <tr>
       <td colspan="2" align="center"><?php if ($enableForm) { ?>
-      <a href="http://www.wpresponder.com">Email Marketing by WP Autoresponder</a>
+      <a href="http://www.wpresponder.com"><?php _e('Email Marketing by WP Autoresponder','wpr_autoresponder'); ?></a>
       <?php } ?></td>
     </tr>
   </table>
@@ -651,11 +657,11 @@ foreach ($listOfAutorespondersOfNewsletters as $count=>$news)
 	?>
 AutorespondersOfNewsletters['<?php echo $news->id; ?>'] = new Array();
 	<?php
-	$autoresponders = _wpr_get_autoresponders_of_newsletter($news->id);
+	$autoresponders = Autoresponder::getAutorespondersOfNewsletter($news->id);
 	foreach ($autoresponders as $autoresponder)
 	{
-		$aid = intval($autoresponder->id);
-		$name = $autoresponder->name;
+		$aid = $autoresponder->getId();
+		$name = $autoresponder->getName();
 		
 		if ($aid==0 || empty($name))
 		{
@@ -1027,11 +1033,8 @@ function loadFollowUpAutoresponderList()
     <?php 
 
 	foreach ($errors as $error)
-
 	{
-
 		echo '<li>'.$error.'</li>';
-
 	}
 
 	?>
@@ -1050,11 +1053,8 @@ $query = "SELECT id from ".$prefix."wpr_newsletters";
 $newsletters  = $wpdb->get_results($query);
 
 foreach ($newsletters as $newsletter)
-
 {
-
 	$nid = $newsletter->id;
-
 	?>
   <div id="fields-<?php echo $nid?>">
     <?php 

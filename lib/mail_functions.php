@@ -8,13 +8,13 @@ function _wpr_subscriber_hash_generate() {
 		$a[] = rand(65,90);
 		$a[] = rand(97,123);
 		$a[] = rand(48,57);
-		
+
 		$whichone = rand(0,2);
 		$currentCharacter = chr($a[$whichone]);
-		
+
 		$hash .= $currentCharacter;
 		unset($a);
-		
+
 	}
      $hash .= time();
 	//insert into subscribers list
@@ -56,42 +56,50 @@ function _wpr_non_wpr_email_sent($params)
  */
 function sendmail($sid,$params,$footerMessage="")
 {
-	global $wpdb;	
-	$parameters = _wpr_process_sendmail_parameters($sid,$params,$footerMessage);	
+	global $wpdb;
+	$parameters = _wpr_process_sendmail_parameters($sid,$params,$footerMessage);
+
+    $parameters['subject'] = Subscriber::replaceCustomFieldValues($parameters['subject'], $sid);
+    $parameters['htmlbody'] = Subscriber::replaceCustomFieldValues($parameters['htmlbody'], $sid);
+    $parameters['textbody'] = Subscriber::replaceCustomFieldValues($parameters['textbody'], $sid);
+
 	extract($parameters);
-	
 	$tableName = $wpdb->prefix."wpr_queue";
-	$query = "INSERT INTO $tableName (`from`,`fromname`, `to`, `reply_to`, `subject`, `htmlbody`, `textbody`, `headers`,`attachimages`,`htmlenabled`,`email_type`,`delivery_type`,`meta_key`,`hash`,`sid`) values ('$from','$fromname','$to','$reply_to','$subject','$htmlbody','$textbody','$headers','$attachImages','$htmlenabled','$email_type','$delivery_type','$meta_key','$hash','$sid');";
-	
+	$query = "INSERT INTO $tableName (`from`,`fromname`, `to`, `reply_to`, `subject`, `htmlbody`, `textbody`, `headers`,`attachimages`,`htmlenabled`,`email_type`,`delivery_type`,`meta_key`,`hash`,`sid`) values ('$from','$fromname','$to','$reply_to','$subject','$htmlbody','{$parameters['textbody']}','$headers',1,'$htmlenabled','$email_type','$delivery_type','$meta_key','$hash','$sid');";
+
+
 	$wpdb->query($query);
 
 }
 
 function _wpr_process_sendmail_parameters($sid, $params,$footerMessage="")
 {
-	$subscriber = _wpr_subscriber_get($sid);
-	$email = $subscriber->email;
-	$newsletter = _wpr_newsletter_get($subscriber->nid);
+
+    global $wpdb;
+    $subscriber = new Subscriber($sid);
+    $newsletter = _wpr_newsletter_get($subscriber->getNewsletterId());
+
     //if the fromname field is set in the newsletter, then use that value otherwise use the blog name.
 	$fromname = (!empty($params['fromname']))?$params['fromname']:(!empty($newsletter->fromname))?$newsletter->fromname:get_bloginfo("name");
-	
+
 	if ($newsletter->reply_to)
 		$replyto = $newsletter->reply_to;
 	$unsuburl = wpr_get_unsubscription_url($sid);
 	$subject = $params['subject'];
 
-	$to = $email;
-	$address = get_option("wpr_address");
-	$textUnSubMessage = "\n\n$address\n\n".__("To unsubscribe or change subscription options visit").":\r\n\r\n$unsuburl";	
+    $address = get_option("wpr_address");
+	$textUnSubMessage = "\n\n$address\n\n".__("To unsubscribe or change subscription options visit",'wpr_autoresponder').":\r\n\r\n$unsuburl";
 	$reply_to = $newsletter->reply_to;
 	$htmlbody = trim($params['htmlbody']);
+
+
 	//append the address and the unsub link to the email
 	$address = "<br>
 <br>
-".get_option("wpr_address")."<br>
+".nl2br(get_option("wpr_address"))."<br>
 <br>
 ";
-	$htmlUnSubscribeMessage = "<br><br>".$address."<br><br>".__("To unsubscribe or change subscriber options visit:")."<br />
+	$htmlUnSubscribeMessage = "<br><br>".$address."<br><br>".__("To unsubscribe or change subscriber options visit:",'wpr_autoresponder')."<br />
 \r\n <a href=\"$unsuburl\">$unsuburl</a>";
 	$htmlenabled = ($params['htmlenabled'])?1:0;
 	if (!empty($htmlbody))
@@ -102,12 +110,23 @@ function _wpr_process_sendmail_parameters($sid, $params,$footerMessage="")
 <br>
 ";
 		}
-	   $htmlbody .= $htmlUnSubscribeMessage;
-	}	
+
+                if (strstr($htmlbody,"[!unsubscribe!]"))
+                {
+                    $htmlbody = str_replace("[!unsubscribe!]", $unsuburl, $htmlbody);
+                }
+                else
+                {
+                    $htmlbody .= $htmlUnSubscribeMessage;
+                }
+	}
 
 	if ($footerMessage)
 		$params['textbody'] .= $footerMessage."\n\n";
-	$textbody .= $params['textbody'].$textUnSubMessage;	
+        if (strstr($params['textbody'],"[!unsubscribe!]"))
+                $textbody = str_replace("[!unsubscribe!]",$unsuburl,$params['textbody']);
+        else
+            $textbody = $params['textbody'].$textUnSubMessage;
 	$textbody = addslashes($textbody);
 	$htmlbody = addslashes($htmlbody);
 	$subject = addslashes($subject);
@@ -115,20 +134,20 @@ function _wpr_process_sendmail_parameters($sid, $params,$footerMessage="")
 
 	$delivery_type = (!empty($params['delivery_type']))?$params['delivery_type']:0;
 	$email_type = (!empty($params['email_type']))?$params['email_type']:'misc';
-    $attachImages = ($params['attachimages'])?1:0;
+    $attachImages = (isset($params['attachimages']))?1:0;
 	$meta_key = (!empty($params['meta_key']))?$params['meta_key']:"Misc-$sid-$time";
 	$hash = make_hash(array_merge(array('sid'=>$sid),$params));
 	$from = (!empty($params['fromemail']))?$params['fromemail']:(!empty($newsletter->fromemail))?$newsletter->fromemail:get_bloginfo('admin_email');
-	
+
 	$parameters = array(
 					'from'=> $from,
 					'fromname' => $fromname,
-					'to'=>$to,
+					'to'=> $subscriber->email,
 					'reply_to'=>$reply_to,
 					'subject' => $subject,
 					'htmlbody'=>$htmlbody,
 					'textbody' => $textbody,
-					'headers'=>$headers,
+					'headers'=> '',
 					'attachimages'=>$attachImages,
 					'htmlenabled'=>$htmlenabled,
 					'delivery_type' => $delivery_type,
@@ -149,13 +168,13 @@ function make_hash($params)
 function _wpr_send_and_save($sid, $params, $footerMessage="")
 {
 	global $wpdb;
-	
-	
-	
+
+
+
 	$parameters = _wpr_process_sendmail_parameters($sid,$params,$footerMessge);
-        
-	dispatchEmail($parameters);	
-	
+
+	dispatchEmail($parameters);
+
 	$queue_table_name = $wpdb->prefix."wpr_queue";
 	$emailQuery = $wpdb->prepare("INSERT INTO $queue_table_name (`from`, `fromname`, `to`, `subject`, `htmlbody`, `textbody`, `headers`, `sent`, `delivery_type`, `email_type`, `htmlenabled`, `attachimages`,`meta_key`)
 																VALUES
@@ -180,16 +199,16 @@ function _wpr_send_and_save($sid, $params, $footerMessage="")
 
 function wpr_processqueue()
 {
-	global $wpdb;		
-	
+	global $wpdb;
+
 	$last_cron_status = get_option("_wpr_queue_delivery_status");
 	/*
 	When the cron is running the _wpr_queue_delivery_status
 	is set to the timestamp at which the cron processing was started.
-	
+
 	Before shutting down the _wpr_queue_delivery_status is
 	set to 'stopped'.
-	
+
 	This cron will run only if the _wpr_queue_delivery_status option
 	is set to "stopped" or is empty.
 	*/
@@ -203,10 +222,10 @@ function wpr_processqueue()
 			return;
 		}
 	}
-	
+
 
 	update_option("_wpr_queue_delivery_status",$timeOfStart);
-	
+
 	$timeOfStart = time();
 	$timeMaximumExecutionTimeAgo = $timeOfStart - WPR_MAX_AUTORESPONDER_PROCESS_EXECUTION_TIME;
 	if (!empty($last_cron_status) && $last_cron_status != "stopped")
@@ -223,27 +242,27 @@ function wpr_processqueue()
 	$limitClause = ($hourlyLimit ==0)?"":" limit ".$hourlyLimit;
 	$query = $wpdb->escape("SELECT * FROM ".$wpdb->prefix."wpr_queue where sent=0 $limitClause ");
 	$results = $wpdb->get_results($query);
-	foreach ($results as $mail)  
+	foreach ($results as $mail)
 	{
-		$mail = (array) $mail;	
+		$mail = (array) $mail;
 		try {
 			dispatchEmail($mail);
 		}
 		catch (Swift_RfcComplianceException $exception) //invalidly formatted email.
 		{
 			//disable all subscribers with that email.
-			$email = $mail['to'];			
+			$email = $mail['to'];
 			$query = "UPDATE ".$wpdb->prefix."wpr_subscribers set active=3, confirmed=0 where email='$email'";
 			$wpdb->query($query);
 		}
 		$query = "UPDATE ".$wpdb->prefix."wpr_queue set sent=1 where id=".$mail['id'];
 		$wpdb->query($query);
-		
+
 		$current_cron_status = get_option("_wpr_queue_delivery_status");
 		if ($current_cron_status != $timeOfStart)
 			return;
 	}
-	
+
 	update_option("_wpr_queue_delivery_status","stopped");
 }
 
@@ -255,7 +274,7 @@ function wpr_processqueue()
  *                             fromname = The nice name from which the email is sent
  *                             htmlbody = The html body of the email
  *                             textbody = The text body of the email
- *                             htmlenabled = Whether the html body of the email is enabled	
+ *                             htmlenabled = Whether the html body of the email is enabled
  *                                           1 = Yes, the html body is enabled
  *                                           0 = No, the html body is disabled.
  *                             attachimages = Whether the images are to be attached to the email
@@ -266,22 +285,22 @@ function wpr_processqueue()
 function dispatchEmail($mail)
 {
 	try {
-		
-		$transport = getMailTransport();		
+
+		$transport = getMailTransport();
 		$mailer = Swift_Mailer::newInstance($transport);
 		$message = Swift_Message::newInstance($mail['subject']);
 		$message->setFrom(array($mail['from']=>$mail['fromname']));
 		$message->setTo(array($mail['to']));
-		
+
 		if (!empty($mail['reply_to']) && validateEmail($mail['reply_to']))
-		{		
-			$message->setReplyTo($mail['reply_to']);	
+		{
+			$message->setReplyTo($mail['reply_to']);
 		}
-	
+
 		$mail['textbody'] = stripslashes($mail['textbody']);
 		if ($mail['htmlenabled']==1 && !empty($mail['htmlbody']))
 		{
-			
+
 			$mail['htmlbody'] = stripslashes($mail['htmlbody']);
 			if ($mail['attachimages'] == 1)
 			{
@@ -296,8 +315,8 @@ function dispatchEmail($mail)
 		else
 		{
 			$message->setBody($mail['textbody'],'text/plain');
-		}	
-		$mailer->batchSend($message);
+		}
+		$mailer->send($message);
 		_wpr_increment_hourly_email_sent_count();
 	}
 	catch (Exception $exp)
@@ -305,10 +324,10 @@ function dispatchEmail($mail)
 		//do something here..
 	}
 }
-	
+
 function attachImagesToMessageAndSetBody(&$message,$body)
 {
-	
+
 	$imagesInMessage = getImagesInMessage($body);
 	foreach ($imagesInMessage as $imageUrl)
 	{
@@ -318,13 +337,13 @@ function attachImagesToMessageAndSetBody(&$message,$body)
 		}
 		catch (Exception $exp)
 		{
-			
+
 		}
 	}
 
-	$message->setBody($body,'text/html');	
+	$message->setBody($body,'text/html');
 }
-	
+
 function getImagesInMessage($message)
 
 {
@@ -332,21 +351,21 @@ function getImagesInMessage($message)
 	$startPos = 0;
 
 	$list = array();
-		$message = " $message"; //if the image tag is at position 0, the loop will not even start. 
+		$message = " $message"; //if the image tag is at position 0, the loop will not even start.
 
 
 
 
 	while (strpos($message,"<img",$startPos))
 	{
-				
+
 
 		$start = strpos($message,"<img",$startPos);
 
 		$end = strpos($message,">",$start+4);
 
 		$startPos = $end;
-			 
+
 
 			//find the src="
 
@@ -368,7 +387,7 @@ function getImagesInMessage($message)
 
 				$url = explode("/",$url);
 
-				
+
 
 				$theURL = "http://".$url[0].$theURL;
 
@@ -398,33 +417,43 @@ function getImagesInMessage($message)
 
 	}
 
-	 
+
 	return array_unique($list);
 
 }
-	
+
 function email($to,$subject,$body)
 {
-	
+
 	$transport = getEmailTransport();
 
 	$message = Swift_message::newInstance($subject);
 
 	$message->setFrom(array(get_option("admin_email")=>get_option("blogname")));
 
-	$message->setTo($to);
-
 	$message->setBody($body);
 
-	$message->batchSend();	
-} 
+	if(!is_array($to) || (count($to)<2)) {
+            $message->setTo($to);
+            $message->send();
+        } else {
+            foreach($to as $address => $name) {
+                if(is_int($address)) {
+                    $message->setTo($name);
+                } else {
+                    $message->setTo(array($address => $name));
+                }
+                $message->send();
+            }
+        }
+}
 
 
 
 function getMailTransport()
 
 {
-    
+
 	 $isSmtpOn = (get_option("wpr_smtpenabled")==1)?true:false;
 
 		//get the proper email transport to use.
@@ -452,7 +481,7 @@ function getMailTransport()
 
 			if ($doesSmtpRequireAuth)
 				{
-					$smtpusername = get_option("wpr_smtpusername");	
+					$smtpusername = get_option("wpr_smtpusername");
 					$smtppassword = get_option("wpr_smtppassword");
 					$transport->setUsername($smtpusername);
 					$transport->setPassword($smtppassword);
@@ -484,13 +513,13 @@ function getMailTransport()
 				return $transport;
 
 }
-	
-	
-	
+
+
+
 
 function wpr_get_unsubscription_url($sid)
 {
-	$baseURL = get_bloginfo("home");
+	$baseURL = get_bloginfo("url");
 	$subscriber = _wpr_subscriber_get($sid);
 	$newsletter = _wpr_newsletter_get($subscriber->nid);
 	$nid = $newsletter->id;
@@ -519,7 +548,7 @@ function sendConfirmedEmail($id)
 	$sid = $sub->id; //the susbcriber id
 	$unsubscriptionURL = wpr_get_unsubscription_url($sid);
 
-	$unsubscriptionInformation = "\n\nTo manage your email subscriptions or to unsubscribe click on the URL below:\n$unsubscriptionURL\n\nIf the above URL is not a clickable link simply copy it and paste it in your web browser.";
+	$unsubscriptionInformation = "\n\n" . sprintf(__("To manage your email subscriptions or to unsubscribe click on the URL below:\n%s\n\nIf the above URL is not a clickable link simply copy it and paste it in your web browser.",'wpr_autoresponder'),$unsubscriptionURL);
 
 
 	$fid = $args[2];
@@ -570,5 +599,5 @@ function sendConfirmedEmail($id)
 			$query = "UPDATE ".$wpdb->prefix."wpr_subscribers set active=3, confirmed=0 where email='$email'";
 			$wpdb->query($query);
 		}
-	
+
 }

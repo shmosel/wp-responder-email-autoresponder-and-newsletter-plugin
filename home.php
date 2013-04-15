@@ -35,7 +35,7 @@ function wpr_dashboard()
 	
 }
 </style>
-<div style="display:block;">
+
 <div class="wrap">
 <table width="100%" >
   <tr>
@@ -78,7 +78,7 @@ function wpr_dashboard()
 			   ?></td>
                <td style="padding: 10px;"><?php
 			   $nid = $n->id;
-			   $query = "select count(*) num from ".$wpdb->prefix."wpr_subscribers where nid=$nid and active=0 and confirmed=0;";
+			   $query = sprintf("select count(*) num from {$wpdb->prefix}wpr_subscribers where nid=%d and active=0 and confirmed=1;",$nid);
 			   $num = $wpdb->get_results($query);
 			   $num = (int) $num[0]->num;
 			   echo $num;
@@ -92,7 +92,7 @@ function wpr_dashboard()
             </table>
             </div>
             <hr size="1" color="#CCCCCC"/>
-<div align="center"><div style="clear:both;display:block"><a href="http://www.krusible.com"><img src="http://www.wpresponder.com/dashboard.png" /></a></div></div>
+
 
 <hr size="1" color="#CCCCCC"/>
 <h2>Subscribe to the WP Responder Email Newsletter</h2>
@@ -128,50 +128,12 @@ Enter your name and email address below to subscribe to the  WP Responder newsle
   </tr>
 </table>
 <h2>Report A Bug</h2>
-<div id="reportbug"><form method="post" id="reportform" action="http://www.expeditionpost.com/wpr/sb.php">
-                <table width="100%">
-                  <tr>
-                    <td>Name:</td>
-                    <td><label>
-                        <input type="text" size="90" name="name" id="name" />
-                      </label></td>
-                  </tr>
-                  <tr>
-                    <td>E-Mail Address:</td>
-                    <td><label>
-                        <input type="text" size="90" name="email" id="email" />
-                      </label></td>
-                  </tr>
-                  <tr>
-                    <td>Description:</td>
-                    <td><label>
-                        <textarea name="desc" id="desc" cols="60" rows="6"></textarea>
-                      </label></td>
-                  </tr>
-                  <tr>
-                    <td>Steps To Replicate:</td>
-                    <td><label>
-                        <textarea name="stepstoreplicate" id="stepstoreplicate" cols="60" rows="5"></textarea>
-                      </label></td>
-                  </tr>
-                  <tr>
-                    <td>&nbsp;</td>
-                    <td><label>
-                        <input name="button" class="button-primary" type="submit" id="button" onclick="MM_validateForm('name','','R','email','','RisEmail','title','','R','desc','','R','stepstoreplicate','','R');return document.MM_returnValue" value="Submit Bug" />
-                      </label></td>
-                  </tr>
-                </table>
-              </form>
-            </div></td>
-          <td></td>
-        </tr>
-      </table></td>
-  </tr>
-</table>
+
+WP Autoresponder is actively developed. You can see the development progress at the <a href="https://github.com/rajasekharan/WP-Autoresponder">GitHub repo</a>. While I take great deal of efforts to ensure that the plugin is bug free, a few tend to slip through. Please open a bug report at the official repo to see a fix for it in the next release. Opening a bug takes only a minute or two. <p> <a href="https://github.com/rajasekharan/WP-Autoresponder/issues/new" class="wpr-action-button">Click here to report a bug</a></p>
+
 </div>
-</a>
+
 <?php
 		break;
 	}
 }
-

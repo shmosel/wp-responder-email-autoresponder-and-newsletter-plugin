@@ -1,7 +1,6 @@
 <?php
 function wpresponder_install()
 {
-	global $wpdb;
     global $db_checker;
     $WPR_PLUGIN_DIR = $GLOBALS['WPR_PLUGIN_DIR'];
     
@@ -28,8 +27,7 @@ function wpresponder_install()
 	}
 	add_option("wpr_last_post_date",$last_post_date);
 
-
-        //the confirm email, confirmation email and confirmed subject templates.
+    //the confirm email, confirmation email and confirmed subject templates.
 	$confirm_subject = file_get_contents($WPR_PLUGIN_DIR."/templates/confirm_subject.txt");
 	$confirm_body = file_get_contents($WPR_PLUGIN_DIR.'/templates/confirm_body.txt');
 	$confirmed_subject = file_get_contents($WPR_PLUGIN_DIR."/templates/confirmed_subject.txt");

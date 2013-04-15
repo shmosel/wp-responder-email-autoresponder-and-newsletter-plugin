@@ -3,7 +3,7 @@ function validateEmail($email)
 
 {
     //test with regular expressions.
-    return eregi('^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.([a-zA-Z]{2,4})$',$email);
+    return preg_match('/^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.([a-zA-Z]{2,4})$/',$email);
 }
 
 function _wpr_option_get($name)
@@ -46,7 +46,7 @@ function wpr_replace_tags($sid,&$subject,&$body,$additional = array())
 	$subscriber = $subscriber[0];
 	$nid = $subscriber->nid;
 	
-	$newsletter = new Newsletter($nid);
+	$newsletter = Newsletter::getNewsletter($nid);
 
 	$parameters = array();
 
@@ -68,7 +68,7 @@ function wpr_replace_tags($sid,&$subject,&$body,$additional = array())
 
 	//blog url
 
-	$parameters['homeurl'] = get_bloginfo("home");
+	$parameters['homeurl'] = get_bloginfo("url");
 
 	//subscriber name
 
@@ -193,7 +193,7 @@ function wpr_make_subscriber_temptable($nid)
 
 	$fields = array();
 
-	$tables = array();
+	$table = array();
 
 	$args = array();
 
@@ -392,11 +392,11 @@ function wpr_place_tags($sid,&$strings,$additional=array())
 
 	//blog name 
 
-	$parameters['sitename'] = get_bloginfo("name");d;
+	$parameters['sitename'] = get_bloginfo("name");
 
 	//blog url
 
-	$parameters['homeurl'] = get_bloginfo("home");
+	$parameters['homeurl'] = home_url();
 
 	//subscriber name
 

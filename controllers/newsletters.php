@@ -6,12 +6,12 @@ function _wpr_newsletter_form_validate(&$info,&$errors,$whetherToValidateNameUni
     $errors = array();
     if (empty($_POST['name']))
     {
-        $errors[] = __("The newsletter name field was left empty. Please fill it in to continue.");
+        $errors[] = __("The newsletter name field was left empty. Please fill it in to continue.",'wpr_autoresponder');
         $info['name'] = '';
     }
     else if ($whetherToValidateNameUniqueness===true && checkIfNewsletterNameExists($_POST['name']))
     {
-        $errors[] = __("A newsletter with that name already exists. ");
+        $errors[] = __("A newsletter with that name already exists. ",'wpr_autoresponder');
         $info['name'] = '';
     }
     else
@@ -20,7 +20,7 @@ function _wpr_newsletter_form_validate(&$info,&$errors,$whetherToValidateNameUni
     }
     if (empty($_POST['fromname']))
     {
-        $errors[] = __("The 'From Name' field was left empty. Please fill it in to continue. ");
+        $errors[] = __("The 'From Name' field was left empty. Please fill it in to continue. ",'wpr_autoresponder');
         $info['fromname'] = '';
     }
     else
@@ -30,12 +30,12 @@ function _wpr_newsletter_form_validate(&$info,&$errors,$whetherToValidateNameUni
 
      if (empty($_POST['fromemail']))
      {
-        $errors[] = __("The 'From Email' field was left empty. Please fill it in to continue. ");
+        $errors[] = __("The 'From Email' field was left empty. Please fill it in to continue. ",'wpr_autoresponder');
         $info['fromemail'] = '';
      }
      else if (!validateEmail($_POST['fromemail']))
      {
-         $errors[] = __("The email address provided for 'From Email' is not a valid e-mail address. Please enter a valid email address.");
+         $errors[] = __("The email address provided for 'From Email' is not a valid e-mail address. Please enter a valid email address.",'wpr_autoresponder');
          $info['fromemail'] = '';
      }
      else
@@ -79,9 +79,9 @@ function _wpr_newsletter_edit()
         $newsletter = _wpr_newsletter_get($id);
         _wpr_set("parameters",$newsletter);
     }    
-    _wpr_set("heading",__("Edit Newsletter"));
+    _wpr_set("heading",__("Edit Newsletter",'wpr_autoresponder'));
     _wpr_set("edit",true);
-    _wpr_set("button_text",__("Save Changes"));
+    _wpr_set("button_text",__("Save Changes",'wpr_autoresponder'));
     _wpr_set("wpr_form","newsletter_edit_form");
 }
 
@@ -89,13 +89,13 @@ function _wpr_newsletter_edit_form_post_handler()
 {
     $info = array();
     $errors = array();
-    
+   
     _wpr_newsletter_form_validate($info,$errors,false);
-    
+
     if (count($errors) ===0)
     {
         _wpr_newsletter_update($info);
-        $newsletter_home = _wpr_admin_url("newsletter");
+        $newsletter_home = "admin.php?page=_wpr/newsletter";
         wp_redirect($newsletter_home);
         exit;
     }
@@ -115,7 +115,7 @@ function _wpr_newsletter_create_form_post_handler()
     if (count($errors) ===0)
     {
         _wpr_newsletter_create($info);
-        $newsletter_home = _wpr_admin_url("newsletter");
+        $newsletter_home = "admin.php?page=_wpr/newsletter";
         wp_redirect($newsletter_home);
         exit;
     }
@@ -145,9 +145,9 @@ function _wpr_newsletter_add()
         $newsletter = _wpr_newsletter_get($id);
         _wpr_set("parameters",$newsletter);
     }
-    _wpr_set("heading",__("Create Newsletter"));
+    _wpr_set("heading",__("Create Newsletter",'wpr_autoresponder'));
     _wpr_set("edit",false);
-    _wpr_set("button_text",__("Create Newsletter"));
+    _wpr_set("button_text",__("Create Newsletter",'wpr_autoresponder'));
     _wpr_set("wpr_form","newsletter_create_form");
 }
 
@@ -165,7 +165,8 @@ function _wpr_newsletter_home()
 
 function _wpr_newsletter_handler()
 {
-    $action = @$_GET['act'];
+    $action = (isset($_GET['act']))?$_GET['act']:null;
+
 	switch ($action)
 	{
             case 'add':
@@ -217,20 +218,19 @@ function _wpr_newsletter_update($info)
 
 	$info = (object) $info;
 
-	$query = "UPDATE  ".$wpdb->prefix."wpr_newsletters SET name='$info->name', reply_to='$info->reply_to', description='$info->description', confirm_subject='$info->confirm_subject', confirm_body='$info->confirm_body',confirmed_subject='$info->confirmed_subject',confirmed_body='$info->confirmed_body', `fromname`='$info->fromname', `fromemail`='$info->fromemail' where id='$info->id';";
+	$query = "UPDATE  ".$wpdb->prefix."wpr_newsletters SET name='$info->name', reply_to='$info->reply_to', description='$info->description', `fromname`='$info->fromname', `fromemail`='$info->fromemail' where id='$info->id';";
 
 	$result = $wpdb->query($query);
 }
 
 function _wpr_newsletter_create($info)
-
 {
-
 	global $wpdb;
 
 	$info = (object) $info;
 
-	$query = "INSERT INTO ".$wpdb->prefix."wpr_newsletters (name,reply_to, description,confirm_subject,confirm_body,confirmed_subject,confirmed_body,fromname,fromemail) values ('$info->name','$info->reply_to','$info->description','$info->confirm_subject','$info->confirm_body','$info->confirmed_subject','$info->confirmed_body','$info->fromname','$info->fromemail');";
+
+	$query = "INSERT INTO ".$wpdb->prefix."wpr_newsletters (name,reply_to, description, fromname, fromemail) values ('$info->name','$info->reply_to','$info->description','$info->fromname','$info->fromemail');";
 
 	$wpdb->query($query);
 }
@@ -252,7 +252,7 @@ function _wpr_newsletter_delete()
 	$prefix = $wpdb->prefix;
 	$nid = $_GET['nid'];
 	try {
-		$newsletter = new Newsletter($nid);
+		$newsletter = Newsletter::getNewsletter($nid);
 	}
 	catch (Exception $excp)
 	{
@@ -263,7 +263,7 @@ function _wpr_newsletter_delete()
 	if (isset($_GET['confirmed']) && $_GET['confirmed'] == 'true')
 	{
 		$newsletter->delete();
-		$newsletter_home = Routing::newsletterHome();
+		$newsletter_home = "admin.php?page=_wpr/newsletter";
 		wp_redirect($newsletter_home);
 	}
 		
@@ -271,7 +271,7 @@ function _wpr_newsletter_delete()
 	$emails_pending_count_result = $wpdb->get_results($getEmailsPendingDeliveryQuery);
 	$number_pending = $emails_pending_count_result[0]->number;
 	
-	_wpr_set("newsletter_name",$newsletter->getNewsletterName());
+	_wpr_set("newsletter_name",$newsletter->getName());
 	_wpr_set("subscriber_count",$newsletter->getNumberOfActiveSubscribers());
 	_wpr_set("_wpr_view","newsletter_delete");
 	_wpr_set("nid",$nid);
