@@ -4,7 +4,7 @@
 Plugin Name: WP Autoresponder
 Plugin URI: http://www.wpresponder.com
 Description: Gather subscribers in newsletters, follow up with automated e-mails, provide subscription to all posts in your blog or individual categories.
-Version: 5.3.2
+Version: 5.3.3
 Author: Raj Sekharan
 Author URI: http://www.nodesman.com/
 */
@@ -23,7 +23,7 @@ if (!defined("WPR_DEFS")) {
     $modelsDir = WPR_DIR."/models";
     $helpersDir = WPR_DIR."/helpers";
 
-    define("WPR_VERSION", "5.3");
+    define("WPR_VERSION", "5.3.3");
     define("WPR_PLUGIN_DIR", "$plugindir");
 
 
@@ -48,6 +48,7 @@ if (!defined("WPR_DEFS")) {
     include_once WPR_DIR . "/forms.php";
     include_once WPR_DIR . '/newmail.php';
     include_once WPR_DIR . '/subscribers.php';
+    include_once WPR_DIR . '/htmltemplates.lib.php';
     include_once WPR_DIR . '/wpr_deactivate.php';
     include_once WPR_DIR . '/all_mailouts.php';
     include_once WPR_DIR . '/actions.php';
@@ -170,10 +171,6 @@ if (!defined("WPR_DEFS")) {
             if (_wpr_whether_wpresponder_admin_page())
                 Routing::run_controller();
 
-            add_action('edit_post', "wpr_edit_post_save");
-            add_action('admin_action_edit','wpr_enqueue_post_page_scripts');
-            add_action('load-post-new.php','wpr_enqueue_post_page_scripts');
-            add_action('publish_post', "wpr_add_post_save");
         }
     }
 
