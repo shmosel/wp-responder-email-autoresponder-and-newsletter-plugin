@@ -68,7 +68,7 @@ And get in touch with me.
 
 **WP Autoresponder v5.3.3**
 
-* Complete rewrite of autoresponder process and UI.
+* Complete rewrite of autoresponder process and UI, added behaviror - autoresponder now resumes progress from whence it left off if the plugin is disabled for a certain period of time. 
 * Fixed issue with non-delivery of blog posts
 * Fixed inability to save changes to a newsletter
 * Fixed WPR interfering with other cron dependent plugins.
