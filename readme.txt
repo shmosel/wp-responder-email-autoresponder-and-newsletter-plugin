@@ -66,62 +66,35 @@ And get in touch with me.
 
 == ChangeLog ==
 
-**WP Responder 4.9.2**
+**WP Autoresponder v5.3.3**
 
-Bug Fixes:
+* Complete rewrite of autoresponder process and UI.
+* Fixed issue with non-delivery of blog posts
+* Fixed inability to save changes to a newsletter
+* Fixed WPR interfering with other cron dependent plugins.
+* Fixed non-functional Import functionality. 
+* Fixed saving subscription form settings causing slashes getting added to confirmation emails.
+* Removed unused files from application.
+* Updated swiftmailer to v4.1.7
+* Updated ckeditor to version v4.0
+* Removed non-functional customization of recipeint feature in blog broadcast
+* Removed unused provision to customize blog post email body in [Posts] > Add New/Edit screen.
 
-* In the autoresponder series page, the HTML body is disabled by default. 
-* When preview email is sent there is an error when there is an image in the post. 
-* The preview email doesn't replace the [!email!] field with the email address. 
-* The  optin page has a spelling mistake in the title - "addres"
-* The subscription form should show only the autoresponders that have been created for the currently selected newsletter. 
-* There are some empty rows in the blog subscription table - Rows with null data. 
-* The preview email takes get_bloginfo("adminemail") when the from email is not set in the preview email form in the autoresponder messages page.
-* There is a field called [!!] in the autoresponder page in the list of custom fields in the new broadcast field.
-*  Breaks are inserted in the confirm and confirmation e-mail templates when they are saved or displayed in the form.
-* Scheduling/Rescheduling a broadcast threw an error saying you were trying to schedule a broadcast in the future.
-* If the src of images specified in a e-mail's HTML body is a HTTP url, then the user will see warnings when previewing e-mail or running the WPR Cron.
-* The new broadcast form did not validate the subject, textbody and HTML body fields. Now it does. 
+**WP Autoresponder v5.2.7 **
 
-New Features:
+Code Changes:
 
-* Added mechanism to delete subscription forms.
-
-**WP Responder 4.9.3**
-
-Bug Fixes:
-
-* Preview e-mail button wasn't working in the form for add new messages to autoresponder series
-* Sometimes users will not be able to create a newsletter using the create newsletter form
-* Subscriber profile page did not allow editing a subscriber's custom field values if they are subscribed to more than one newsletter.
-
-* If multiple autoresponder messages were scheduled to be delivered on the same day, only one will be delivered.
-* Subscription form allowed the selection of any autoresponder for any newsletter.
-
-New Features:
-
-* Automatic Subscriber Transfer - Automatically deactivate a subscriber of Newsletter A when they subscribe to Newsletter B. Ideal for separating buyers from prospects.
-* Delete subscribers in mass
-* Delete subscription forms in mass
-* Put subscription forms in sidebar using widgets!
-
-
-**WP Responder 4.9.4.2**
-
-Bug Fixes:
-
-* PHP Syntax error when users try to subscribe to any newsletter. Occurs sometimes. 
-* The fseek function calls in Swift library have been silenced so that they don't throw an error when sending an e-mail that has an image with a source which is a HTTP url. 
-* Subscription forms now do not accept malformed e-mail addresses.
-
-New Features
-
-* Small antispam measure in subscription forms
-* Subscription forms now have a lot of span tags so that they can be easily themed if needed.
-
+* Centrailzed delivery record insertion for blog posts: The delivery record for blog post is now inserted at the function that delivers blog post as against in the processes that perform blog post deliveries
+* Properly escaped all queries in optin.php
+* Prevented SQL errors from occuring during initial installation
+* Prevented crons from being scheduled again when they are already scheduled
+* Modified autoresponder subscribers query to not return duplicate rows
+* Made the subscription form's follow-up selection interface extensible so that a custom follow-up type can be added by an external plugin
+* Removed ad placeholder from settings page. Some other time. In some other form. 
+* Fixed incorrect query arguments for fetching list of categories in blog category processing
+* Fixed administration area slowed down by the plugin
 
 **WP Responder 4.9.5.1**
-
 
 New Features:
 
@@ -147,17 +120,59 @@ er-and-newsletter-plugin/subscribers.php on line 157'. Fixed
 
 * Invalid e-mail addresses in the database prevent all broadcasts from being processed further. This resulted in the plugin not sending any e-mail when a broadcast is scheduled/dispatched.
 
+**WP Responder 4.9.4.2**
 
-**WP Autoresponder v5.2.7 **
+Bug Fixes:
 
-Code Changes:
+* PHP Syntax error when users try to subscribe to any newsletter. Occurs sometimes. 
+* The fseek function calls in Swift library have been silenced so that they don't throw an error when sending an e-mail that has an image with a source which is a HTTP url. 
+* Subscription forms now do not accept malformed e-mail addresses.
 
-* Centrailzed delivery record insertion for blog posts: The delivery record for blog post is now inserted at the function that delivers blog post as against in the processes that perform blog post deliveries
-* Properly escaped all queries in optin.php
-* Prevented SQL errors from occuring during initial installation
-* Prevented crons from being scheduled again when they are already scheduled
-* Modified autoresponder subscribers query to not return duplicate rows
-* Made the subscription form's follow-up selection interface extensible so that a custom follow-up type can be added by an external plugin
-* Removed ad placeholder from settings page. Some other time. In some other form. 
-* Fixed incorrect query arguments for fetching list of categories in blog category processing
-* Fixed administration area slowed down by the plugin
+New Features
+
+* Small antispam measure in subscription forms
+* Subscription forms now have a lot of span tags so that they can be easily themed if needed.
+
+
+**WP Responder 4.9.3**
+
+Bug Fixes:
+
+* Preview e-mail button wasn't working in the form for add new messages to autoresponder series
+* Sometimes users will not be able to create a newsletter using the create newsletter form
+* Subscriber profile page did not allow editing a subscriber's custom field values if they are subscribed to more than one newsletter.
+
+* If multiple autoresponder messages were scheduled to be delivered on the same day, only one will be delivered.
+* Subscription form allowed the selection of any autoresponder for any newsletter.
+
+New Features:
+
+* Automatic Subscriber Transfer - Automatically deactivate a subscriber of Newsletter A when they subscribe to Newsletter B. Ideal for separating buyers from prospects.
+* Delete subscribers in mass
+* Delete subscription forms in mass
+* Put subscription forms in sidebar using widgets!
+
+**WP Responder 4.9.2**
+
+Bug Fixes:
+
+* In the autoresponder series page, the HTML body is disabled by default. 
+* When preview email is sent there is an error when there is an image in the post. 
+* The preview email doesn't replace the [!email!] field with the email address. 
+* The  optin page has a spelling mistake in the title - "addres"
+* The subscription form should show only the autoresponders that have been created for the currently selected newsletter. 
+* There are some empty rows in the blog subscription table - Rows with null data. 
+* The preview email takes get_bloginfo("adminemail") when the from email is not set in the preview email form in the autoresponder messages page.
+* There is a field called [!!] in the autoresponder page in the list of custom fields in the new broadcast field.
+*  Breaks are inserted in the confirm and confirmation e-mail templates when they are saved or displayed in the form.
+* Scheduling/Rescheduling a broadcast threw an error saying you were trying to schedule a broadcast in the future.
+* If the src of images specified in a e-mail's HTML body is a HTTP url, then the user will see warnings when previewing e-mail or running the WPR Cron.
+* The new broadcast form did not validate the subject, textbody and HTML body fields. Now it does. 
+
+New Features:
+
+* Added mechanism to delete subscription forms.
+
+
+
+
