@@ -6,7 +6,7 @@ Requires at least: 2.8.2
 Tested up to: 3.5.1
 Stable tag: 5.3.4
 
-With WP Autoresponder you can create email newsletters, follow up autoresponders and provide subscription to blog via e-mail.  
+Gather subscribers, manage them in separate newsletters, send follow-up emails, send broadcasts, send blog post deliveries all in one plugin. 
 
 == Description ==  
 
@@ -22,8 +22,6 @@ This is a email newsletter and autoresponder plugin. With this plugin you can cr
 * Provide email subscription to specific categories in your blog
 * Import your subscribers from Feedburner and Aweber.
 * Define rules to unsubscribe users from one newsletter if they subscribe to another newsletter. 
-
-The newsletters work indepedent of the working of the blog. This plugin is aimed as an alternative to Aweber, Mailchimp and other paid services. You DO NOT need a third party service or license to use this plugin
 
 == Installation ==
 
