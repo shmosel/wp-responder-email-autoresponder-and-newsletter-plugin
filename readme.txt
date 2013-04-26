@@ -4,7 +4,7 @@ Donate link: http://wpresponder.com/donate/
 Tags: email, newsletter, autoresponder, subscribers, mailing list, follow up email autoresponder, email marketing  
 Requires at least: 2.8.2  
 Tested up to: 3.5.1
-Stable tag: 5.3.3
+Stable tag: 5.3.4
 
 With WP Autoresponder you can create email newsletters, follow up autoresponders and provide subscription to blog via e-mail.  
 
@@ -65,6 +65,12 @@ And get in touch with me.
 
 
 == ChangeLog ==
+
+**WP Autoresponder v5.3.4** 
+
+* Fixed issue with autoresponder process not functioning on servers running PHP 5 < 5.3
+* Fixed paging element not included in the autorespodner messages management page. 
+* Fixed inability to use [!name!] in autoresponder emails. 
 
 **WP Autoresponder v5.3.3**
 
