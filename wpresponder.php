@@ -4,7 +4,7 @@
 Plugin Name: WP Autoresponder
 Plugin URI: http://www.wpresponder.com
 Description: Gather subscribers in newsletters, follow up with automated e-mails, provide subscription to all posts in your blog or individual categories.
-Version: 5.3.4
+Version: 5.3.4.1
 Author: Raj Sekharan
 Author URI: http://www.nodesman.com/
 */
@@ -72,7 +72,10 @@ if (!defined("WPR_DEFS")) {
     include_once WPR_DIR . '/other/blog_crons.php';
     include_once WPR_DIR . '/other/maintain.php';
     include_once WPR_DIR . '/widget.php';
+
+    //processes
     include_once WPR_DIR . '/processes/autoresponder_process.php';
+    include_once WPR_DIR . '/processes/broadcast_processor.php';
 
 
     include_once WPR_DIR . '/conf/routes.php';
@@ -140,8 +143,6 @@ if (!defined("WPR_DEFS")) {
                 wpr_enqueue_post_page_scripts();
             }
 
-
-
             if (_wpr_whether_confirmed_subscription_request())
                 _wpr_render_confirmed_subscription_page();
             if (Routing::is_subscription_management_page_request())
@@ -200,12 +201,11 @@ if (!defined("WPR_DEFS")) {
         $querystring  = $_SERVER['QUERY_STRING'];
 
         if (isset($_GET['page']) && preg_match("@^_wpr/@", $_GET['page'])) {
-            wp_enqueue_script('post');
             wp_enqueue_script('jquery');
-            wp_enqueue_script('jqueryui-full');
+            wp_enqueue_script('jquery-ui-core');
+            wp_enqueue_script('jquery-ui-tabs');
             wp_enqueue_script("wpresponder-scripts");
-
-
+            wp_enqueue_script('post');
         }
 
 
@@ -213,7 +213,7 @@ if (!defined("WPR_DEFS")) {
 
 
         if (preg_match("@newmail\.php@", $url) || preg_match("@autoresponder\.php@", $url) || $whetherBroadcastEditPage == true) {
-            wp_enqueue_script("wpresponder-ckeditor");
+              wp_enqueue_script("wpresponder-ckeditor");
             wp_enqueue_script("jquery");
         }
 
