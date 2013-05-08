@@ -106,6 +106,9 @@ function changeTemplate(editor,nameOfTextArea)
                 CKEDITOR.replace('rich_body_field', {
                     'width': '713px',
                     'height': '330px',
+                    'baseHref': WPRConfig.ckeditor_baseHref,
+                    'language': 'en',
+                    'defaultLanguage': 'en',
                     'toolbarGroups': [
                         { name: 'source', items: ['Source']},
                         { name: 'document' },
@@ -120,6 +123,14 @@ function changeTemplate(editor,nameOfTextArea)
                         { name: 'paragraph',   groups: [ 'list', 'indent', 'blocks', 'align' ] }
                     ]
                 });
+
+
+                var editor = CKEDITOR.instances['rich_body_field'];
+
+                editor.on('instanceReady', function() {
+                    jQuery(".rich-text-loader").hide();
+                });
+
             };
 
             var switchToAppropriateTab = function () {
