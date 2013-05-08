@@ -4,7 +4,7 @@ Donate link: http://wpresponder.com/donate/
 Tags: email, newsletter, autoresponder, subscribers, mailing list, follow up email autoresponder, email marketing  
 Requires at least: 2.8.2  
 Tested up to: 3.5.1
-Stable tag: 5.3.5
+Stable tag: 5.3.7
 
 Gather subscribers, manage them in separate newsletters, send follow-up emails, send broadcasts, send blog post deliveries all in one plugin. 
 
@@ -63,6 +63,12 @@ And get in touch with me.
 
 
 == ChangeLog ==
+
+**WP Autoresponder v5.3.6**
+
+* Fixed issue with rich text editor not loading in autoresponder screen
+* Fixed wrong wording in german language for subscription status on subscribers management page. 
+* Fixed wrong from name in broadcast emails. 
 
 **WP Autoresponder v5.3.4** 
 

@@ -1,6 +1,7 @@
 <?php
 
-    class AutoresponderProcessor
+
+    class AutoresponderProcessor extends WPRBackgroundProcess
     {
         private static $processor;
 
