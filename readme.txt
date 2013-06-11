@@ -10,6 +10,8 @@ Gather subscribers, manage them in separate newsletters, send follow-up emails, 
 
 == Description ==  
 
+**Development Discontinued. **
+
 This is a email newsletter and autoresponder plugin. With this plugin you can create:
 
 * Create unlimited number of newsletter lists
