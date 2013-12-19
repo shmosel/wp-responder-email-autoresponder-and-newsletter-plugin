@@ -3,7 +3,7 @@ Contributors: nodesman
 Donate link: http://wpresponder.com/donate/  
 Tags: email, newsletter, autoresponder, subscribers, mailing list, follow up email autoresponder, email marketing  
 Requires at least: 2.8.2  
-Tested up to: 3.5.1
+Tested up to: 3.8
 Stable tag: 5.3.9
 
 Gather subscribers, manage them in separate newsletters, send follow-up emails, send broadcasts, send blog post deliveries all in one plugin. 
