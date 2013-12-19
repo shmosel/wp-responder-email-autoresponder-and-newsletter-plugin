@@ -66,6 +66,10 @@ And get in touch with me.
 
 **WP Autoresponder v5.3.6**
 
+* Fixed newsletter broadcasts going out to the entire subscriber list of every newsletter when a broadcast is made. 
+
+**WP Autoresponder v5.3.6**
+
 * Fixed issue with rich text editor not loading in autoresponder screen
 * Fixed wrong wording in german language for subscription status on subscribers management page. 
 * Fixed wrong from name in broadcast emails. 
