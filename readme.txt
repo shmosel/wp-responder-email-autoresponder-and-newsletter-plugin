@@ -1,5 +1,5 @@
-=== WP Autoresponder And Newsletter Plugin ===  
-Contributors: rajasekharan
+=== Javelin Email Marketing ===  
+Contributors: nodesman
 Donate link: http://wpresponder.com/donate/  
 Tags: email, newsletter, autoresponder, subscribers, mailing list, follow up email autoresponder, email marketing  
 Requires at least: 2.8.2  
