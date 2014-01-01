@@ -2,7 +2,6 @@
 
 add_action("post_updated","_wpr_blog_subscription_post_updated",10,3);
 
-
 function _wpr_blog_subscription_post_updated($post_id,$post_after,$post_before)
 {
     global $wpdb;
@@ -573,7 +572,7 @@ function _wpr_blog_subscription_get_category_post_to_deliver($subscription)
 
 function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$whetherPostSeries=false,$additionalParams=array())
 {
-    global $wpdb;
+    global $wpdb, $javelinQueue;
     //get the post meta
     $sid = (int) $sid;
     $post_id = (int) $post_id;
@@ -662,7 +661,6 @@ function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$
                             "htmlbody"=>$htmlbody,
                             "textbody"=>$textbody,
                             "htmlenabled"=>1,
-                            "attachimages"=>true,
 							'meta_key'=> $meta_key,
 							);
        }
@@ -677,7 +675,6 @@ function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$
              $params = array("subject"=>$options[$nid]['subject'],
                             "htmlbody"=>$htmlBody,
                             "textbody"=>$options[$nid]['textbody'].strip_tags("$footerMessage"),
-                            "attachimages"=>($options[$nid]['attachimages'])?1:0,
                             "htmlenabled"=> $htmlEnabled,
 							'meta_key'=> $meta_key
                  );
@@ -689,9 +686,8 @@ function deliverBlogPost($sid,$post_id,$footerMessage="",$checkCondition=false,$
        $params['textbody'] = substitutePostRelatedShortcodes($params['textbody'],$post_id);
 	   
 	   //substitute newsletter related parameters.
-	   
-       wpr_place_tags($sid,$params);
-       sendmail($sid,$params);
+
+       $javelinQueue->enqueue(new Subscriber($sid),$params);
 
        $insertDeliveryRecordQuery = sprintf("INSERT INTO `%swpr_delivery_record` (sid, type, eid, timestamp)
                                             VALUES

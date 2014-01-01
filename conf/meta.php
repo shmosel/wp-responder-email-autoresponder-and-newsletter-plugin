@@ -54,7 +54,7 @@ $database_structure["wpr_subscription_form"] = array(
         'confirm_body' => "TEXT CHARACTER SET utf8 COLLATE utf8_bin NOT NULL",
         'confirmed_subject' => "TEXT CHARACTER SET utf8 COLLATE utf8_bin NOT NULL",
         'confirmed_body' => "TEXT CHARACTER SET utf8 COLLATE utf8_bin NOT NULL",
-        'confirm_url' => "VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL",
+        'confirm_url' => "VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL",
         'submit_button' => "VARCHAR(45) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL DEFAULT 'Subscribe'"
     ),
 
@@ -80,11 +80,9 @@ $database_structure["wpr_queue"] = array(
         'date' => 'INT DEFAULT 0',
         'sid' => 'INT DEFAULT 0',
         'delivery_type' => "tinyint(1) NOT NULL DEFAULT '0'",
-        'email_type' => "enum('user_verify_email','user_confirmed_email','user_followup_autoresponder_email','user_followup_postseries_email','user_blogsubscription_email','user_blogcategorysubscription_email','user_unsubscribed_notification_email','critical_queue_limit_approaching_email','system_subscription_errors_email','system_analytics_email','misc') COLLATE utf8_bin NOT NULL DEFAULT 'misc'",
         'hash' => 'VARCHAR(32)  NOT NULL',
         'meta_key' => 'VARCHAR(30)  NOT NULL',
         'htmlenabled' => "TINYINT NOT NULL DEFAULT 1",
-        'attachimages' => "TINYINT DEFAULT 0"
     ),
     'auto_increment' => 'id',
     'primary_key' => "id",
@@ -103,8 +101,6 @@ $database_structure["wpr_newsletter_mailouts"] = array('columns' => array(
     'htmlbody' => "TEXT CHARACTER SET utf8 COLLATE utf8_bin NOT NULL",
     'time' => "VARCHAR(25) NOT NULL",
     'status' => "TINYINT NOT NULL",
-    'recipients' => "TEXT DEFAULT NULL",
-    'attachimages' => "TINYINT DEFAULT 0",
 ),
     'auto_increment' => 'id',
     'primary_key' => "id",
@@ -201,15 +197,16 @@ $database_structure["wpr_blog_series"] = array('columns' => array(
         "unique_names_for_blog_series" => array("name")
     )
 );
-$database_structure["wpr_autoresponder_messages"] = array('columns' => array(
-    'id' => " INT NOT NULL",
-    'aid' => " INT NOT NULL",
-    'subject' => " text CHARACTER SET utf8 COLLATE utf8_bin  NOT NULL",
-    'htmlenabled' => " TINYINT NOT NULL DEFAULT 1",
-    'textbody' => " text CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL",
-    'htmlbody' => " text CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL",
-    'sequence' => " INT DEFAULT 0"
-),
+$database_structure["wpr_autoresponder_messages"] = array(
+    'columns' => array(
+        'id' => " INT NOT NULL",
+        'aid' => " INT NOT NULL",
+        'subject' => " text CHARACTER SET utf8 COLLATE utf8_bin  NOT NULL",
+        'htmlenabled' => " TINYINT NOT NULL DEFAULT 1",
+        'textbody' => " text CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL",
+        'htmlbody' => " text CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL",
+        'sequence' => " INT DEFAULT 0"
+    ),
     'primary_key' => "id",
     'unique' => array(
         "only_one_email_for_a_day_in_followup" => array("aid", "sequence")
@@ -354,7 +351,6 @@ define("WPR_MAX_DELIVERY_RECORD_TABLE_SIZE", 1073741824); // maximum size of the
 define("WPR_MAX_QUEUE_EMAILS_SENT_PER_ITERATION", 100); //maximum number of emails that will be loaded to memory per iteration
 define("WPR_MAX_BLOG_SUBSCRIPTION_PROCESSED_PER_ITERATION", 100); //maximum number of blog post subscriptions that will be loaded to memory per iteration
 
-define("WPR_AUTORESPONDER_BATCH_SIZE", 1000); //the autoresponder processor can run for a maximum of 5 minutes at a time.
 define("WPR_MAX_QUEUE_DELIVERY_EXECUTION_TIME", 300); //the queue delivery burst can run for a maximum of 5 minutes at a time.
 define("WPR_MAX_POSTSERIES_PROCESS_EXECUTION_TIME", 300); //the postseries processor can run for a maximum of 5 minutes at a time.
 define("WPR_MAX_NEWSLETTER_PROCESS_EXECUTION_TIME", 1800); //the newsletter broadcast processor can run for a maximum of half an hour at a time.

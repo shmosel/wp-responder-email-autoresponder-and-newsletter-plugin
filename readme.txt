@@ -3,8 +3,8 @@ Contributors: nodesman
 Donate link: http://wpresponder.com/donate/  
 Tags: email, newsletter, autoresponder, subscribers, mailing list, follow up email autoresponder, email marketing  
 Requires at least: 2.8.2  
-Tested up to: 3.5.1
-Stable tag: 5.3.9
+Tested up to: 3.8
+Stable tag: 5.3.10
 
 Gather subscribers, manage them in separate newsletters, send follow-up emails, send broadcasts, send blog post deliveries all in one plugin. 
 
@@ -64,6 +64,12 @@ And get in touch with me.
 
 == ChangeLog ==
 
+**WP Autoresponder v5.3.10**
+
+* Fixed unable to create new newsletter
+* Fixed unable to save settings to subscription form
+* Complete rewrite of email enqueue API and newsletter broadcast delivery processor.
+
 **WP Autoresponder v5.3.6**
 
 * Fixed issue with rich text editor not loading in autoresponder screen
@@ -103,81 +109,6 @@ Code Changes:
 * Removed ad placeholder from settings page. Some other time. In some other form. 
 * Fixed incorrect query arguments for fetching list of categories in blog category processing
 * Fixed administration area slowed down by the plugin
-
-**WP Responder 4.9.5.1**
-
-New Features:
-
-* When delivering blog posts as a part of a post series, the plugin was checking if a post has been disabled and skipping it. It doesn't do so anymore. All posts in a post series category will be delivered regardless of the skip settings. 
-
-* The blog email customization features were hidden when the blog e-mail customization was disabled. Now the fields are merely disabled. 
-
-* The blog email customization was enabled by default. Now it is disabled by default. 
-
-* The import/export feature was rebuilt so that the user can now select all the rows and columns in the CSV file themselves. This means all types of CSV files can now be supported. No more confusion about what format the CSV files are to be used. 
-
-* The format in which the plugin exports data is now in a standard easily understandable CSV format.
-
-Bug Fixes:
-
-* The subscribers who unsubscribed were marked as Transfered in the subscribers management page. This has been corrected.
-
-* The new/edit broadcast page was erroneously coded to check if the scheduled time is in the past even if the dispatch time is 'Immediately'.
-
-* Deleting a subscriber threw the error: 'Catchable fatal error: Object of class stdClass could not be
-converted to string in wp_dir/wp-content/plugins/wp-responder-email-autorespond
-er-and-newsletter-plugin/subscribers.php on line 157'. Fixed
-
-* Invalid e-mail addresses in the database prevent all broadcasts from being processed further. This resulted in the plugin not sending any e-mail when a broadcast is scheduled/dispatched.
-
-**WP Responder 4.9.4.2**
-
-Bug Fixes:
-
-* PHP Syntax error when users try to subscribe to any newsletter. Occurs sometimes. 
-* The fseek function calls in Swift library have been silenced so that they don't throw an error when sending an e-mail that has an image with a source which is a HTTP url. 
-* Subscription forms now do not accept malformed e-mail addresses.
-
-New Features
-
-* Small antispam measure in subscription forms
-* Subscription forms now have a lot of span tags so that they can be easily themed if needed.
-
-
-**WP Responder 4.9.3**
-
-Bug Fixes:
-
-* Preview e-mail button wasn't working in the form for add new messages to autoresponder series
-* Sometimes users will not be able to create a newsletter using the create newsletter form
-* Subscriber profile page did not allow editing a subscriber's custom field values if they are subscribed to more than one newsletter.
-
-* If multiple autoresponder messages were scheduled to be delivered on the same day, only one will be delivered.
-* Subscription form allowed the selection of any autoresponder for any newsletter.
-
-New Features:
-
-* Automatic Subscriber Transfer - Automatically deactivate a subscriber of Newsletter A when they subscribe to Newsletter B. Ideal for separating buyers from prospects.
-* Delete subscribers in mass
-* Delete subscription forms in mass
-* Put subscription forms in sidebar using widgets!
-
-**WP Responder 4.9.2**
-
-Bug Fixes:
-
-* In the autoresponder series page, the HTML body is disabled by default. 
-* When preview email is sent there is an error when there is an image in the post. 
-* The preview email doesn't replace the [!email!] field with the email address. 
-* The  optin page has a spelling mistake in the title - "addres"
-* The subscription form should show only the autoresponders that have been created for the currently selected newsletter. 
-* There are some empty rows in the blog subscription table - Rows with null data. 
-* The preview email takes get_bloginfo("adminemail") when the from email is not set in the preview email form in the autoresponder messages page.
-* There is a field called [!!] in the autoresponder page in the list of custom fields in the new broadcast field.
-*  Breaks are inserted in the confirm and confirmation e-mail templates when they are saved or displayed in the form.
-* Scheduling/Rescheduling a broadcast threw an error saying you were trying to schedule a broadcast in the future.
-* If the src of images specified in a e-mail's HTML body is a HTTP url, then the user will see warnings when previewing e-mail or running the WPR Cron.
-* The new broadcast form did not validate the subject, textbody and HTML body fields. Now it does. 
 
 New Features:
 

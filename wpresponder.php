@@ -4,7 +4,7 @@
 Plugin Name: Javelin
 Plugin URI: http://www.nodesman.com
 Description: Gather subscribers in newsletters, follow up with automated e-mails, provide subscription to all posts in your blog or individual categories.
-Version: 5.3.9
+Version: 5.3.10
 Author: Raj Sekharan
 Author URI: http://www.nodesman.com/
 */
@@ -54,7 +54,11 @@ if (!defined("WPR_DEFS")) {
     include_once WPR_DIR . '/actions.php';
     include_once WPR_DIR . '/blogseries.lib.php';
     include_once WPR_DIR . '/lib.php';
+
     include_once WPR_DIR . '/conf/meta.php';
+    include_once WPR_DIR . '/conf/config.php';
+    include_once WPR_DIR . '/conf/global_constants.php';
+
     include_once WPR_DIR . '/lib/swift_required.php';
     include_once WPR_DIR . '/lib/admin_notifications.php';
     include_once WPR_DIR . '/lib/global.php';
@@ -171,7 +175,7 @@ if (!defined("WPR_DEFS")) {
         public function whetherBroadcastCompositionScreen()
         {
 
-            return isset($_GET['page']) && ('wpresponder/newmail.php' == $_GET['page'] || ('wpresponder/allmailouts.php' == $_GET['page'] && 'edit' == $_GET['action']));
+            return ('wpresponder/newmail.php' == $_GET['page'] || ('wpresponder/allmailouts.php' == $_GET['page'] && isset($_GET['action']) && 'edit' == $_GET['action'] ));
         }
 
         function admin_init()
@@ -319,6 +323,8 @@ if (!defined("WPR_DEFS")) {
 
     function whetherActionsPage()
     {
+        if (!isset($_GET['page']))
+            return false;
         return 'wpresponder/actions.php' == $_GET['page'];
     }
 

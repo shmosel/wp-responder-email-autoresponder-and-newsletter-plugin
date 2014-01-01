@@ -1,7 +1,8 @@
 <?php
 function wpr_all_mailouts()
 {
-	switch ($_GET['action'])
+	$action = (isset($_GET['action']))?$_GET['action']:'';
+	switch ($action)
 	{
 		case 'edit':
 		
@@ -54,11 +55,9 @@ function _wpr_edit_mailout()
 		$htmlbody = trim($_POST['htmlbody']);
 		$whentosend = $_POST['whentosend'];	
 		$date = $_POST['date'];
-		
-		$attachimages = (isset($_POST['attachimages']) && $_POST['attachimages'] ==1)?1:0;																
+
 		$htmlenabled  = (isset($_POST['htmlenabled']) && $_POST['htmlenabled'] == "on");
 
-		$recipients = $_POST['recipients'];
 		$hour = $_POST['hour'];
 		$min = $_POST['minute'];
 		$id = $_POST['mid'];
@@ -94,17 +93,25 @@ function _wpr_edit_mailout()
 		
 		if (!$error)
 		{
-			$query = "UPDATE ".$wpdb->prefix."wpr_newsletter_mailouts set subject='$subject', textbody='$textbody', htmlbody='$htmlbody',time='$timeToSend',attachimages='$attachimages',recipients='$recipients', nid='$nid' where id=$id;";
+			$query = "UPDATE ".$wpdb->prefix."wpr_newsletter_mailouts set subject='$subject', textbody='$textbody', htmlbody='$htmlbody',time='$timeToSend', nid='$nid' where id=$id;";
 			$wpdb->query($query);
 			_wpr_mail_sending();
 			return;
 		}
 		
-		$param = (object)  array("nid"=>$nid,"textbody"=>$textbody,"subject"=>$subject,"htmlbody"=>$htmlbody,"htmlenabled"=>!empty($htmlbody),"whentosend"=>$whentosend,"time"=>$timeToSend,"title"=>"New Mail","buttontext"=>"Save Broadcast");
+		$param = (object)  array(
+            "nid"=>$nid,
+            "textbody"=>$textbody,
+            "subject"=>$subject,
+            "htmlbody"=>$htmlbody,
+            "htmlenabled"=>!empty($htmlbody),
+            "whentosend"=>$whentosend,
+            "time"=>$timeToSend,
+            "title"=>"New Mail",
+            "buttontext"=>"Save Broadcast"
+        );
 
 	}
-	
-	
 	
 	wpr_mail_form($param,"new",$error);	
 }
@@ -148,7 +155,6 @@ function _wpr_pending_mailouts()
         <th>Subject</th>
         <th>Newsletter</th>
         <th>To Be Sent at*</th>
-        <th>Recipients</th>
         <th>Actions</th>
       </thead>
      </tr>
@@ -163,8 +169,6 @@ function _wpr_pending_mailouts()
            <td><?php 
 		   echo date("g:ia \o\\n dS F Y",$mailout->time + ($offset * 3600)); ?>
 </td>
-           <td><?php $recipients = implode("<br>",explode("%set%",$mailout->recipients));
-		   echo ($recipients)?$recipients:"All Subscribers";?></td>
            <td><input type="button" value="Edit" class="button" onclick="window.location='admin.php?page=wpresponder/allmailouts.php&action=edit&id=<?php echo $mailout->id ?>';" /><input type="button" value="Cancel" class="button" onclick="deleteMailout(<?php echo $mailout->id ?>)" /></td>
         </tr>
         <?php
@@ -188,7 +192,6 @@ function _wpr_finished_mailouts()
         <th>Subject</th>
         <th>Newsletter</th>
         <th>Sent at*</th>
-        <th>Recipients</th>
         <th>Actions</th>
       </thead>
      </tr>
@@ -201,9 +204,6 @@ function _wpr_finished_mailouts()
            <td><?php $newsletter = _wpr_newsletter_get($mailout->nid);
 		   echo $newsletter->name ?></td>
            <td><?php echo date("g:ia d F Y",$mailout->time + ($offset * 3600)); ?></td>
-           <td><?php $recipients = implode("<br>",explode("%set%",$mailout->recipients));
-		   echo ($recipients)?$recipients:"All Subscribers";
-		   ?></td>
            <td><a href="<?php echo $_SERVER['REQUEST_URI']?>&action=show_broadcast&id=<?php echo $mailout->id ?>" class="button" style="margin:10px; margin-top:20px;" >View Broadcast</a></td>
         </tr>
         <?php

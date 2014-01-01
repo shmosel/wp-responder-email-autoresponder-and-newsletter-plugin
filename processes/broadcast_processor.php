@@ -1,80 +1,16 @@
 <?php
-/**
- * Created by JetBrains PhpStorm.
- * User: rajasekharan
- * Date: 26/04/13
- * Time: 6:12 PM
- * To change this template use File | Settings | File Templates.
- */
+include_once __DIR__."/../models/iterators/pending_broadcasts.php";
+include_once __DIR__."/../models/iterators/confirmed_newsletter_subscribers_list.php";
 
-class BroadcastProcessor extends WPRBackgroundProcess{
+class BroadcastProcessor extends JavelinBackgroundProcess {
 
+    public static function run(DateTime $time = null) {
 
-    public static function run() {
-        $timeNow = new DateTime();
-        self::run_for_time($timeNow);
-    }
-    private static function getBroadcasts(DateTime $time) {
+        if (null == $time)
+            $time = new DateTime();
 
-        global $wpdb;
-        $query = sprintf("SELECT * FROM `{$wpdb->prefix}wpr_newsletter_mailouts` WHERE `status` = 0 AND `time` <= %d;", strtotime($time->format("Y-m-d H:i:s")));
-        $mailouts = $wpdb->get_results($query);
-        return $mailouts;
-    }
-
-    public static function run_for_time(DateTime $time) {
-
-        global $wpdb;
-        $broadcasts= self::getBroadcasts($time);
-
-
+        $broadcasts = new PendingBroadcasts($time);
         foreach ($broadcasts as $broadcast)
-        {
-            $nid = intval($broadcast->nid);
-            $getSubscribersForBroadcastQuery = sprintf("SELECT subscribers.* FROM `{$wpdb->prefix}wpr_subscribers` `subscribers`, `{$wpdb->prefix}wpr_newsletters` `newsletters` WHERE `newsletters`.`id`=`subscribers`.`nid` AND nid=%d AND  `subscribers`.`active`=1 AND `subscribers`.`confirmed`=1", $nid);
-            $subscribersList = $wpdb->get_results($getSubscribersForBroadcastQuery);
-            $subject = $broadcast->subject;
-            $html_body = $broadcast->htmlbody;
-            $newsletter = Newsletter::getNewsletter($nid);
-
-
-            if (0 < count($subscribersList))
-            {
-                foreach ($subscribersList as $subscriber)
-                {
-                    $sid = $subscriber->id;
-                    $meta_key = self::getMetaKey($sid, $broadcast);
-                    $emailParameters = array( "subject" => $subject,
-                        "fromname"=> $newsletter->getFromName(),
-                        "fromemail"=> $newsletter->getFromEmail(),
-                        "textbody" => $broadcast->textbody,
-                        "htmlbody" => $broadcast->htmlbody,
-                        "htmlenabled"=> (empty($html_body))?0:1,
-                        "attachimages"=> 1,
-                        "meta_key"=> $meta_key
-                    );
-
-                    foreach ($emailParameters as $index=>$value) {
-                        $emailParameters[$index] = Subscriber::replaceCustomFieldValues($value, $sid);
-                    }
-
-                    sendmail($sid,$emailParameters);
-                }
-            }
-
-            mailout_expire($broadcast->id);
-        }
+           $broadcast->deliver();
     }
-
-    /**
-     * @param $sid
-     * @param $broadcast
-     * @return string
-     */
-    public static function getMetaKey($sid, $broadcast)
-    {
-        return sprintf("BR-%s-%s-%s", $sid, $broadcast->id, $broadcast->nid);
-    }
-
-
 }

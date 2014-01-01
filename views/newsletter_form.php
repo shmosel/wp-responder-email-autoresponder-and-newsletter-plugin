@@ -1,19 +1,33 @@
+<?php
+if (!isset($parameters) || count($parameters) == 0) 
+{
+	$parameters = (object) array (
+		'name' => '',
+		'fromname' => '',
+		'fromemail'=> '',
+		'reply_to' => '',
+		'id' => ''
+	);
+}
 
+?>
 <style>
-    td {
+td {
         padding: 10px;
 }
 </style>
 <?php
-if (count($errors) > 0)
+if (isset($errors) && count($errors) > 0)
 {
 ?>
-<div class="error fade">
-    <ol><?php
-
-$error_text = implode("<li>",$errors);
-
-echo "<li>$error_text"; ?></ol></div>
+	<div class="error fade">
+	    <ol>
+			<?php
+				$error_text = implode("<li>",$errors);
+				echo "<li>". $error_text;
+			?>
+		</ol>
+	</div>
 <?php
 }
 ?>
@@ -55,15 +69,6 @@ echo "<li>$error_text"; ?></ol></div>
       <td><label for="name"></label>
         <input size="45" type="text" name="reply_to" id="reply_to" value="<?php echo  $parameters->reply_to ?>" /></td>
     </tr>
-    <tr>
-      <td><strong>Public Description: (optional)</strong>
-        <p>This is a description that will be used in the unsubscription page to describe the newsletter when listing all the subscriptions of that subscriber.</p></td>
-      <td><label for="description"></label>
-        <textarea name="description" id="description" cols="45" rows="5"><?php echo $parameters->description ?></textarea></td>
-    </tr>
-
-        
-
     <tr>
       <td><label for="button"></label>
           <input type="hidden" name="wpr_form" value="<?php echo $wpr_form ?>" >

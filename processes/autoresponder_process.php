@@ -1,7 +1,7 @@
 <?php
 
 
-    class AutoresponderProcessor extends WPRBackgroundProcess
+    class AutoresponderProcessor extends JavelinBackgroundProcess
     {
         private static $processor;
 
@@ -15,7 +15,7 @@
             $this->process_messages($time);
         }
 
-        public function day_zero_for_subscriber($sid) {
+        public static function day_zero_for_subscriber($sid) {
             global $wpdb;
             $getSubscriptionQuery = sprintf("SELECT * FROM {$wpdb->prefix}wpr_followup_subscriptions WHERE sid=%d AND type='autoresponder' AND sequence=-1;", $sid);
             $subscriptions = $wpdb->get_results($getSubscriptionQuery);
@@ -103,23 +103,19 @@
 
         private function deliver($subscriber, AutoresponderMessage $message, DateTime $time) {
 
-            global $wpdb;
-            $htmlBody = $message->getHTMLBody();
-
-            $htmlenabled = (!empty($htmlBody))?1:0;
+            global $wpdb, $javelinQueue;
 
             $params= array(
                 'meta_key'=> sprintf('AR-%d-%d-%d-%d', $message->getAutoresponder()->getId(), $subscriber->sid, $message->getId(), $message->getDayNumber()),
                 'htmlbody' => $message->getHTMLBody(),
                 'textbody' => $message->getTextBody(),
-                'subject' => $message->getSubject(),
-                'htmlenabled'=> $htmlenabled
+                'subject' => $message->getSubject()
             );
 
-            sendmail($subscriber->sid, $params);
+            $subscriber_object = new Subscriber($subscriber->sid);
+            $javelinQueue->enqueue($subscriber_object, $params);
 
             $updateSubscriptionMarkingItAsProcessedForCurrentDay = sprintf("UPDATE %swpr_followup_subscriptions SET sequence=%d, last_date=%d WHERE id=%d", $wpdb->prefix, $message->getDayNumber(), strtotime($time->format("Y-m-d H:i:s")), $subscriber->id);
-
             $wpdb->query($updateSubscriptionMarkingItAsProcessedForCurrentDay);
 
         }

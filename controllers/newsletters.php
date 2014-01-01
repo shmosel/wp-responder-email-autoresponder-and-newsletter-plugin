@@ -60,7 +60,7 @@ function _wpr_newsletter_form_validate(&$info,&$errors,$whetherToValidateNameUni
     
      $info['id'] = $_POST['id'];
      
-     $info['description'] = $_POST['description'];
+
      $info['fromname'] = $_POST['fromname'];
      $info['fromemail'] = $_POST['fromemail'];
 
@@ -139,12 +139,6 @@ function checkIfNewsletterNameExists($name)
 function _wpr_newsletter_add()
 {
     _wpr_setview("newsletter_form");
-    if (!_wpr_isset("parameters"))
-    {
-        $id = $_GET['nid'];
-        $newsletter = _wpr_newsletter_get($id);
-        _wpr_set("parameters",$newsletter);
-    }
     _wpr_set("heading",__("Create Newsletter",'wpr_autoresponder'));
     _wpr_set("edit",false);
     _wpr_set("button_text",__("Create Newsletter",'wpr_autoresponder'));
@@ -218,7 +212,7 @@ function _wpr_newsletter_update($info)
 
 	$info = (object) $info;
 
-	$query = "UPDATE  ".$wpdb->prefix."wpr_newsletters SET name='$info->name', reply_to='$info->reply_to', description='$info->description', `fromname`='$info->fromname', `fromemail`='$info->fromemail' where id='$info->id';";
+	$query = "UPDATE  ".$wpdb->prefix."wpr_newsletters SET name='$info->name', reply_to='$info->reply_to', `fromname`='$info->fromname', `fromemail`='$info->fromemail' where id='$info->id';";
 
 	$result = $wpdb->query($query);
 }
@@ -230,7 +224,7 @@ function _wpr_newsletter_create($info)
 	$info = (object) $info;
 
 
-	$query = "INSERT INTO ".$wpdb->prefix."wpr_newsletters (name,reply_to, description, fromname, fromemail) values ('$info->name','$info->reply_to','$info->description','$info->fromname','$info->fromemail');";
+	$query = "INSERT INTO ".$wpdb->prefix."wpr_newsletters (name,reply_to, fromname, fromemail) values ('$info->name','$info->reply_to','$info->fromname','$info->fromemail');";
 
 	$wpdb->query($query);
 }
