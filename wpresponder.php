@@ -4,7 +4,7 @@
 Plugin Name: Javelin
 Plugin URI: http://www.nodesman.com
 Description: Gather subscribers in newsletters, follow up with automated e-mails, provide subscription to all posts in your blog or individual categories.
-Version: 5.3.10
+Version: 5.3.9
 Author: Raj Sekharan
 Author URI: http://www.nodesman.com/
 */
