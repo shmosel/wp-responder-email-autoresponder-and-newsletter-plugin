@@ -3,8 +3,8 @@ Contributors: nodesman
 Donate link: http://wpresponder.com/donate/  
 Tags: email, newsletter, autoresponder, subscribers, mailing list, follow up email autoresponder, email marketing  
 Requires at least: 2.8.2  
-Tested up to: 3.8
-Stable tag: 5.3.11
+Tested up to: 3.8.1
+Stable tag: 5.3.12
 
 Gather subscribers, manage them in separate newsletters, send follow-up emails, send broadcasts, send blog post deliveries all in one plugin. 
 
@@ -55,14 +55,16 @@ There may be two causes for this:
 
 **I need your help  to integrate WP Responder wwith some application/customize it/etc**
 
-Please visit the plugin website:   
-  
-http://www.wpresponder.com
-  
-And get in touch with me. 
+Email me at: raj@nodesman.com
 
 
 == ChangeLog ==
+
+**Javelin v5.3.12**
+
+* Fixed inability to edit subscription form
+* Fixed autoresponder processor using the email's offset date as days since last email instead of days since subscription
+* Some more code cleanup
 
 **WP Autoresponder v5.3.10**
 
