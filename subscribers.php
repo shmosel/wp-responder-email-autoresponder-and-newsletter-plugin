@@ -591,7 +591,7 @@ function submitSearchQuery()
 	}
 	</script>
     <div style="float:right; border: 1px solid #ccc; padding:10px; background-color:#f0f0f0;">
-     <form name="searchForm" action="admin.php?page=wpresponder/subscribers.php&action=search" method="get">
+     <form name="searchForm" action="admin.php?page=wpresponder/subscribers.php&action=search" onsubmit="submitSearchQuery(); return false;" method="get">
     Search for subscribers whose : 
     <select name="stype">
       <option>Name</option>
@@ -599,7 +599,7 @@ function submitSearchQuery()
     </select> is like
     <input type="text" name="keyword" size="20" />
     <input type="hidden" name="search_form" value="1" />
-    <input type="button" onclick="submitSearchQuery();" value="Search" />
+    <input type="submit" value="Search" />
     <?php
 	if ($nid){ ?>
     <br/>
